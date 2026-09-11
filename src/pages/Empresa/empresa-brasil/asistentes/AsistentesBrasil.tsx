@@ -1,0 +1,1 @@
+export { AsistentesBrasil } from "../index";

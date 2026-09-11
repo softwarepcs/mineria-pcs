@@ -1,0 +1,30 @@
+.map-placeholder {
+  position: relative;
+  height: 280px;
+  border-radius: 12px;
+  border: 1px solid #1c2b45;
+  background: linear-gradient(135deg, #0f1a2e 0%, #0b1425 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.map-placeholder-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(#1c2b45 1px, transparent 1px),
+    linear-gradient(90deg, #1c2b45 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.5;
+}
+
+.map-placeholder-label {
+  position: relative;
+  color: #7f93b8;
+  font-size: 0.85rem;
+  background: #0b1425cc;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #1c2b45;
+}

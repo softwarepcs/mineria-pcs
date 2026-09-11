@@ -1,0 +1,1 @@
+export { MonitoreoBrasil } from "../index";

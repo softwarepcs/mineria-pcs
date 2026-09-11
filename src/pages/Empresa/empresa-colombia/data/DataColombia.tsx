@@ -1,0 +1,1 @@
+export { DataColombia } from "../index";

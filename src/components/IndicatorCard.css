@@ -1,0 +1,35 @@
+.indicator-card {
+  background: #0f1a2e;
+  border: 1px solid #1c2b45;
+  border-left: 4px solid #3b82f6;
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.indicator-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.indicator-label {
+  font-size: 0.78rem;
+  color: #a9b8d4;
+}
+
+.indicator-blue {
+  border-left-color: #3b82f6;
+}
+.indicator-green {
+  border-left-color: #22c55e;
+}
+.indicator-amber {
+  border-left-color: #f59e0b;
+}
+.indicator-red {
+  border-left-color: #ef4444;
+}

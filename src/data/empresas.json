@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "nombre": "Empresa Argentina",
+    "estado": "activa",
+    "indicadores": { "unidades": 12, "alertas": 3, "disponibilidad": 96 },
+    "menu": [
+      { "id": "home", "label": "Home", "path": "/empresa/1", "icon": "home" },
+      { "id": "asistentes", "label": "Asistentes", "path": "/empresa/1/asistentes", "icon": "anchor" },
+      {
+        "id": "database",
+        "label": "Base de Datos",
+        "icon": "database",
+        "children": [
+          {
+            "id": "motor-principal",
+            "label": "Motor Principal",
+            "path": "/empresa/1/motor-principal",
+            "icon": "activity"
+          }
+        ]
+      }
+    ],
+    "homeView": "flota",
+    "flota": {
+      "resumen": {
+        "equipos": 6,
+        "periodo": "Septiembre 2026",
+        "objetivoL100km": 40.0,
+        "reportando": 6,
+        "kmTotal": 35150,
+        "consumoTotalL": 14430,
+        "costoUsd": 15873,
+        "precioUsdPorL": 1.10,
+        "rendimientoMedioL100km": 41.1,
+        "desvioVsObjetivoPct": 2.6,
+        "ralentiFlotaPct": 16.2,
+        "ralentiLitros": 2338,
+        "ralentiUsd": 2572,
+        "emisionesCo2Ton": 38.7,
+        "horasMotor": 1133
+      },
+      "camiones": [
+        { "id": "c1", "placa": "AD 733 PQ", "km": 6510, "litros": 2880, "l100km": 44.2, "desvioPct": 10.6, "ralentiPct": 23, "horas": 226, "pctGasto": 20.0, "estado": "revisar", "lat": -11.995, "lng": -77.135 },
+        { "id": "c2", "placa": "AG 201 XN", "km": 6120, "litros": 2700, "l100km": 44.1, "desvioPct": 10.3, "ralentiPct": 21, "horas": 214, "pctGasto": 18.7, "estado": "revisar", "lat": -12.005, "lng": -77.125 },
+        { "id": "c3", "placa": "AE 412 KL", "km": 6240, "litros": 2510, "l100km": 40.2, "desvioPct": 0.6, "ralentiPct": 14, "horas": 198, "pctGasto": 17.4, "estado": "en_linea", "lat": -11.985, "lng": -77.140 },
+        { "id": "c4", "placa": "AE 559 TB", "km": 4970, "litros": 1940, "l100km": 39.0, "desvioPct": -2.4, "ralentiPct": 13, "horas": 154, "pctGasto": 13.4, "estado": "en_linea", "lat": -12.010, "lng": -77.115 },
+        { "id": "c5", "placa": "AF 087 MR", "km": 5880, "litros": 2290, "l100km": 38.9, "desvioPct": -2.6, "ralentiPct": 11, "horas": 176, "pctGasto": 15.9, "estado": "en_linea", "lat": -11.998, "lng": -77.108 },
+        { "id": "c6", "placa": "AD 918 JH", "km": 5430, "litros": 2110, "l100km": 38.9, "desvioPct": -2.9, "ralentiPct": 12, "horas": 165, "pctGasto": 14.6, "estado": "en_linea", "lat": -12.015, "lng": -77.130 }
+      ]
+    }
+  },
+  {
+    "id": 2,
+    "nombre": "Empresa Chile",
+    "estado": "activa",
+    "indicadores": { "unidades": 8, "alertas": 0, "disponibilidad": 99 },
+    "menu": [
+      { "id": "home-2", "label": "Home", "path": "/empresa/2", "icon": "home" },
+      {
+        "id": "monitoreo-2",
+        "label": "Monitoreo",
+        "icon": "activity",
+        "children": [
+          { "id": "tanques-2", "label": "Nivel de Tanques", "path": "/empresa/2/tanques", "icon": "droplet" },
+          { "id": "achiques-2", "label": "Achiques", "path": "/empresa/2/achiques", "icon": "droplet" },
+          { "id": "combustible-2", "label": "Resumen Combustible", "path": "/empresa/2/combustible", "icon": "fuel" }
+        ]
+      },
+      { "id": "asistentes-2", "label": "Asistentes", "path": "/empresa/2/asistentes", "icon": "anchor" },
+      { "id": "database-2", "label": "Data Base", "path": "/empresa/2/database", "icon": "database" }
+    ]
+  },
+  {
+    "id": 3,
+    "nombre": "Empresa Perú",
+    "estado": "activa",
+    "indicadores": { "unidades": 20, "alertas": 5, "disponibilidad": 91 },
+    "menu": [
+      { "id": "home-3", "label": "Home", "path": "/empresa/3", "icon": "home" },
+      { "id": "database-3", "label": "Data Base", "path": "/empresa/3/database", "icon": "database" }
+    ]
+  },
+  {
+    "id": 4,
+    "nombre": "Empresa Colombia",
+    "estado": "inactiva",
+    "indicadores": { "unidades": 4, "alertas": 1, "disponibilidad": 88 }
+  },
+  {
+    "id": 5,
+    "nombre": "Empresa México",
+    "estado": "activa",
+    "indicadores": { "unidades": 15, "alertas": 3, "disponibilidad": 94 }
+  },
+  {
+    "id": 6,
+    "nombre": "Empresa Brasil",
+    "estado": "activa",
+    "indicadores": { "unidades": 10, "alertas": 0, "disponibilidad": 100 }
+  }
+]

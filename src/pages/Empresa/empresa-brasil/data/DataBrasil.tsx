@@ -1,0 +1,1 @@
+export { DataBrasil } from "../index";

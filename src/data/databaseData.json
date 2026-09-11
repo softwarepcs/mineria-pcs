@@ -1,0 +1,24 @@
+{
+  "info": {
+    "origen": "Simulado Local (JSON)",
+    "estadoConexion": "Conectado",
+    "motorBdDestino": "PostgreSQL / TimescaleDB (Pendiente de migración API)",
+    "totalRegistros": 24890,
+    "ultimaSincronizacion": "2026-09-10 10:14:00"
+  },
+  "tablasDisponibles": [
+    { "nombre": "telemetria_camiones", "registros": 12450, "tamanoKb": 3200 },
+    { "nombre": "monitoreo_tanques", "registros": 4120, "tamanoKb": 850 },
+    { "nombre": "registro_alertas", "registros": 640, "tamanoKb": 120 },
+    { "nombre": "sensores_temperatura", "registros": 7680, "tamanoKb": 1450 }
+  ],
+  "registrosRecientes": [
+    { "id": "LOG-9921", "fecha": "2026-09-10 10:12:45", "dispositivo": "AD 733 PQ", "sensor": "flujo_combustible", "valor": "44.2 L/100km", "estado": "anomalia_desvio", "lat": -11.995, "lng": -77.135 },
+    { "id": "LOG-9920", "fecha": "2026-09-10 10:11:30", "dispositivo": "Tanque Babor T1", "sensor": "nivel_ultrasonico", "valor": "14,250 L (79.2%)", "estado": "ok", "lat": -11.995, "lng": -77.135 },
+    { "id": "LOG-9919", "fecha": "2026-09-10 10:10:18", "dispositivo": "AG 201 XN", "sensor": "ralenti_motor", "valor": "21 % (45 min)", "estado": "advertencia", "lat": -12.005, "lng": -77.125 },
+    { "id": "LOG-9918", "fecha": "2026-09-10 10:09:55", "dispositivo": "Cámara Frío 1", "sensor": "pt100_temp", "valor": "-19.4 °C", "estado": "ok", "lat": -11.995, "lng": -77.135 },
+    { "id": "LOG-9917", "fecha": "2026-09-10 10:08:40", "dispositivo": "AE 412 KL", "sensor": "gps_odometro", "valor": "6,240 km", "estado": "ok", "lat": -11.985, "lng": -77.140 },
+    { "id": "LOG-9916", "fecha": "2026-09-10 10:07:12", "dispositivo": "Sentina Ejes A3", "sensor": "presion_hidrostatica", "valor": "19 cm (Bomba ON)", "estado": "alerta_bomba", "lat": -11.995, "lng": -77.135 },
+    { "id": "LOG-9915", "fecha": "2026-09-10 10:05:01", "dispositivo": "AF 087 MR", "sensor": "flujo_combustible", "valor": "38.9 L/100km", "estado": "ok", "lat": -11.998, "lng": -77.108 }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "tanques": [
+    { "id": "t1", "nombre": "Tanque Combustible Principal Babor", "tipo": "Diesel", "capacidadL": 18000, "nivelActualL": 14250, "porcentaje": 79.2, "temperaturaC": 22.4, "estado": "normal" },
+    { "id": "t2", "nombre": "Tanque Combustible Principal Estribor", "tipo": "Diesel", "capacidadL": 18000, "nivelActualL": 13980, "porcentaje": 77.7, "temperaturaC": 22.1, "estado": "normal" },
+    { "id": "t3", "nombre": "Tanque Diario de Servicio", "tipo": "Diesel", "capacidadL": 3500, "nivelActualL": 3120, "porcentaje": 89.1, "temperaturaC": 28.5, "estado": "optimo" },
+    { "id": "t4", "nombre": "Tanque Agua Dulce", "tipo": "Agua potable", "capacidadL": 8000, "nivelActualL": 5200, "porcentaje": 65.0, "temperaturaC": 18.0, "estado": "normal" },
+    { "id": "t5", "nombre": "Tanque de Lastre Central", "tipo": "Lastre", "capacidadL": 12000, "nivelActualL": 2400, "porcentaje": 20.0, "temperaturaC": 16.5, "estado": "normal" }
+  ],
+  "achiques": [
+    { "id": "a1", "ubicacion": "Sentina Sala de Máquinas", "nivelAguaCm": 14, "umbralAlertaCm": 35, "bombaEstado": "standby", "caudalLmin": 0, "ultimaActivacion": "Hoy 04:15" },
+    { "id": "a2", "ubicacion": "Sentina Bodega Proa", "nivelAguaCm": 6, "umbralAlertaCm": 30, "bombaEstado": "standby", "caudalLmin": 0, "ultimaActivacion": "Ayer 18:40" },
+    { "id": "a3", "ubicacion": "Sentina Túnel de Ejes", "nivelAguaCm": 19, "umbralAlertaCm": 30, "bombaEstado": "activo", "caudalLmin": 145, "ultimaActivacion": "En curso" },
+    { "id": "a4", "ubicacion": "Sentina Timonera / Popa", "nivelAguaCm": 8, "umbralAlertaCm": 25, "bombaEstado": "standby", "caudalLmin": 0, "ultimaActivacion": "Ayer 09:20" }
+  ],
+  "frio": {
+    "compresores": [
+      { "id": "cp1", "nombre": "Compresor Frío 1 (Bitzer)", "estado": "activo", "presionSuccionBar": 1.8, "presionDescargaBar": 14.2, "horasOperacion": 3410, "amperajeA": 48 },
+      { "id": "cp2", "nombre": "Compresor Frío 2 (Auxiliar)", "estado": "standby", "presionSuccionBar": 0.0, "presionDescargaBar": 0.0, "horasOperacion": 1820, "amperajeA": 0 }
+    ],
+    "camaras": [
+      { "id": "cm1", "nombre": "Cámara Bodega N°1", "temperaturaC": -19.4, "setpointC": -20.0, "humedadPct": 88, "descongelamiento": "inactivo", "estado": "optimo" },
+      { "id": "cm2", "nombre": "Cámara Bodega N°2", "temperaturaC": -18.7, "setpointC": -20.0, "humedadPct": 85, "descongelamiento": "inactivo", "estado": "optimo" },
+      { "id": "cm3", "nombre": "Ante-cámara de Proceso", "temperaturaC": 2.1, "setpointC": 0.0, "humedadPct": 76, "descongelamiento": "inactivo", "estado": "normal" }
+    ]
+  },
+  "bnwas": {
+    "estadoGeneral": "operativo",
+    "modo": "Navegación automática",
+    "oficialDeGuardia": "Cap. M. Albarracín",
+    "segundosRestantes": 134,
+    "intervaloTotalSeg": 180,
+    "etapaActual": "Fase 1 (Dormante)",
+    "sensoresMovimiento": [
+      { "ubicacion": "Puente de mando (Proa)", "detectadoHaceSeg": 46 },
+      { "ubicacion": "Alerón Babor", "detectadoHaceSeg": 112 },
+      { "ubicacion": "Consola de Navegación", "detectadoHaceSeg": 46 }
+    ],
+    "historialAlarmas": [
+      { "hora": "08:14", "evento": "Reinicio por sensor de consola", "estado": "ok" },
+      { "hora": "06:30", "evento": "Cambio de guardia confirmado", "estado": "ok" },
+      { "hora": "03:15", "evento": "Pre-alerta visual etapa 1 silenciada a tiempo", "estado": "advertencia" }
+    ]
+  },
+  "combustible": {
+    "consumoHoyL": 980,
+    "flujoInstantaneoLh": 42.5,
+    "densidadKgM3": 845.2,
+    "eficienciaKmL": 2.38,
+    "horasNavegacionHoy": 14.5,
+    "desvioHistoricoPct": 1.8,
+    "historicoSemanal": [
+      { "dia": "Lun", "consumo": 920, "objetivo": 950 },
+      { "dia": "Mar", "consumo": 1040, "objetivo": 950 },
+      { "dia": "Mié", "consumo": 980, "objetivo": 950 },
+      { "dia": "Jue", "consumo": 890, "objetivo": 950 },
+      { "dia": "Vie", "consumo": 960, "objetivo": 950 },
+      { "dia": "Sáb", "consumo": 1010, "objetivo": 950 },
+      { "dia": "Dom", "consumo": 980, "objetivo": 950 }
+    ]
+  },
+  "rsw": {
+    "sistema": "Refrigerated Sea Water",
+    "estado": "enfriamiento_activo",
+    "tempAguaMarIngresoC": 14.6,
+    "tempAguaSalidaC": 0.4,
+    "setpointC": 0.0,
+    "presionCirculacionBar": 3.4,
+    "flujoM3h": 120,
+    "bombas": [
+      { "id": "b1", "nombre": "Bomba Circulación RSW 1", "estado": "activo", "rpm": 1450, "potenciaKw": 30 },
+      { "id": "b2", "nombre": "Bomba Circulación RSW 2", "estado": "standby", "rpm": 0, "potenciaKw": 30 }
+    ]
+  }
+}

@@ -1,0 +1,1 @@
+export { DataChile } from "../index";

@@ -1,0 +1,40 @@
+{
+  "camiones": [
+    { "id": "c1", "placa": "AD 733 PQ", "nombre": "Camión AD 733 PQ - Scania R500" },
+    { "id": "c2", "placa": "AG 201 XN", "nombre": "Camión AG 201 XN - Volvo FH" },
+    { "id": "c3", "placa": "AE 412 KL", "nombre": "Camión AE 412 KL - Mercedes Actros" },
+    { "id": "c4", "placa": "AE 559 TB", "nombre": "Camión AE 559 TB - Scania G440" },
+    { "id": "c5", "placa": "AF 087 MR", "nombre": "Camión AF 087 MR - Volvo FMX" },
+    { "id": "c6", "placa": "AD 918 JH", "nombre": "Camión AD 918 JH - Kenworth T800" }
+  ],
+  "telemetria": [
+    { "id": 1, "camionId": "c1", "placa": "AD 733 PQ", "fecha": "2026-09-01 08:10:15", "lat": -11.961767, "lng": -77.141783, "velocidad": 0.7, "rumbo": 302, "temIngreso": 53.7, "temRetorno": 57.5, "rpm": 452, "flujoIn": 132.1, "flujoRet": 127.5, "consumoGh": 4.5, "totalGal": 96663.4, "odometro": 8695, "porcPaso": -16 },
+    { "id": 2, "camionId": "c1", "placa": "AD 733 PQ", "fecha": "2026-09-02 09:25:30", "lat": -11.975420, "lng": -77.135210, "velocidad": 38.5, "rumbo": 185, "temIngreso": 61.2, "temRetorno": 64.8, "rpm": 1240, "flujoIn": 145.8, "flujoRet": 128.4, "consumoGh": 17.4, "totalGal": 96695.2, "odometro": 8732, "porcPaso": 8 },
+    { "id": 3, "camionId": "c1", "placa": "AD 733 PQ", "fecha": "2026-09-03 11:40:00", "lat": -11.992850, "lng": -77.129840, "velocidad": 42.1, "rumbo": 190, "temIngreso": 63.5, "temRetorno": 66.2, "rpm": 1310, "flujoIn": 152.0, "flujoRet": 132.2, "consumoGh": 19.8, "totalGal": 96738.0, "odometro": 8778, "porcPaso": 12 },
+    { "id": 4, "camionId": "c1", "placa": "AD 733 PQ", "fecha": "2026-09-04 14:15:22", "lat": -12.008400, "lng": -77.121500, "velocidad": 28.3, "rumbo": 165, "temIngreso": 64.1, "temRetorno": 67.0, "rpm": 1150, "flujoIn": 140.2, "flujoRet": 126.1, "consumoGh": 14.1, "totalGal": 96780.5, "odometro": 8815, "porcPaso": 4 },
+    { "id": 5, "camionId": "c1", "placa": "AD 733 PQ", "fecha": "2026-09-05 16:50:45", "lat": -12.024100, "lng": -77.115800, "velocidad": 55.4, "rumbo": 178, "temIngreso": 65.8, "temRetorno": 68.9, "rpm": 1450, "flujoIn": 165.4, "flujoRet": 138.2, "consumoGh": 27.2, "totalGal": 96845.0, "odometro": 8879, "porcPaso": 18 },
+    { "id": 6, "camionId": "c1", "placa": "AD 733 PQ", "fecha": "2026-09-06 09:17:14", "lat": -12.039800, "lng": -77.108200, "velocidad": 0.0, "rumbo": 302, "temIngreso": 54.2, "temRetorno": 58.1, "rpm": 500, "flujoIn": 131.5, "flujoRet": 126.8, "consumoGh": 4.7, "totalGal": 96885.1, "odometro": 8920, "porcPaso": -15 },
+    { "id": 7, "camionId": "c1", "placa": "AD 733 PQ", "fecha": "2026-09-07 10:30:10", "lat": -12.055200, "lng": -77.101500, "velocidad": 46.0, "rumbo": 150, "temIngreso": 62.4, "temRetorno": 65.8, "rpm": 1350, "flujoIn": 156.0, "flujoRet": 134.5, "consumoGh": 21.5, "totalGal": 96930.4, "odometro": 8965, "porcPaso": 10 },
+    { "id": 8, "camionId": "c1", "placa": "AD 733 PQ", "fecha": "2026-09-08 12:45:00", "lat": -12.068900, "lng": -77.094200, "velocidad": 51.2, "rumbo": 155, "temIngreso": 64.9, "temRetorno": 67.8, "rpm": 1410, "flujoIn": 160.2, "flujoRet": 136.0, "consumoGh": 24.2, "totalGal": 96985.0, "odometro": 9015, "porcPaso": 14 },
+    { "id": 9, "camionId": "c1", "placa": "AD 733 PQ", "fecha": "2026-09-09 15:20:18", "lat": -12.082500, "lng": -77.087100, "velocidad": 32.0, "rumbo": 142, "temIngreso": 63.0, "temRetorno": 66.1, "rpm": 1180, "flujoIn": 144.1, "flujoRet": 129.0, "consumoGh": 15.1, "totalGal": 97032.8, "odometro": 9054, "porcPaso": 5 },
+    { "id": 10, "camionId": "c1", "placa": "AD 733 PQ", "fecha": "2026-09-10 09:14:50", "lat": -12.095600, "lng": -77.080500, "velocidad": 0.8, "rumbo": 120, "temIngreso": 55.1, "temRetorno": 58.9, "rpm": 480, "flujoIn": 133.0, "flujoRet": 128.2, "consumoGh": 4.8, "totalGal": 97078.2, "odometro": 9092, "porcPaso": -12 },
+
+    { "id": 11, "camionId": "c2", "placa": "AG 201 XN", "fecha": "2026-09-01 08:30:00", "lat": -12.005000, "lng": -77.125000, "velocidad": 12.5, "rumbo": 210, "temIngreso": 56.2, "temRetorno": 60.1, "rpm": 780, "flujoIn": 138.4, "flujoRet": 129.1, "consumoGh": 9.3, "totalGal": 84120.0, "odometro": 7450, "porcPaso": 6 },
+    { "id": 12, "camionId": "c2", "placa": "AG 201 XN", "fecha": "2026-09-03 10:15:00", "lat": -12.018200, "lng": -77.118000, "velocidad": 44.2, "rumbo": 195, "temIngreso": 63.4, "temRetorno": 66.8, "rpm": 1380, "flujoIn": 158.2, "flujoRet": 135.0, "consumoGh": 23.2, "totalGal": 84190.5, "odometro": 7512, "porcPaso": 15 },
+    { "id": 13, "camionId": "c2", "placa": "AG 201 XN", "fecha": "2026-09-06 14:00:20", "lat": -12.032100, "lng": -77.110500, "velocidad": 48.0, "rumbo": 180, "temIngreso": 64.7, "temRetorno": 67.9, "rpm": 1420, "flujoIn": 162.0, "flujoRet": 137.1, "consumoGh": 24.9, "totalGal": 84265.0, "odometro": 7580, "porcPaso": 16 },
+    { "id": 14, "camionId": "c2", "placa": "AG 201 XN", "fecha": "2026-09-10 08:45:10", "lat": -12.046000, "lng": -77.103000, "velocidad": 0.0, "rumbo": 180, "temIngreso": 52.8, "temRetorno": 56.4, "rpm": 460, "flujoIn": 130.2, "flujoRet": 125.8, "consumoGh": 4.4, "totalGal": 84330.4, "odometro": 7640, "porcPaso": -18 },
+
+    { "id": 15, "camionId": "c3", "placa": "AE 412 KL", "fecha": "2026-09-02 07:45:00", "lat": -11.985000, "lng": -77.140000, "velocidad": 35.0, "rumbo": 160, "temIngreso": 60.1, "temRetorno": 63.5, "rpm": 1200, "flujoIn": 142.5, "flujoRet": 128.0, "consumoGh": 14.5, "totalGal": 71250.0, "odometro": 6240, "porcPaso": 2 },
+    { "id": 16, "camionId": "c3", "placa": "AE 412 KL", "fecha": "2026-09-05 11:20:00", "lat": -12.001000, "lng": -77.131000, "velocidad": 42.0, "rumbo": 175, "temIngreso": 62.0, "temRetorno": 65.2, "rpm": 1300, "flujoIn": 148.0, "flujoRet": 131.0, "consumoGh": 17.0, "totalGal": 71320.0, "odometro": 6310, "porcPaso": 1 },
+    { "id": 17, "camionId": "c3", "placa": "AE 412 KL", "fecha": "2026-09-09 16:10:00", "lat": -12.019000, "lng": -77.122000, "velocidad": 38.0, "rumbo": 185, "temIngreso": 61.5, "temRetorno": 64.6, "rpm": 1260, "flujoIn": 145.2, "flujoRet": 129.5, "consumoGh": 15.7, "totalGal": 71395.0, "odometro": 6385, "porcPaso": 0 },
+
+    { "id": 18, "camionId": "c4", "placa": "AE 559 TB", "fecha": "2026-09-02 09:00:00", "lat": -12.010000, "lng": -77.115000, "velocidad": 40.0, "rumbo": 145, "temIngreso": 59.8, "temRetorno": 62.9, "rpm": 1190, "flujoIn": 139.8, "flujoRet": 126.5, "consumoGh": 13.3, "totalGal": 62110.0, "odometro": 4970, "porcPaso": -3 },
+    { "id": 19, "camionId": "c4", "placa": "AE 559 TB", "fecha": "2026-09-07 13:30:00", "lat": -12.025000, "lng": -77.108000, "velocidad": 45.0, "rumbo": 155, "temIngreso": 61.2, "temRetorno": 64.1, "rpm": 1240, "flujoIn": 143.0, "flujoRet": 128.2, "consumoGh": 14.8, "totalGal": 62180.0, "odometro": 5040, "porcPaso": -2 },
+
+    { "id": 20, "camionId": "c5", "placa": "AF 087 MR", "fecha": "2026-09-03 10:40:00", "lat": -11.998000, "lng": -77.108000, "velocidad": 39.0, "rumbo": 170, "temIngreso": 60.5, "temRetorno": 63.8, "rpm": 1210, "flujoIn": 141.0, "flujoRet": 127.1, "consumoGh": 13.9, "totalGal": 68420.0, "odometro": 5880, "porcPaso": -3 },
+    { "id": 21, "camionId": "c5", "placa": "AF 087 MR", "fecha": "2026-09-08 15:15:00", "lat": -12.015000, "lng": -77.101000, "velocidad": 43.0, "rumbo": 165, "temIngreso": 61.8, "temRetorno": 64.9, "rpm": 1250, "flujoIn": 144.5, "flujoRet": 129.0, "consumoGh": 15.5, "totalGal": 68490.0, "odometro": 5950, "porcPaso": -2 },
+
+    { "id": 22, "camionId": "c6", "placa": "AD 918 JH", "fecha": "2026-09-04 08:50:00", "lat": -12.015000, "lng": -77.130000, "velocidad": 36.0, "rumbo": 190, "temIngreso": 59.2, "temRetorno": 62.4, "rpm": 1180, "flujoIn": 138.5, "flujoRet": 125.8, "consumoGh": 12.7, "totalGal": 59340.0, "odometro": 5430, "porcPaso": -4 },
+    { "id": 23, "camionId": "c6", "placa": "AD 918 JH", "fecha": "2026-09-09 14:20:00", "lat": -12.030000, "lng": -77.122000, "velocidad": 41.0, "rumbo": 185, "temIngreso": 60.9, "temRetorno": 63.8, "rpm": 1220, "flujoIn": 142.0, "flujoRet": 128.0, "consumoGh": 14.0, "totalGal": 59410.0, "odometro": 5500, "porcPaso": -3 }
+  ]
+}

@@ -1,0 +1,37 @@
+import type { Empresa } from "../../../types";
+
+export function HomeBrasil({ empresa }: { empresa: Empresa }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
+      <h2 className="text-xl font-bold text-white">Home · {empresa.nombre}</h2>
+      <p className="mt-2 text-sm text-slate-400">Módulo en construcción para {empresa.nombre}.</p>
+    </div>
+  );
+}
+
+export function MonitoreoBrasil({ empresaNombre }: { empresaNombre: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
+      <h2 className="text-xl font-bold text-white">Monitoreo · {empresaNombre}</h2>
+      <p className="mt-2 text-sm text-slate-400">Módulo en construcción para {empresaNombre}.</p>
+    </div>
+  );
+}
+
+export function DataBrasil({ empresaNombre }: { empresaNombre: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
+      <h2 className="text-xl font-bold text-white">Data Base · {empresaNombre}</h2>
+      <p className="mt-2 text-sm text-slate-400">Módulo en construcción para {empresaNombre}.</p>
+    </div>
+  );
+}
+
+export function AsistentesBrasil({ empresaNombre }: { empresaNombre: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
+      <h2 className="text-xl font-bold text-white">Asistentes · {empresaNombre}</h2>
+      <p className="mt-2 text-sm text-slate-400">Módulo en construcción para {empresaNombre}.</p>
+    </div>
+  );
+}

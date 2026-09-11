@@ -1,0 +1,1 @@
+export { DataMexico } from "../index";

@@ -1,0 +1,6 @@
+[
+  { "id": "as-1", "nombre": "Ing. Carlos Mendoza", "cargo": "Jefe de Mantenimiento y Flota", "turno": "08:00 - 18:00", "telefono": "+51 987 654 321", "estado": "disponible", "asignaciones": ["AD 733 PQ", "AG 201 XN"] },
+  { "id": "as-2", "nombre": "Téc. Lucía Fernández", "cargo": "Especialista en Refrigeración y RSW", "turno": "Guardia 24/7", "telefono": "+51 981 234 567", "estado": "en_campo", "asignaciones": ["Sistema de Frío", "Cámaras 1 y 2"] },
+  { "id": "as-3", "nombre": "Cap. Martín Albarracín", "cargo": "Oficial de Puente y Navegación", "turno": "Guardia Navegación", "telefono": "+51 976 543 210", "estado": "activo", "asignaciones": ["Sistema BNWAS", "Control Puente"] },
+  { "id": "as-4", "nombre": "Téc. Roberto Gómez", "cargo": "Operador de Combustible y Tanques", "turno": "06:00 - 14:00", "telefono": "+51 992 345 678", "estado": "disponible", "asignaciones": ["Tanques Diesel", "Sentinas"] }
+]

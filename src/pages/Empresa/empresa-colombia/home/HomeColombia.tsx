@@ -1,0 +1,1 @@
+export { HomeColombia } from "../index";
