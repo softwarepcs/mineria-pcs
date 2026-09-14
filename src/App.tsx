@@ -9,6 +9,7 @@ import { Dashboard } from "./pages/Dashboard/Dashboard";
 import { Empresas } from "./pages/Empresas/Empresas";
 import { EmpresaDetalle } from "./pages/Empresa/EmpresaDetalle";
 import { Usuarios } from "./pages/Usuarios/Usuarios";
+import { Configuracion } from "./pages/Configuracion/Configuracion";
 import { NotAuthorized } from "./pages/NotAuthorized/NotAuthorized";
 
 function App() {
@@ -73,6 +74,17 @@ function App() {
               <ProtectedRoute rolesPermitidos={[1]}>
                 <MainLayout>
                   <Usuarios />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/configuracion"
+            element={
+              <ProtectedRoute rolesPermitidos={[1, 2]}>
+                <MainLayout>
+                  <Configuracion />
                 </MainLayout>
               </ProtectedRoute>
             }

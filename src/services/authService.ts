@@ -1,31 +1,40 @@
-import usuariosData from "../data/usuarios.json";
-import type { Usuario, UsuarioSesion, Permisos } from "../types";
+import type { UsuarioSesion, Permisos } from "../types";
 
-const usuarios = usuariosData as Usuario[];
+const API_URL = 'http://localhost:3000';
 
 /**
- * Simula una llamada a API de autenticación.
- * En una fase posterior, este método debe reemplazarse por un
- * fetch/axios hacia un endpoint real (ej. POST /api/auth/login),
- * sin necesidad de modificar los componentes que lo consumen.
+ * Conecta con la API real del backend para la autenticación
  */
 export async function login(
   usuario: string,
   password: string
 ): Promise<UsuarioSesion> {
-  // Simula latencia de red
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    // El backend recibe 'email' en vez de 'usuario' según el modelo nuevo
+    body: JSON.stringify({ email: usuario, password })
+  });
 
-  const encontrado = usuarios.find(
-    (u) => u.usuario.toLowerCase() === usuario.toLowerCase() && u.password === password
-  );
-
-  if (!encontrado) {
+  if (!response.ok) {
     throw new Error("Usuario o contraseña incorrectos");
   }
 
-  const { password: _password, ...usuarioSesion } = encontrado;
-  return usuarioSesion;
+  const data = await response.json();
+  
+  // Guardar token JWT globalmente (para las siguientes llamadas)
+  localStorage.setItem('token', data.access_token);
+
+  // Mapear respuesta del backend a la interfaz del frontend
+  return {
+    id: data.usuario.id,
+    usuario: usuario,
+    nombre: data.usuario.nombres,
+    rol: data.roles?.includes('SuperAdmin') ? 1 : 3,
+    empresaId: data.empresaId || null
+  };
 }
 
 export function obtenerPermisos(rol: number): Permisos {

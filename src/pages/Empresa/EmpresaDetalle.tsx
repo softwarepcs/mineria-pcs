@@ -7,25 +7,24 @@ import { useAuth } from "../../hooks/useAuth";
 // Empresa Argentina
 import { HomeArgentina } from "./empresa-argentina/home/HomeArgentina";
 import { MotorPrincipal } from "./empresa-argentina/data/MotorPrincipal";
-import { AsistentesView } from "./empresa-argentina/asistentes/AsistentesView";
+import { AlertasView } from "./components/AlertasView";
 
 // Empresa Chile
-import { HomeChile, MonitoreoChile, DataChile, AsistentesChile } from "./empresa-chile";
+import { HomeChile, MonitoreoChile, DataChile } from "./empresa-chile";
 
 // Empresa Perú
 import { HomePeru } from "./empresa-peru/home/HomePeru";
 import { MonitoreoPeru } from "./empresa-peru/monitoreo/MonitoreoPeru";
 import { DataPeru } from "./empresa-peru/data/DataPeru";
-import { AsistentesPeru } from "./empresa-peru/asistentes/AsistentesPeru";
 
 // Empresa Colombia
-import { HomeColombia, MonitoreoColombia, DataColombia, AsistentesColombia } from "./empresa-colombia";
+import { HomeColombia, MonitoreoColombia, DataColombia } from "./empresa-colombia";
 
 // Empresa México
-import { HomeMexico, MonitoreoMexico, DataMexico, AsistentesMexico } from "./empresa-mexico";
+import { HomeMexico, MonitoreoMexico, DataMexico } from "./empresa-mexico";
 
 // Empresa Brasil
-import { HomeBrasil, MonitoreoBrasil, DataBrasil, AsistentesBrasil } from "./empresa-brasil";
+import { HomeBrasil, MonitoreoBrasil, DataBrasil } from "./empresa-brasil";
 
 export function EmpresaDetalle() {
   const { id, subruta } = useParams();
@@ -65,8 +64,8 @@ export function EmpresaDetalle() {
         case "motor-principal":
         case "database":
           return <MotorPrincipal empresaNombre={empresa.nombre} />;
-        case "asistentes":
-          return <AsistentesView empresaNombre={empresa.nombre} />;
+        case "alertas":
+          return <AlertasView empresaNombre={empresa.nombre} />;
         default:
           return <HomeArgentina empresa={empresa} />;
       }
@@ -78,8 +77,8 @@ export function EmpresaDetalle() {
         case "database":
         case "motor-principal":
           return <DataChile empresaNombre={empresa.nombre} />;
-        case "asistentes":
-          return <AsistentesChile empresaNombre={empresa.nombre} />;
+        case "alertas":
+          return <AlertasView empresaNombre={empresa.nombre} />;
         case "monitoreo":
         case "tanques":
         case "achiques":
@@ -96,8 +95,8 @@ export function EmpresaDetalle() {
         case "database":
         case "motor-principal":
           return <DataPeru empresaNombre={empresa.nombre} />;
-        case "asistentes":
-          return <AsistentesPeru empresaNombre={empresa.nombre} />;
+        case "alertas":
+          return <AlertasView empresaNombre={empresa.nombre} />;
         case "monitoreo":
           return <MonitoreoPeru empresaNombre={empresa.nombre} />;
         default:
@@ -110,8 +109,8 @@ export function EmpresaDetalle() {
       switch (subruta) {
         case "database":
           return <DataColombia empresaNombre={empresa.nombre} />;
-        case "asistentes":
-          return <AsistentesColombia empresaNombre={empresa.nombre} />;
+        case "alertas":
+          return <AlertasView empresaNombre={empresa.nombre} />;
         case "monitoreo":
           return <MonitoreoColombia empresaNombre={empresa.nombre} />;
         default:
@@ -124,8 +123,8 @@ export function EmpresaDetalle() {
       switch (subruta) {
         case "database":
           return <DataMexico empresaNombre={empresa.nombre} />;
-        case "asistentes":
-          return <AsistentesMexico empresaNombre={empresa.nombre} />;
+        case "alertas":
+          return <AlertasView empresaNombre={empresa.nombre} />;
         case "monitoreo":
           return <MonitoreoMexico empresaNombre={empresa.nombre} />;
         default:
@@ -138,8 +137,8 @@ export function EmpresaDetalle() {
       switch (subruta) {
         case "database":
           return <DataBrasil empresaNombre={empresa.nombre} />;
-        case "asistentes":
-          return <AsistentesBrasil empresaNombre={empresa.nombre} />;
+        case "alertas":
+          return <AlertasView empresaNombre={empresa.nombre} />;
         case "monitoreo":
           return <MonitoreoBrasil empresaNombre={empresa.nombre} />;
         default:

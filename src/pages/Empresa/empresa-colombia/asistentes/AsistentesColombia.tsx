@@ -1,1 +1,0 @@
-export { AsistentesColombia } from "../index";
