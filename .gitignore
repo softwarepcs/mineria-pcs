@@ -1,2 +1,69 @@
+# =================
+# DEPENDENCIAS
+# =================
+node_modules/
+jspm_packages/
+
+# =================
+# BUILDS Y COMPILACIÓN
+# =================
+/build/
+/dist/
+/.next/
+/out/
+.parcel-cache/
+.vite/
+.turbo/
+
+# =================
+# VARIABLES DE ENTORNO
+# =================
+# ¡Crítico para evitar filtrar claves de API o secretos!
 .env
-node_modules
+.env.local
+.env.*.local
+
+# =================
+# LOGS Y ERRORES
+# =================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# =================
+# PRUEBAS Y COBERTURA
+# =================
+/coverage/
+.nyc_output/
+
+# =================
+# EDITORES Y SISTEMA OPERATIVO
+# =================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDEs y Editores (VS Code, WebStorm, etc.)
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# =================
+# CACHÉ DE LINTING
+# =================
+.eslintcache
+.stylelintcache
