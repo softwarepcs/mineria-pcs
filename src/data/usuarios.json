@@ -1,66 +1,66 @@
 [
   {
     "id": 1,
-    "usuario": "admin",
     "password": "admin123",
     "nombre": "Administrador Principal",
     "rol": 1,
-    "empresaId": null
+    "empresaId": null,
+    "email": "admin@gmail.com"
   },
   {
     "id": 2,
-    "usuario": "supervisor",
     "password": "super123",
     "nombre": "Supervisor General",
     "rol": 2,
-    "empresaId": null
+    "empresaId": null,
+    "email": "supervisor@gmail.com"
   },
   {
     "id": 3,
-    "usuario": "empresa1",
     "password": "empresa123",
     "nombre": "Empresa Argentina",
     "rol": 3,
-    "empresaId": 1
+    "empresaId": 1,
+    "email": "empresa1@empresa.com"
   },
   {
     "id": 4,
-    "usuario": "empresa2",
     "password": "empresa123",
     "nombre": "Empresa Chile",
     "rol": 3,
-    "empresaId": 2
+    "empresaId": 2,
+    "email": "empresa2@empresa.com"
   },
   {
     "id": 5,
-    "usuario": "empresa3",
     "password": "empresa123",
     "nombre": "Empresa Perú",
     "rol": 3,
-    "empresaId": 3
+    "empresaId": 3,
+    "email": "empresa3@empresa.com"
   },
   {
     "id": 6,
-    "usuario": "empresa4",
     "password": "empresa123",
     "nombre": "Empresa Colombia",
     "rol": 3,
-    "empresaId": 4
+    "empresaId": 4,
+    "email": "empresa4@empresa.com"
   },
   {
     "id": 7,
-    "usuario": "empresa5",
     "password": "empresa123",
     "nombre": "Empresa México",
     "rol": 3,
-    "empresaId": 5
+    "empresaId": 5,
+    "email": "empresa5@empresa.com"
   },
   {
     "id": 8,
-    "usuario": "empresa6",
     "password": "empresa123",
     "nombre": "Empresa Brasil",
     "rol": 3,
-    "empresaId": 6
+    "empresaId": 6,
+    "email": "empresa6@empresa.com"
   }
 ]

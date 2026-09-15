@@ -6,11 +6,12 @@ export type Rol = 1 | 2 | 3;
 
 export interface Usuario {
   id: number;
-  usuario: string;
+  email: string;
   password: string;
   nombre: string;
   rol: Rol;
   empresaId: number | null;
+  empresaNombre?: string;
 }
 
 export type UsuarioSesion = Omit<Usuario, "password">;

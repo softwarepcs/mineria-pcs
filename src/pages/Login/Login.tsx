@@ -5,7 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 
 export function Login() {
   const { sesion, login, error } = useAuth();
-  const [usuario, setUsuario] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [verPassword, setVerPassword] = useState(false);
@@ -17,7 +17,7 @@ export function Login() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setEnviando(true);
-    await login(usuario, password);
+    await login(email, password);
     setEnviando(false);
   }
 
@@ -63,10 +63,10 @@ export function Login() {
             />
           </svg>
           <input
-            id="usuario"
-            type="text"
-            value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             autoComplete="username"
             required
             placeholder="usuario@empresa.com"

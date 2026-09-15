@@ -6,7 +6,7 @@ const API_URL = 'http://localhost:3000';
  * Conecta con la API real del backend para la autenticación
  */
 export async function login(
-  usuario: string,
+  email: string,
   password: string
 ): Promise<UsuarioSesion> {
   const response = await fetch(`${API_URL}/auth/login`, {
@@ -14,8 +14,8 @@ export async function login(
     headers: {
       'Content-Type': 'application/json'
     },
-    // El backend recibe 'email' en vez de 'usuario' según el modelo nuevo
-    body: JSON.stringify({ email: usuario, password })
+    // El backend recibe 'email'
+    body: JSON.stringify({ email, password })
   });
 
   if (!response.ok) {
@@ -30,9 +30,9 @@ export async function login(
   // Mapear respuesta del backend a la interfaz del frontend
   return {
     id: data.usuario.id,
-    usuario: usuario,
+    email: email,
     nombre: data.usuario.nombres,
-    rol: data.roles?.includes('SuperAdmin') ? 1 : 3,
+    rol: data.roles?.includes('SuperAdmin') ? 1 : data.roles?.includes('Admin') ? 2 : 3,
     empresaId: data.empresaId || null
   };
 }

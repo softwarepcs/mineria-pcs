@@ -6,7 +6,7 @@ import { Icon } from "../../../../components/Icon";
 
 interface TelemetriaPunto {
   id: number;
-  MaquinariaId: string;
+  maquinariaId: string;
   placa: string;
   fecha: string;
   lat: number;
@@ -41,7 +41,7 @@ function createNumberedIcon(num: number) {
 
 export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
   const [maquinarias] = useState(motorPrincipalData.maquinarias);
-  const [MaquinariaSeleccionado, setMaquinariaSeleccionado] = useState(maquinarias[0].id);
+  const [maquinariaSeleccionada, setMaquinariaSeleccionada] = useState(maquinarias[0].id);
   const [fechaInicio, setFechaInicio] = useState("2026-09-01");
   const [fechaFin, setFechaFin] = useState("2026-09-10");
 
@@ -98,7 +98,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
 
   // Al cambiar de camión/maquinaria: LIMPIAR la tabla y el mapa
   const handleCambioMaquinaria = (nuevoId: string) => {
-    setMaquinariaSeleccionado(nuevoId);
+    setMaquinariaSeleccionada(nuevoId);
     setResultados([]);
     setDatosCargadosEnMapa(false);
     if (markersGroupRef.current) {
@@ -112,7 +112,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
     const filtrados = todos.filter((t) => {
       const fechaCorta = t.fecha.split(" ")[0];
       return (
-        t.MaquinariaId === MaquinariaSeleccionado &&
+        t.maquinariaId === maquinariaSeleccionada &&
         fechaCorta >= fechaInicio &&
         fechaCorta <= fechaFin
       );
@@ -225,7 +225,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
     link.setAttribute("href", encodedUri);
     link.setAttribute(
       "download",
-      `MotorPrincipal_${maquinarias.find((c) => c.id === MaquinariaSeleccionado)?.placa || "telemetria"}.csv`
+      `MotorPrincipal_${maquinarias.find((c) => c.id === maquinariaSeleccionada)?.placa || "telemetria"}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -272,7 +272,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
                 Camión / Maquinaria <span className="text-red-400">*</span>
               </label>
               <select
-                value={MaquinariaSeleccionado}
+                value={maquinariaSeleccionada}
                 onChange={(e) => handleCambioMaquinaria(e.target.value)}
                 className="w-full rounded-lg border border-teal-300 bg-[#2dd4bf] px-3 py-2.5 text-sm font-bold text-slate-950 shadow-inner outline-none transition focus:ring-2 focus:ring-teal-200"
               >
