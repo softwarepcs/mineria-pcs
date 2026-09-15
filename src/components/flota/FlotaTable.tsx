@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { Camion } from "../../types";
+import type { Maquinaria } from "../../types";
 
-type Columna = keyof Pick<Camion, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto">;
+type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto">;
 
 const COLUMNAS: { key: Columna; label: string }[] = [
   { key: "km", label: "KM" },
@@ -14,17 +14,17 @@ const COLUMNAS: { key: Columna; label: string }[] = [
 ];
 
 export function FlotaTable({
-  camiones,
+  maquinarias,
   selectedId,
   onSelect,
 }: {
-  camiones: Camion[];
+  maquinarias: Maquinaria[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
   const [orden, setOrden] = useState<{ col: Columna; dir: "asc" | "desc" }>({ col: "desvioPct", dir: "desc" });
 
-  const ordenados = [...camiones].sort((a, b) =>
+  const ordenados = [...maquinarias].sort((a, b) =>
     orden.dir === "desc" ? b[orden.col] - a[orden.col] : a[orden.col] - b[orden.col]
   );
 
@@ -111,3 +111,4 @@ export function FlotaTable({
     </div>
   );
 }
+

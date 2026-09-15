@@ -6,7 +6,7 @@ import { Icon } from "../../../../components/Icon";
 
 interface TelemetriaPunto {
   id: number;
-  camionId: string;
+  MaquinariaId: string;
   placa: string;
   fecha: string;
   lat: number;
@@ -40,8 +40,8 @@ function createNumberedIcon(num: number) {
 }
 
 export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
-  const [camiones] = useState(motorPrincipalData.camiones);
-  const [camionSeleccionado, setCamionSeleccionado] = useState(camiones[0].id);
+  const [maquinarias] = useState(motorPrincipalData.maquinarias);
+  const [MaquinariaSeleccionado, setMaquinariaSeleccionado] = useState(maquinarias[0].id);
   const [fechaInicio, setFechaInicio] = useState("2026-09-01");
   const [fechaFin, setFechaFin] = useState("2026-09-10");
 
@@ -97,8 +97,8 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
   }, [capaMapa]);
 
   // Al cambiar de camión/maquinaria: LIMPIAR la tabla y el mapa
-  const handleCambioCamion = (nuevoId: string) => {
-    setCamionSeleccionado(nuevoId);
+  const handleCambioMaquinaria = (nuevoId: string) => {
+    setMaquinariaSeleccionado(nuevoId);
     setResultados([]);
     setDatosCargadosEnMapa(false);
     if (markersGroupRef.current) {
@@ -112,7 +112,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
     const filtrados = todos.filter((t) => {
       const fechaCorta = t.fecha.split(" ")[0];
       return (
-        t.camionId === camionSeleccionado &&
+        t.MaquinariaId === MaquinariaSeleccionado &&
         fechaCorta >= fechaInicio &&
         fechaCorta <= fechaFin
       );
@@ -225,7 +225,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
     link.setAttribute("href", encodedUri);
     link.setAttribute(
       "download",
-      `MotorPrincipal_${camiones.find((c) => c.id === camionSeleccionado)?.placa || "telemetria"}.csv`
+      `MotorPrincipal_${maquinarias.find((c) => c.id === MaquinariaSeleccionado)?.placa || "telemetria"}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -272,11 +272,11 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
                 Camión / Maquinaria <span className="text-red-400">*</span>
               </label>
               <select
-                value={camionSeleccionado}
-                onChange={(e) => handleCambioCamion(e.target.value)}
+                value={MaquinariaSeleccionado}
+                onChange={(e) => handleCambioMaquinaria(e.target.value)}
                 className="w-full rounded-lg border border-teal-300 bg-[#2dd4bf] px-3 py-2.5 text-sm font-bold text-slate-950 shadow-inner outline-none transition focus:ring-2 focus:ring-teal-200"
               >
-                {camiones.map((c) => (
+                {maquinarias.map((c) => (
                   <option key={c.id} value={c.id} className="bg-slate-900 text-white font-medium">
                     {c.placa} ({c.nombre})
                   </option>
@@ -478,3 +478,4 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
     </div>
   );
 }
+

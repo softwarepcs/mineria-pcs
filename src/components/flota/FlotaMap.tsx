@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { Camion } from "../../types";
+import type { Maquinaria } from "../../types";
 
-function truckIcon(estado: Camion["estado"], selected: boolean) {
+function truckIcon(estado: Maquinaria["estado"], selected: boolean) {
   const color = estado === "revisar" ? "#f59e0b" : "#22c55e";
   const size = selected ? 40 : 32;
   return L.divIcon({
@@ -24,11 +24,11 @@ function truckIcon(estado: Camion["estado"], selected: boolean) {
 }
 
 export function FlotaMap({
-  camiones,
+  maquinarias,
   selectedId,
   onSelect,
 }: {
-  camiones: Camion[];
+  maquinarias: Maquinaria[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
@@ -41,10 +41,9 @@ export function FlotaMap({
 
     const map = L.map(containerRef.current).setView([-12.0, -77.125], 13);
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-      subdomains: "abcd",
-      maxZoom: 19,
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
     mapRef.current = map;
@@ -61,7 +60,7 @@ export function FlotaMap({
     Object.values(markersRef.current).forEach((m) => m.remove());
     markersRef.current = {};
 
-    camiones.forEach((c) => {
+    maquinarias.forEach((c) => {
       const marker = L.marker([c.lat, c.lng], { icon: truckIcon(c.estado, c.id === selectedId) })
         .addTo(map)
         .bindPopup(
@@ -72,7 +71,7 @@ export function FlotaMap({
         .on("click", () => onSelect(c.id));
       markersRef.current[c.id] = marker;
     });
-  }, [camiones, selectedId, onSelect]);
+  }, [maquinarias, selectedId, onSelect]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -82,11 +81,11 @@ export function FlotaMap({
       map.closePopup();
       return;
     }
-    const camion = camiones.find((c) => c.id === selectedId);
-    if (!camion) return;
-    map.flyTo([camion.lat, camion.lng], 16, { duration: 0.8 });
+    const Maquinaria = maquinarias.find((c) => c.id === selectedId);
+    if (!Maquinaria) return;
+    map.flyTo([Maquinaria.lat, Maquinaria.lng], 16, { duration: 0.8 });
     markersRef.current[selectedId]?.openPopup();
-  }, [selectedId, camiones]);
+  }, [selectedId, maquinarias]);
 
   return (
     <div className="overflow-hidden rounded-xl border border-white/10">
@@ -94,3 +93,4 @@ export function FlotaMap({
     </div>
   );
 }
+

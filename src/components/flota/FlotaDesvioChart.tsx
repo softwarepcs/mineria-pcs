@@ -1,18 +1,18 @@
-import type { Camion } from "../../types";
+import type { Maquinaria } from "../../types";
 
 export function FlotaDesvioChart({
-  camiones,
+  maquinarias,
   objetivo,
   selectedId,
   onSelect,
 }: {
-  camiones: Camion[];
+  maquinarias: Maquinaria[];
   objetivo: number;
   selectedId?: string | null;
   onSelect?: (id: string | null) => void;
 }) {
   // Ordenar de mayor desvío a menor desvío como en la imagen de referencia
-  const ordenados = [...camiones].sort((a, b) => b.desvioPct - a.desvioPct);
+  const ordenados = [...maquinarias].sort((a, b) => b.desvioPct - a.desvioPct);
   const positivos = ordenados.filter((c) => c.desvioPct >= 0);
   const negativos = ordenados.filter((c) => c.desvioPct < 0);
 
@@ -68,7 +68,7 @@ export function FlotaDesvioChart({
           </div>
         </div>
 
-        {/* Filas de camiones */}
+        {/* Filas de maquinarias */}
         <div className="relative z-10 space-y-3.5">
           {/* Positivos: Placa a la izquierda del centro, barra hacia la derecha */}
           {positivos.map((c) => {
@@ -193,7 +193,7 @@ export function FlotaDesvioChart({
 
       {/* Nota descriptiva inferior idéntica a la imagen */}
       <p className="mt-3 text-xs leading-relaxed text-slate-400 font-sans">
-        Dos camiones concentran el problema: <strong className="text-slate-200">AD 733 PQ</strong> y{" "}
+        Dos maquinarias concentran el problema: <strong className="text-slate-200">AD 733 PQ</strong> y{" "}
         <strong className="text-slate-200">AG 201 XN</strong> están diez por ciento arriba del objetivo y entre los
         dos explican el 38,7 % del gasto de combustible de la flota. Ahí es donde hay que mirar primero, y los dos
         tienen además el ralentí más alto.
@@ -201,3 +201,4 @@ export function FlotaDesvioChart({
     </div>
   );
 }
+

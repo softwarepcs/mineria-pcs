@@ -77,14 +77,14 @@ export async function obtenerEmpresaPorId(id: number): Promise<Empresa | undefin
     estado: "activa" as "activa",
     menu: generarMenuDefault(e.id),
     homeView: "flota", // Mantenemos la vista por defecto
-    flota: analyticsData || {
+    flota: (analyticsData && analyticsData.maquinarias) ? analyticsData : {
       resumen: {
         equipos: 0, periodo: "N/A", objetivoL100km: 0, reportando: 0, kmTotal: 0,
         consumoTotalL: 0, costoUsd: 0, precioUsdPorL: 0, rendimientoMedioL100km: 0,
         desvioVsObjetivoPct: 0, ralentiFlotaPct: 0, ralentiLitros: 0, ralentiUsd: 0,
         emisionesCo2Ton: 0, horasMotor: 0
       },
-      camiones: []
+      maquinarias: []
     },
     indicadores: { 
       unidades: analyticsData?.resumen?.equipos || 0, 

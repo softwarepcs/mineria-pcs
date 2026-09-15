@@ -17,22 +17,22 @@ export function FlotaHome({ empresa }: { empresa: Empresa }) {
     <div className="space-y-6">
       <FlotaKpis
         resumen={empresa.flota.resumen}
-        camiones={empresa.flota.camiones}
+        maquinarias={empresa.flota.maquinarias}
         selectedId={selectedId}
         onReset={() => setSelectedId(null)}
       />
       <FlotaMap
-        camiones={empresa.flota.camiones}
+        maquinarias={empresa.flota.maquinarias}
         selectedId={selectedId}
         onSelect={handleSelect}
       />
       <FlotaTable
-        camiones={empresa.flota.camiones}
+        maquinarias={empresa.flota.maquinarias}
         selectedId={selectedId}
         onSelect={handleSelect}
       />
       <FlotaDesvioChart
-        camiones={empresa.flota.camiones}
+        maquinarias={empresa.flota.maquinarias}
         objetivo={empresa.flota.resumen.objetivoL100km}
         selectedId={selectedId}
         onSelect={handleSelect}

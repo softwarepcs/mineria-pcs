@@ -36,7 +36,7 @@ export interface Empresa {
   homeView?: "flota" | "default";
   flota?: {
     resumen: FlotaResumen;
-    camiones: Camion[];
+    maquinarias: Maquinaria[];
   };
 }
 
@@ -59,7 +59,7 @@ export interface MenuItemLegacy {
   icon?: string;
 }
 
-export interface Camion {
+export interface Maquinaria {
   id: string;
   placa: string;
   km: number;

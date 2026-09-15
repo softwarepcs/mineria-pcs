@@ -1,21 +1,21 @@
-import type { FlotaResumen, Camion } from "../../types";
+import type { FlotaResumen, Maquinaria } from "../../types";
 
 export function FlotaKpis({
   resumen,
-  camiones,
+  maquinarias,
   selectedId,
   onReset,
 }: {
   resumen: FlotaResumen;
-  camiones: Camion[];
+  maquinarias: Maquinaria[];
   selectedId: string | null;
   onReset: () => void;
 }) {
-  const selectedCamion = selectedId ? camiones.find((c) => c.id === selectedId) : null;
-  const esIndividual = selectedCamion !== null && selectedCamion !== undefined;
+  const selectedMaquinaria = selectedId ? maquinarias.find((c) => c.id === selectedId) : null;
+  const esIndividual = selectedMaquinaria !== null && selectedMaquinaria !== undefined;
 
   const dentroDelObjetivo = esIndividual
-    ? selectedCamion.desvioPct <= 0
+    ? selectedMaquinaria.desvioPct <= 0
     : resumen.rendimientoMedioL100km <= resumen.objetivoL100km;
 
   return (
@@ -24,7 +24,7 @@ export function FlotaKpis({
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="mr-1 text-lg font-bold text-white">
-            Flota {esIndividual && <span className="text-cyan-300 font-mono">· Camión {selectedCamion.placa}</span>}
+            Flota {esIndividual && <span className="text-cyan-300 font-mono">· Camión {selectedMaquinaria.placa}</span>}
           </h2>
 
           {!esIndividual ? (
@@ -43,12 +43,12 @@ export function FlotaKpis({
             <>
               <span
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${
-                  selectedCamion.estado === "revisar"
+                  selectedMaquinaria.estado === "revisar"
                     ? "border border-amber-500/30 bg-amber-500/10 text-amber-400"
                     : "border border-green-500/30 bg-green-500/10 text-green-400"
                 }`}
               >
-                {selectedCamion.estado === "revisar" ? "EN REVISIÓN" : "EN LÍNEA"}
+                {selectedMaquinaria.estado === "revisar" ? "EN REVISIÓN" : "EN LÍNEA"}
               </span>
               <span className="rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs text-blue-300">
                 Vista de camión individual
@@ -82,13 +82,13 @@ export function FlotaKpis({
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Consumo total</p>
           <p className="mt-1 text-2xl font-bold text-white">
             {esIndividual
-              ? selectedCamion.litros.toLocaleString("es-PE")
+              ? selectedMaquinaria.litros.toLocaleString("es-PE")
               : resumen.consumoTotalL.toLocaleString("es-PE")}
             <span className="ml-1 text-sm font-medium text-slate-400">L</span>
           </p>
           <p className="mt-0.5 text-xs text-slate-500">
             {esIndividual
-              ? `${selectedCamion.km.toLocaleString("es-PE")} km recorridos`
+              ? `${selectedMaquinaria.km.toLocaleString("es-PE")} km recorridos`
               : `${resumen.kmTotal.toLocaleString("es-PE")} km de flota`}
           </p>
         </div>
@@ -97,13 +97,13 @@ export function FlotaKpis({
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Costo</p>
           <p className="mt-1 text-2xl font-bold text-white">
             {esIndividual
-              ? Math.round(selectedCamion.litros * resumen.precioUsdPorL).toLocaleString("es-PE")
+              ? Math.round(selectedMaquinaria.litros * resumen.precioUsdPorL).toLocaleString("es-PE")
               : resumen.costoUsd.toLocaleString("es-PE")}
             <span className="ml-1 text-sm font-medium text-slate-400">USD</span>
           </p>
           <p className="mt-0.5 text-xs text-slate-500">
             {esIndividual
-              ? `${selectedCamion.pctGasto.toFixed(1)} % del gasto de la flota`
+              ? `${selectedMaquinaria.pctGasto.toFixed(1)} % del gasto de la flota`
               : `a ${resumen.precioUsdPorL.toFixed(2)} USD/L`}
           </p>
         </div>
@@ -112,15 +112,15 @@ export function FlotaKpis({
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Rendimiento medio</p>
           <p className="mt-1 text-2xl font-bold text-white">
             {esIndividual
-              ? selectedCamion.l100km.toFixed(1)
+              ? selectedMaquinaria.l100km.toFixed(1)
               : resumen.rendimientoMedioL100km.toFixed(1)}
             <span className="ml-1 text-sm font-medium text-slate-400">L/100km</span>
           </p>
           <p className={`mt-0.5 text-xs font-medium ${dentroDelObjetivo ? "text-green-400" : "text-amber-400"}`}>
             {esIndividual ? (
               <>
-                {selectedCamion.desvioPct > 0 ? "+" : ""}
-                {selectedCamion.desvioPct.toFixed(1)} % vs objetivo
+                {selectedMaquinaria.desvioPct > 0 ? "+" : ""}
+                {selectedMaquinaria.desvioPct.toFixed(1)} % vs objetivo
               </>
             ) : (
               <>
@@ -134,12 +134,12 @@ export function FlotaKpis({
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Ralentí</p>
           <p className="mt-1 text-2xl font-bold text-white">
-            {esIndividual ? selectedCamion.ralentiPct.toFixed(1) : resumen.ralentiFlotaPct.toFixed(1)}
+            {esIndividual ? selectedMaquinaria.ralentiPct.toFixed(1) : resumen.ralentiFlotaPct.toFixed(1)}
             <span className="ml-1 text-sm font-medium text-slate-400">%</span>
           </p>
           <p className="mt-0.5 text-xs text-slate-500">
             {esIndividual
-              ? `${selectedCamion.horas} horas de motor registradas`
+              ? `${selectedMaquinaria.horas} horas de motor registradas`
               : `${resumen.ralentiLitros.toLocaleString("es-PE")} L · ${resumen.ralentiUsd.toLocaleString("es-PE")} USD`}
           </p>
         </div>
@@ -148,15 +148,16 @@ export function FlotaKpis({
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Emisiones CO2</p>
           <p className="mt-1 text-2xl font-bold text-white">
             {esIndividual
-              ? ((selectedCamion.litros * 2.68) / 1000).toFixed(1)
+              ? ((selectedMaquinaria.litros * 2.68) / 1000).toFixed(1)
               : resumen.emisionesCo2Ton.toFixed(1)}
             <span className="ml-1 text-sm font-medium text-slate-400">t</span>
           </p>
           <p className="mt-0.5 text-xs text-slate-500">
-            {esIndividual ? `Camión ${selectedCamion.placa}` : `${resumen.horasMotor.toLocaleString("es-PE")} h de motor`}
+            {esIndividual ? `Camión ${selectedMaquinaria.placa}` : `${resumen.horasMotor.toLocaleString("es-PE")} h de motor`}
           </p>
         </div>
       </div>
     </div>
   );
 }
+
