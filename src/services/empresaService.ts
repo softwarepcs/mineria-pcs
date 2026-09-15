@@ -21,10 +21,10 @@ function generarMenuDefault(id: number) {
 // Función eliminada porque ahora obtenemos estos datos directo de nuestro backend Analytics
 
 /**
- * Llama al backend para listar las empresas (Maestros)
+ * Llama al backend para listar las empresas (Empresas)
  */
 export async function listarEmpresas(): Promise<Empresa[]> {
-  const response = await fetch(`${API_URL}/maestros/empresas`, {
+  const response = await fetch(`${API_URL}/empresas`, {
     headers: getAuthHeaders()
   });
   
@@ -47,7 +47,7 @@ export async function listarEmpresas(): Promise<Empresa[]> {
  * Llama al backend para obtener detalle de una empresa
  */
 export async function obtenerEmpresaPorId(id: number): Promise<Empresa | undefined> {
-  const response = await fetch(`${API_URL}/maestros/empresas/${id}`, {
+  const response = await fetch(`${API_URL}/empresas/${id}`, {
     headers: getAuthHeaders()
   });
 
