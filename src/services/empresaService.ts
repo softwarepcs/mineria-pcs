@@ -1,4 +1,4 @@
-import type { Empresa } from "../types";
+﻿import type { Empresa } from "../types";
 
 const API_URL = 'http://localhost:3000';
 
@@ -36,7 +36,7 @@ export async function listarEmpresas(): Promise<Empresa[]> {
   return data.map((e: any) => ({
     id: e.id,
     nombre: e.nombreRazonSocial,
-    estado: "activa" as "activa",
+    estado: e.estado,
     menu: generarMenuDefault(e.id),
     // En el listado global no cargamos toda la data pesada de analíticas
     indicadores: { unidades: 0, alertas: 0, disponibilidad: 0 }
@@ -74,7 +74,7 @@ export async function obtenerEmpresaPorId(id: number): Promise<Empresa | undefin
   return {
     id: e.id,
     nombre: e.nombreRazonSocial,
-    estado: "activa" as "activa",
+    estado: e.estado,
     menu: generarMenuDefault(e.id),
     homeView: "flota", // Mantenemos la vista por defecto
     flota: (analyticsData && analyticsData.maquinarias) ? analyticsData : {

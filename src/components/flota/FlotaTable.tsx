@@ -1,7 +1,7 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import type { Maquinaria } from "../../types";
 
-type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto">;
+type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto" | "co2Ton">;
 
 const COLUMNAS: { key: Columna; label: string }[] = [
   { key: "km", label: "KM" },
@@ -11,6 +11,7 @@ const COLUMNAS: { key: Columna; label: string }[] = [
   { key: "ralentiPct", label: "Ralentí" },
   { key: "horas", label: "Horas" },
   { key: "pctGasto", label: "% del gasto" },
+  { key: "co2Ton", label: "CO2 (Ton)" },
 ];
 
 export function FlotaTable({
@@ -93,13 +94,14 @@ export function FlotaTable({
                   <td className="px-4 py-3 text-right text-slate-300">{c.ralentiPct} %</td>
                   <td className="px-4 py-3 text-right text-slate-300">{c.horas}</td>
                   <td className="px-4 py-3 text-right text-slate-300">{c.pctGasto.toFixed(1)} %</td>
+                  <td className="px-4 py-3 text-right text-slate-300">{c.co2Ton.toFixed(2)}</td>
                   <td className="px-5 py-3 text-right">
                     <span
                       className={`inline-block rounded-md px-2.5 py-1 text-xs font-semibold ${
-                        c.estado === "revisar" ? "bg-amber-500/10 text-amber-400" : "bg-green-500/10 text-green-400"
+                        c.estado === "conduccion" ? "bg-green-500/10 text-green-400" : c.estado === "ralenti" ? "bg-amber-500/10 text-amber-400" : "bg-slate-500/20 text-slate-400"
                       }`}
                     >
-                      {c.estado === "revisar" ? "REVISAR" : "EN LÍNEA"}
+                      {c.estado === "conduccion" ? "CONDUCCIÓN" : c.estado === "ralenti" ? "RALENTÍ" : "OFFLINE"}
                     </span>
                   </td>
                 </tr>

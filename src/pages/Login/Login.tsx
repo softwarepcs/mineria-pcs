@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import type { FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
@@ -38,7 +38,7 @@ export function Login() {
       </div>
 
       {/* Contenedor principal — mt-auto lo empuja al fondo, justo arriba del footer */}
-      <div className="w-full max-w-[440px] mt-auto pb-2 mx-auto sm:mx-0 sm:ml-8 md:ml-14 lg:ml-20 xl:ml-28">
+      <div className="w-full max-w-[440px] my-auto sm:my-0 sm:mt-auto pb-2 mx-auto sm:mx-0 sm:ml-8 md:ml-14 lg:ml-20 xl:ml-28">
         {/* Tarjeta del Login (sin cambios de tamaño) */}
         <form
           onSubmit={handleSubmit}

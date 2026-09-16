@@ -1,1 +1,0 @@
-export { MonitoreoChile } from "../index";

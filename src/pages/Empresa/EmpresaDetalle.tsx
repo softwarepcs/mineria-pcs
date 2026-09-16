@@ -1,38 +1,31 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { obtenerEmpresaPorId } from "../../services/empresaService";
 import type { Empresa } from "../../types";
 import { useAuth } from "../../hooks/useAuth";
 
-// Empresa Argentina
-import { HomeArgentina } from "./empresa-argentina/home/HomeArgentina";
-import { MotorPrincipal } from "./empresa-argentina/data/MotorPrincipal";
+import { FlotaHome } from "../../components/flota/FlotaHome";
+import { MotorPrincipal } from "./components/MotorPrincipal";
 import { AlertasView } from "./components/AlertasView";
 
-// Empresa Chile
-import { HomeChile, MonitoreoChile, DataChile } from "./empresa-chile";
-
-// Empresa Perú
-import { HomePeru } from "./empresa-peru/home/HomePeru";
-import { MonitoreoPeru } from "./empresa-peru/monitoreo/MonitoreoPeru";
-import { DataPeru } from "./empresa-peru/data/DataPeru";
-
-// Empresa Colombia
-import { HomeColombia, MonitoreoColombia, DataColombia } from "./empresa-colombia";
-
-// Empresa México
-import { HomeMexico, MonitoreoMexico, DataMexico } from "./empresa-mexico";
-
-// Empresa Brasil
-import { HomeBrasil, MonitoreoBrasil, DataBrasil } from "./empresa-brasil";
+function MonitoreoWrapper({ empresaNombre }: { empresaNombre: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
+      <h2 className="text-xl font-bold text-white">Monitoreo - {empresaNombre}</h2>
+      <p className="mt-2 text-sm text-slate-400">
+        Panel de monitoreo general para {empresaNombre}.
+      </p>
+    </div>
+  );
+}
 
 export function EmpresaDetalle() {
   const { id, subruta } = useParams();
   const { sesion } = useAuth();
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [cargando, setCargando] = useState(true);
+  
   const esAdministrador = sesion?.usuario.rol === 1 || sesion?.usuario.rol === 2;
-
   const empresaIdNum = Number(id);
 
   useEffect(() => {
@@ -58,95 +51,20 @@ export function EmpresaDetalle() {
   }
 
   const renderContenidoEmpresa = () => {
-    // 1. EMPRESA ARGENTINA
-    if (empresaIdNum === 1) {
-      switch (subruta) {
-        case "motor-principal":
-        case "database":
-          return <MotorPrincipal empresaNombre={empresa.nombre} />;
-        case "alertas":
-          return <AlertasView empresaNombre={empresa.nombre} />;
-        default:
-          return <HomeArgentina empresa={empresa} />;
-      }
+    switch (subruta) {
+      case "motor-principal":
+      case "database":
+        return <MotorPrincipal empresaNombre={empresa.nombre} />;
+      case "alertas":
+        return <AlertasView empresaNombre={empresa.nombre} />;
+      case "monitoreo":
+      case "tanques":
+      case "achiques":
+      case "combustible":
+        return <MonitoreoWrapper empresaNombre={empresa.nombre} />;
+      default:
+        return <FlotaHome empresa={empresa} />;
     }
-
-    // 2. EMPRESA CHILE
-    if (empresaIdNum === 2) {
-      switch (subruta) {
-        case "database":
-        case "motor-principal":
-          return <DataChile empresaNombre={empresa.nombre} />;
-        case "alertas":
-          return <AlertasView empresaNombre={empresa.nombre} />;
-        case "monitoreo":
-        case "tanques":
-        case "achiques":
-        case "combustible":
-          return <MonitoreoChile empresaNombre={empresa.nombre} />;
-        default:
-          return <HomeChile empresa={empresa} />;
-      }
-    }
-
-    // 3. EMPRESA PERÚ
-    if (empresaIdNum === 3) {
-      switch (subruta) {
-        case "database":
-        case "motor-principal":
-          return <DataPeru empresaNombre={empresa.nombre} />;
-        case "alertas":
-          return <AlertasView empresaNombre={empresa.nombre} />;
-        case "monitoreo":
-          return <MonitoreoPeru empresaNombre={empresa.nombre} />;
-        default:
-          return <HomePeru empresa={empresa} />;
-      }
-    }
-
-    // 4. EMPRESA COLOMBIA
-    if (empresaIdNum === 4) {
-      switch (subruta) {
-        case "database":
-          return <DataColombia empresaNombre={empresa.nombre} />;
-        case "alertas":
-          return <AlertasView empresaNombre={empresa.nombre} />;
-        case "monitoreo":
-          return <MonitoreoColombia empresaNombre={empresa.nombre} />;
-        default:
-          return <HomeColombia empresa={empresa} />;
-      }
-    }
-
-    // 5. EMPRESA MÉXICO
-    if (empresaIdNum === 5) {
-      switch (subruta) {
-        case "database":
-          return <DataMexico empresaNombre={empresa.nombre} />;
-        case "alertas":
-          return <AlertasView empresaNombre={empresa.nombre} />;
-        case "monitoreo":
-          return <MonitoreoMexico empresaNombre={empresa.nombre} />;
-        default:
-          return <HomeMexico empresa={empresa} />;
-      }
-    }
-
-    // 6. EMPRESA BRASIL
-    if (empresaIdNum === 6) {
-      switch (subruta) {
-        case "database":
-          return <DataBrasil empresaNombre={empresa.nombre} />;
-        case "alertas":
-          return <AlertasView empresaNombre={empresa.nombre} />;
-        case "monitoreo":
-          return <MonitoreoBrasil empresaNombre={empresa.nombre} />;
-        default:
-          return <HomeBrasil empresa={empresa} />;
-      }
-    }
-
-    return <div>Vista no configurada para esta empresa.</div>;
   };
 
   return (
@@ -169,7 +87,7 @@ export function EmpresaDetalle() {
             to={`/empresa/${id}`}
             className="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 transition hover:text-cyan-300"
           >
-            ← Volver al Home de {empresa.nombre}
+            Volver al Home de {empresa.nombre}
           </Link>
         )}
       </div>

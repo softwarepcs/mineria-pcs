@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { listarEmpresas } from "../../services/empresaService";
@@ -24,7 +24,6 @@ export function Dashboard() {
     cargar();
   }, [sesion, esGlobal]);
 
-  // Rol 3 (Empresa): nunca se queda en /dashboard, va directo a la vista de su empresa
   if (!esGlobal) {
     if (sesion?.usuario.empresaId != null) {
       return <Navigate to={`/empresa/${sesion.usuario.empresaId}`} replace />;
@@ -43,7 +42,7 @@ export function Dashboard() {
 
   const totalUnidades = empresas.reduce((sum, e) => sum + (e.indicadores?.unidades ?? 0), 0);
   const totalAlertas = empresas.reduce((sum, e) => sum + (e.indicadores?.alertas ?? 0), 0);
-  const activas = empresas.filter((e) => e.estado === "activa").length;
+  const activas = empresas.filter((e) => Boolean(e.estado)).length;
 
   return (
     <div>
@@ -72,14 +71,12 @@ export function Dashboard() {
             <div className="text-sm font-medium text-white">{e.nombre}</div>
             <span
               className={`mt-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                e.estado === "activa"
+                e.estado
                   ? "bg-green-500/10 text-green-400"
-                  : e.estado === "inactiva"
-                  ? "bg-slate-500/10 text-slate-400"
                   : "bg-red-500/10 text-red-400"
               }`}
             >
-              {e.estado}
+              {e.estado ? "ACTIVA" : "INACTIVA"}
             </span>
           </div>
         ))}

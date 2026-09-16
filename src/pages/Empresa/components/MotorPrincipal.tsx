@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import motorPrincipalData from "../../../../data/motorPrincipalData.json";
-import { Icon } from "../../../../components/Icon";
+import { Icon } from "../../../components/Icon";
+import { getMaquinarias, getTelemetriaByMaquinaria } from "../../../services/telemetriaService";
 
 interface TelemetriaPunto {
-  id: number;
+  id: string | number;
   maquinariaId: string;
   placa: string;
   fecha: string;
@@ -40,27 +40,70 @@ function createNumberedIcon(num: number) {
 }
 
 export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
-  const [maquinarias] = useState(motorPrincipalData.maquinarias);
-  const [maquinariaSeleccionada, setMaquinariaSeleccionada] = useState(maquinarias[0].id);
+  const [maquinarias, setMaquinarias] = useState<any[]>([]);
+  const [maquinariaSeleccionada, setMaquinariaSeleccionada] = useState("");
   const [fechaInicio, setFechaInicio] = useState("2026-09-01");
   const [fechaFin, setFechaFin] = useState("2026-09-10");
+  const [cargando, setCargando] = useState(false);
 
   const [resultados, setResultados] = useState<TelemetriaPunto[]>([]);
   const [datosCargadosEnMapa, setDatosCargadosEnMapa] = useState(false);
   const [busquedaTabla, setBusquedaTabla] = useState("");
   const [mostrarRegistros, setMostrarRegistros] = useState(10);
   const [capaMapa, setCapaMapa] = useState<"mapa" | "satelite">("mapa");
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapWrapperRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 200);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      mapWrapperRef.current?.requestFullscreen().catch((err) => {
+        console.error(`Error al intentar pantalla completa: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  // Cargar maquinarias al montar
+  useEffect(() => {
+    getMaquinarias()
+      .then((data) => {
+        setMaquinarias(data);
+        if (data.length > 0) {
+          setMaquinariaSeleccionada(data[0].id.toString());
+        }
+      })
+      .catch((err) => console.error("Error cargando maquinarias:", err));
+  }, []);
 
   // Inicializar Leaflet Map
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    const map = L.map(mapContainerRef.current).setView([-12.046, -77.103], 11);
+    // Centrar en Argentina (Buenos Aires) por defecto. Mover control de zoom abajo a la derecha.
+    const map = L.map(mapContainerRef.current, {
+      zoomControl: false,
+    }).setView([-34.6037, -58.3816], 10);
+
+    L.control.zoom({ position: "bottomright" }).addTo(map);
 
     const tile = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
@@ -106,22 +149,30 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
     }
   };
 
-  // Botón Buscar: llena la tabla con los datos del camión y rango de fecha
-  const handleBuscar = () => {
-    const todos = motorPrincipalData.telemetria as TelemetriaPunto[];
-    const filtrados = todos.filter((t) => {
-      const fechaCorta = t.fecha.split(" ")[0];
-      return (
-        t.maquinariaId === maquinariaSeleccionada &&
-        fechaCorta >= fechaInicio &&
-        fechaCorta <= fechaFin
-      );
-    });
-
-    setResultados(filtrados);
-    setDatosCargadosEnMapa(false);
-    if (markersGroupRef.current) {
-      markersGroupRef.current.clearLayers();
+  // Botón Buscar: llena la tabla con los datos del camión y rango de fecha desde Backend
+  const handleBuscar = async () => {
+    if (!maquinariaSeleccionada) return;
+    setCargando(true);
+    try {
+      const data = await getTelemetriaByMaquinaria(maquinariaSeleccionada, fechaInicio, fechaFin);
+      // Extraemos la placa de la maquinaria seleccionada
+      const maq = maquinarias.find((m) => m.id.toString() === maquinariaSeleccionada);
+      const placa = maq ? (maq.identificador || maq.placa || 'Desconocido') : 'Desconocido';
+      
+      const filtrados = data.map((d: any) => ({
+        ...d,
+        placa
+      }));
+      setResultados(filtrados);
+      setDatosCargadosEnMapa(false);
+      if (markersGroupRef.current) {
+        markersGroupRef.current.clearLayers();
+      }
+    } catch (error) {
+      console.error("Error al buscar telemetría:", error);
+      alert("Error cargando los datos de telemetría.");
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -274,11 +325,11 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
               <select
                 value={maquinariaSeleccionada}
                 onChange={(e) => handleCambioMaquinaria(e.target.value)}
-                className="w-full rounded-lg border border-teal-300 bg-[#2dd4bf] px-3 py-2.5 text-sm font-bold text-slate-950 shadow-inner outline-none transition focus:ring-2 focus:ring-teal-200"
+                className="w-full truncate rounded-lg border border-teal-300 bg-[#2dd4bf] px-3 py-2.5 text-sm font-bold text-slate-950 shadow-inner outline-none transition focus:ring-2 focus:ring-teal-200"
               >
                 {maquinarias.map((c) => (
                   <option key={c.id} value={c.id} className="bg-slate-900 text-white font-medium">
-                    {c.placa} ({c.nombre})
+                    {c.identificador || c.placa} ({c.modelo || c.nombre || c.marca})
                   </option>
                 ))}
               </select>
@@ -293,7 +344,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
                 type="date"
                 value={fechaInicio}
                 onChange={(e) => setFechaInicio(e.target.value)}
-                className="w-full rounded-lg border border-teal-300 bg-[#2dd4bf] px-3 py-2 text-sm font-bold text-slate-950 shadow-inner outline-none transition focus:ring-2 focus:ring-teal-200"
+                className="w-full truncate rounded-lg border border-teal-300 bg-[#2dd4bf] px-3 py-2 text-sm font-bold text-slate-950 shadow-inner outline-none transition focus:ring-2 focus:ring-teal-200"
               />
             </div>
 
@@ -306,7 +357,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
                 type="date"
                 value={fechaFin}
                 onChange={(e) => setFechaFin(e.target.value)}
-                className="w-full rounded-lg border border-teal-300 bg-[#2dd4bf] px-3 py-2 text-sm font-bold text-slate-950 shadow-inner outline-none transition focus:ring-2 focus:ring-teal-200"
+                className="w-full truncate rounded-lg border border-teal-300 bg-[#2dd4bf] px-3 py-2 text-sm font-bold text-slate-950 shadow-inner outline-none transition focus:ring-2 focus:ring-teal-200"
               />
             </div>
 
@@ -317,12 +368,19 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
                 <button
                   type="button"
                   onClick={handleBuscar}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#0284c7] px-4 py-2.5 text-xs font-bold text-white shadow transition hover:bg-[#0369a1]"
+                  disabled={cargando}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#0284c7] px-4 py-2.5 text-xs font-bold text-white shadow transition hover:bg-[#0369a1] disabled:opacity-50"
                 >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  Buscar
+                  {cargando ? (
+                    <span>Cargando...</span>
+                  ) : (
+                    <>
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      Buscar
+                    </>
+                  )}
                 </button>
 
                 <button
@@ -359,7 +417,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
         </div>
 
         {/* Columna Derecha: Mapa Interactivo con Botones de Modo */}
-        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-slate-900 lg:col-span-8">
+        <div ref={mapWrapperRef} className={`relative overflow-hidden rounded-xl border border-white/10 bg-slate-900 lg:col-span-8 ${isFullscreen ? 'h-screen w-full' : 'h-[380px]'}`}>
           {/* Selector de modo Mapa / Satélite */}
           <div className="absolute left-4 top-4 z-[1000] flex overflow-hidden rounded-md border border-black/30 bg-white/90 shadow text-xs font-medium text-slate-800">
             <button
@@ -382,7 +440,26 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
             </button>
           </div>
 
-          <div ref={mapContainerRef} className="h-[380px] w-full" />
+          {/* Botón Pantalla Completa */}
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="absolute right-4 top-4 z-[1000] flex h-8 w-8 items-center justify-center rounded-md border border-black/30 bg-white/90 shadow transition hover:bg-slate-100 text-slate-800"
+            title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+          >
+            {isFullscreen ? (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M15 9V4.5M15 9h4.5M9 15v4.5M9 15H4.5M15 15v4.5M15 15h4.5" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+            )}
+          </button>
+
+          {/* NO usar className dinámico aquí para no borrar las clases que inyecta Leaflet */}
+          <div ref={mapContainerRef} style={{ height: "100%", width: "100%" }} />
         </div>
       </div>
 

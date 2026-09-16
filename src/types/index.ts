@@ -1,4 +1,4 @@
-// Roles del sistema
+﻿// Roles del sistema
 // 1 = Administrador principal
 // 2 = Administrador
 // 3 = Empresa
@@ -70,7 +70,8 @@ export interface Maquinaria {
   ralentiPct: number;
   horas: number;
   pctGasto: number;
-  estado: "en_linea" | "revisar";
+    co2Ton: number;
+  estado: "conduccion" | "offline" | "ralenti";
   lat: number;
   lng: number;
 }
