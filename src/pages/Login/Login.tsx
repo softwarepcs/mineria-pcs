@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Navigate } from "react-router-dom";
+import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 
 export function Login() {
@@ -22,121 +23,118 @@ export function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0b1220] px-4">
-      {/* Glow decorativo de fondo */}
-      <div className="pointer-events-none absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-blue-600/20 blur-[120px]" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-indigo-600/10 blur-[100px]" />
+    <div
+      className="relative min-h-screen w-full bg-cover bg-center bg-no-repeat flex flex-col justify-between p-6 sm:p-10 md:p-12 lg:px-20 lg:py-12 overflow-y-auto"
+      style={{ backgroundImage: "url('/assets/img/Banner1.jpeg')" }}
+    >
+      {/* Contenedor principal alineado a la izquierda */}
+      <div className="w-full max-w-[440px] my-auto pt-4 pb-8">
+        {/* Título de la cabecera */}
+        <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl md:text-4xl font-black tracking-wider text-[#FCD306] drop-shadow-[0_3px_10px_rgba(0,0,0,0.9)] uppercase select-none">
+          RIGEL TELEMATICS
+        </h1>
 
-      <form
-        onSubmit={handleSubmit}
-        className="relative z-10 w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/40 backdrop-blur-xl"
-      >
-        <div className="mb-1 flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-75" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
-          </span>
-          <h1 className="text-xl font-bold text-white">MINERÍA - PERU CONTROLS SYSTEM</h1>
-        </div>
-        <p className="mb-7 text-sm text-blue-300/70">
-          Ingresa tus credenciales para continuar
-        </p>
-
-        <label
-          htmlFor="usuario"
-          className="mb-1.5 block text-xs font-medium text-slate-300"
+        {/* Tarjeta del Login */}
+        <form
+          onSubmit={handleSubmit}
+          className="w-full rounded-[28px] border border-white/15 bg-[#0b1320]/85 p-6 sm:p-8 md:p-9 shadow-2xl shadow-black/80 backdrop-blur-md"
         >
-          Usuario o correo
-        </label>
-        <div className="relative mb-4">
-          <svg
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.8}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
-          </svg>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="username"
-            required
-            placeholder="usuario@empresa.com"
-            className="w-full rounded-lg border border-white/10 bg-black/30 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
-          />
-        </div>
+          <p className="mb-6 text-xs sm:text-sm font-semibold tracking-wider text-[#8CB5F5] uppercase">
+            INGRESE TUS CREDENCIALES PARA CONTINUAR
+          </p>
 
-        <label
-          htmlFor="password"
-          className="mb-1.5 block text-xs font-medium text-slate-300"
-        >
-          Contraseña
-        </label>
-        <div className="relative mb-2">
-          <svg
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.8}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 10-8 0v4h8z"
-            />
-          </svg>
-          <input
-            id="password"
-            type={verPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-            placeholder="••••••••"
-            className="w-full rounded-lg border border-white/10 bg-black/30 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
-          />
-          <button
-            type="button"
-            onClick={() => setVerPassword((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
-            aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-          >
-            {verPassword ? (
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-              </svg>
-            ) : (
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            )}
-          </button>
-        </div>
-
-        {error && (
-          <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-400">
-            {error}
+          {/* Campo: Usuario o Correo */}
+          <div className="mb-5">
+            <label
+              htmlFor="email"
+              className="mb-2 block text-sm sm:text-base font-bold text-white tracking-wide"
+            >
+              Usuario o Correo:
+            </label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">
+                <Mail className="h-5 w-5" />
+              </span>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="username"
+                required
+                placeholder="usuario@empresa.com"
+                className="w-full rounded-2xl border border-slate-300/40 bg-[#CBD1DB] py-3.5 pl-12 pr-4 text-sm sm:text-base font-semibold text-slate-900 placeholder-slate-500 outline-none transition duration-200 focus:bg-white focus:ring-2 focus:ring-blue-500 shadow-inner"
+              />
+            </div>
           </div>
-        )}
 
-        <button
-          type="submit"
-          disabled={enviando}
-          className="mt-6 w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-500 active:scale-[0.98] disabled:cursor-default disabled:opacity-60"
-        >
-          {enviando ? "Ingresando..." : "Ingresar"}
-        </button>
-      </form>
+          {/* Campo: Contraseña */}
+          <div className="mb-6">
+            <label
+              htmlFor="password"
+              className="mb-2 block text-sm sm:text-base font-bold text-white tracking-wide"
+            >
+              Contraseña:
+            </label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">
+                <Lock className="h-5 w-5" />
+              </span>
+              <input
+                id="password"
+                type={verPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                placeholder="••••••••"
+                className="w-full rounded-2xl border border-slate-300/40 bg-[#CBD1DB] py-3.5 pl-12 pr-12 text-sm sm:text-base font-semibold text-slate-900 placeholder-slate-500 outline-none transition duration-200 focus:bg-white focus:ring-2 focus:ring-blue-500 shadow-inner"
+              />
+              <button
+                type="button"
+                onClick={() => setVerPassword((v) => !v)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 transition p-1 cursor-pointer"
+                aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {verPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Mensaje de Error */}
+          {error && (
+            <div className="mb-5 rounded-xl border border-red-500/40 bg-red-500/20 px-4 py-2.5 text-xs sm:text-sm text-red-200 text-center font-medium backdrop-blur-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Botón Ingresar */}
+          <div className="pt-2 flex justify-center">
+            <button
+              type="submit"
+              disabled={enviando}
+              className="w-full max-w-[210px] rounded-2xl bg-[#084899] hover:bg-[#063878] active:scale-[0.98] py-3 px-6 text-base font-bold text-white shadow-lg shadow-blue-950/60 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {enviando && <Loader2 className="h-4 w-4 animate-spin" />}
+              <span>{enviando ? "Ingresando..." : "Ingresar"}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Pie de página a la derecha */}
+      <div className="w-full flex justify-end items-center pt-4">
+        <p className="text-white font-bold text-sm sm:text-base md:text-lg tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] text-right">
+          Powered by{" "}
+          <a href="https://peru-controls.com/" target="_blank" rel="noopener noreferrer" className="font-extrabold hover:underline cursor-pointer transition-all duration-200">
+            PERU CONTROLS SYSTEM SAC
+          </a>
+        </p>
+      </div>
     </div>
   );
 }
