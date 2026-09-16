@@ -329,7 +329,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
               >
                 {maquinarias.map((c) => (
                   <option key={c.id} value={c.id} className="bg-slate-900 text-white font-medium">
-                    {c.identificador || c.placa} ({c.modelo || c.nombre || c.marca})
+                    {c.identificador || c.placa}
                   </option>
                 ))}
               </select>
