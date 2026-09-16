@@ -24,17 +24,22 @@ export function Login() {
 
   return (
     <div
-      className="relative min-h-screen w-full bg-cover bg-center bg-no-repeat flex flex-col justify-between p-6 sm:p-10 md:p-12 lg:px-20 lg:py-12 overflow-y-auto"
+      className="relative h-screen w-full bg-cover bg-center bg-no-repeat flex flex-col px-6 sm:px-10 md:px-12 lg:px-20 pt-4 sm:pt-5 md:pt-6 pb-6 sm:pb-8 md:pb-10 overflow-hidden"
       style={{ backgroundImage: "url('/assets/img/Banner1.jpeg')" }}
     >
-      {/* Contenedor principal alineado a la izquierda */}
-      <div className="w-full max-w-[440px] my-auto pt-4 pb-8">
-        {/* Título de la cabecera */}
-        <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl md:text-4xl font-black tracking-wider text-[#FCD306] drop-shadow-[0_3px_10px_rgba(0,0,0,0.9)] uppercase select-none">
+      {/* Título de la cabecera arriba y centrado con slogan */}
+      <div className="w-full text-center">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-wider text-[#FCD306] drop-shadow-[0_3px_10px_rgba(0,0,0,0.9)] uppercase select-none">
           RIGEL TELEMATICS
         </h1>
+        <p className="mt-1 sm:mt-1.5 text-xs sm:text-sm font-medium tracking-wide text-white uppercase drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] select-none">
+          Más control. Más eficiencia. Menos pérdidas
+        </p>
+      </div>
 
-        {/* Tarjeta del Login */}
+      {/* Contenedor principal — mt-auto lo empuja al fondo, justo arriba del footer */}
+      <div className="w-full max-w-[440px] mt-auto pb-2 mx-auto sm:mx-0 sm:ml-8 md:ml-14 lg:ml-20 xl:ml-28">
+        {/* Tarjeta del Login (sin cambios de tamaño) */}
         <form
           onSubmit={handleSubmit}
           className="w-full rounded-[28px] border border-white/15 bg-[#0b1320]/85 p-6 sm:p-8 md:p-9 shadow-2xl shadow-black/80 backdrop-blur-md"
@@ -126,13 +131,12 @@ export function Login() {
         </form>
       </div>
 
+
+
       {/* Pie de página a la derecha */}
       <div className="w-full flex justify-end items-center pt-4">
         <p className="text-white font-bold text-sm sm:text-base md:text-lg tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] text-right">
-          Powered by{" "}
-          <a href="https://peru-controls.com/" target="_blank" rel="noopener noreferrer" className="font-extrabold hover:underline cursor-pointer transition-all duration-200">
-            PERU CONTROLS SYSTEM SAC
-          </a>
+          Powered by <span className="font-extrabold">PERU CONTROLS SYSTEM SAC</span>
         </p>
       </div>
     </div>
