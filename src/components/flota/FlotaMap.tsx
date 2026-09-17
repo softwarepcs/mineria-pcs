@@ -156,39 +156,39 @@ export function FlotaMap({
   }, [selectedId, maquinarias]);
 
   return (
-    <div ref={wrapperRef} className={`relative overflow-hidden rounded-xl border border-white/10 bg-slate-900 ${isFullscreen ? 'h-screen w-full' : 'h-[420px]'}`}>
-      {/* Selector de modo Mapa / Satélite */}
-      <div className="absolute left-4 top-4 z-[1000] flex overflow-hidden rounded-md border border-black/30 bg-white/90 shadow text-xs font-medium text-slate-800">
+    <div
+      ref={wrapperRef}
+      className={`mp-map-wrapper ${isFullscreen ? "mp-map-wrapper-fullscreen" : ""}`}
+      style={!isFullscreen ? { height: "100%", minHeight: "320px" } : undefined}
+    >
+      {/* Layer toggle */}
+      <div className="mp-map-layer-toggle">
         <button
           type="button"
           onClick={() => setCapaMapa("mapa")}
-          className={`px-3 py-1.5 transition ${
-            capaMapa === "mapa" ? "bg-white font-bold text-black" : "hover:bg-slate-100"
-          }`}
+          className={`mp-map-layer-btn ${capaMapa === "mapa" ? "mp-map-layer-btn-active" : ""}`}
         >
           Mapa
         </button>
         <button
           type="button"
           onClick={() => setCapaMapa("satelite")}
-          className={`px-3 py-1.5 transition ${
-            capaMapa === "satelite" ? "bg-white font-bold text-black" : "hover:bg-slate-100"
-          }`}
+          className={`mp-map-layer-btn ${capaMapa === "satelite" ? "mp-map-layer-btn-active" : ""}`}
         >
           Satélite
         </button>
       </div>
 
-      {/* Botón Pantalla Completa */}
+      {/* Fullscreen button */}
       <button
         type="button"
         onClick={toggleFullscreen}
-        className="absolute right-4 top-4 z-[1000] flex h-8 w-8 items-center justify-center rounded-md border border-black/30 bg-white/90 shadow transition hover:bg-slate-100 text-slate-800"
+        className="mp-map-fullscreen-btn"
         title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
       >
         {isFullscreen ? (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M15 9V4.5M15 9h4.5M9 15v4.5M9 15H4.5M9 15v4.5M9 15H4.5M15 15v4.5M15 15h4.5" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M15 9V4.5M15 9h4.5M9 15v4.5M9 15H4.5M15 15v4.5M15 15h4.5" />
           </svg>
         ) : (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

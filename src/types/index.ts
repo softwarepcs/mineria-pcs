@@ -71,7 +71,7 @@ export interface Maquinaria {
   horas: number;
   pctGasto: number;
     co2Ton: number;
-  estado: "conduccion" | "offline" | "ralenti";
+  estado: "conduccion" | "offline" | "ralenti" | "revisar";
   lat: number;
   lng: number;
 }

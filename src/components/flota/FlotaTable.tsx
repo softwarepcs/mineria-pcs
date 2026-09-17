@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import type { Maquinaria } from "../../types";
 
 type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto" | "co2Ton">;
@@ -11,17 +11,53 @@ const COLUMNAS: { key: Columna; label: string }[] = [
   { key: "ralentiPct", label: "Ralentí" },
   { key: "horas", label: "Horas" },
   { key: "pctGasto", label: "% del gasto" },
-  { key: "co2Ton", label: "CO2 (Ton)" },
+  { key: "co2Ton", label: "CO₂ (T)" },
 ];
+
+function EstadoBadge({ estado }: { estado: string }) {
+  let bg = "rgba(100,116,139,0.12)";
+  let color = "#636e7b";
+  let label = "OFFLINE";
+
+  if (estado === "conduccion" || estado === "en_linea") {
+    bg = "rgba(26,154,122,0.12)";
+    color = "#1a9a7a";
+    label = "EN LÍNEA";
+  } else if (estado === "revisar") {
+    bg = "rgba(217,155,66,0.12)";
+    color = "#d99b42";
+    label = "REVISAR";
+  } else if (estado === "ralenti") {
+    bg = "rgba(217,155,66,0.12)";
+    color = "#d99b42";
+    label = "REVISAR";
+  } else if (estado === "sin_datos") {
+    bg = "rgba(100,116,139,0.12)";
+    color = "#636e7b";
+    label = "SIN DATOS";
+  }
+
+  return (
+    <span style={{
+      display: "inline-block", padding: "3px 10px", borderRadius: "4px",
+      fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em",
+      background: bg, color, border: `1px solid ${color}33`,
+    }}>
+      {label}
+    </span>
+  );
+}
 
 export function FlotaTable({
   maquinarias,
   selectedId,
   onSelect,
+  mode = "full",
 }: {
   maquinarias: Maquinaria[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  mode?: "full" | "alerts";
 }) {
   const [orden, setOrden] = useState<{ col: Columna; dir: "asc" | "desc" }>({ col: "desvioPct", dir: "desc" });
 
@@ -33,76 +69,144 @@ export function FlotaTable({
     setOrden((prev) => (prev.col === col ? { col, dir: prev.dir === "desc" ? "asc" : "desc" } : { col, dir: "desc" }));
   }
 
+  // ─── ALERTS PANEL (sidebar next to map) ───
+  if (mode === "alerts") {
+    const alertas = ordenados.filter((c) => c.desvioPct > 0 || c.estado === "revisar" || c.estado === "sin_datos").slice(0, 5);
+
+    return (
+      <div style={{
+        borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)",
+        background: "#0d1117", padding: "20px", overflow: "hidden",
+        display: "flex", flexDirection: "column",
+      }}>
+        <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#e6edf3", margin: "0 0 16px 0" }}>
+          Requieren atención
+        </h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", flex: 1 }}>
+          {alertas.map((c) => {
+            const razon = c.desvioPct > 100
+              ? "Consumo fuera de objetivo"
+              : c.ralentiPct > 40
+              ? `Ralentí alto · ${c.horas} h`
+              : c.estado === "sin_datos"
+              ? "Sin transmisión reciente"
+              : c.desvioPct > 50
+              ? "Paradas extensas no planificadas"
+              : "Desvío de ruta detectado";
+
+            return (
+              <div
+                key={c.id}
+                onClick={() => onSelect(c.id)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "10px 12px", borderRadius: "8px", cursor: "pointer",
+                  background: selectedId === c.id ? "rgba(26,154,122,0.08)" : "rgba(255,255,255,0.02)",
+                  border: selectedId === c.id ? "1px solid rgba(26,154,122,0.25)" : "1px solid rgba(255,255,255,0.04)",
+                  transition: "background 0.15s, border-color 0.15s",
+                }}
+              >
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
+                    <span style={{
+                      width: "8px", height: "8px", borderRadius: "50%",
+                      background: c.desvioPct > 100 ? "#d99b42" : "#d99b42",
+                      display: "inline-block"
+                    }} />
+                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#e6edf3" }}>{c.placa}</span>
+                  </div>
+                  <span style={{ fontSize: "11px", color: "#636e7b", paddingLeft: "16px" }}>
+                    {razon}
+                  </span>
+                </div>
+                <span style={{
+                  fontSize: "13px", fontWeight: 700,
+                  color: c.desvioPct > 0 ? "#d99b42" : "#1a9a7a",
+                  whiteSpace: "nowrap"
+                }}>
+                  +{c.desvioPct.toFixed(1)} %
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── FULL TABLE ───
   return (
-    <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
-      <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <h3 className="text-sm font-semibold text-white">Comparativa por camión</h3>
+    <div className="mp-table-container">
+      <div className="mp-table-toolbar">
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#e6edf3", margin: 0 }}>
+            Comparativa por camión
+          </h3>
           {selectedId && (
             <button
               type="button"
               onClick={() => onSelect("")}
-              className="rounded-md border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-xs text-cyan-300 hover:bg-cyan-500/20"
+              style={{
+                padding: "3px 10px", borderRadius: "6px", cursor: "pointer",
+                background: "rgba(26,154,122,0.1)", border: "1px solid rgba(26,154,122,0.3)",
+                fontSize: "11px", fontWeight: 600, color: "#1a9a7a"
+              }}
             >
               ✕ Ver todos
             </button>
           )}
         </div>
-        <p className="text-xs text-slate-500">
-          ordenada por {COLUMNAS.find((c) => c.key === orden.col)?.label.toLowerCase()} · clic en fila para filtrar y hacer zoom
-        </p>
+        <span style={{ fontSize: "11px", color: "#636e7b" }}>
+          ordenada por {COLUMNAS.find((c) => c.key === orden.col)?.label.toLowerCase()}
+        </span>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+      <div className="mp-table-wrapper">
+        <table className="mp-table">
           <thead>
-            <tr className="border-y border-white/10 text-xs uppercase tracking-wide text-slate-500">
-              <th className="px-5 py-2.5 font-medium">Camión</th>
+            <tr>
+              <th style={{ paddingLeft: "20px" }}>Camión</th>
               {COLUMNAS.map((c) => (
                 <th
                   key={c.key}
                   onClick={() => alClicColumna(c.key)}
-                  className="cursor-pointer select-none px-4 py-2.5 text-right font-medium transition hover:text-white"
+                  style={{ cursor: "pointer", textAlign: "right", userSelect: "none" }}
                 >
                   {c.label}
                 </th>
               ))}
-              <th className="px-5 py-2.5 text-right font-medium">Estado</th>
+              <th style={{ textAlign: "right", paddingRight: "20px" }}>Estado</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody>
             {ordenados.map((c) => {
               const activo = c.id === selectedId;
               return (
                 <tr
                   key={c.id}
                   onClick={() => onSelect(activo ? "" : c.id)}
-                  className={`cursor-pointer transition ${
-                    activo
-                      ? "bg-blue-500/20 ring-1 ring-blue-400/50"
-                      : "hover:bg-white/5"
-                  }`}
+                  style={{
+                    cursor: "pointer",
+                    background: activo ? "rgba(26,154,122,0.06)" : undefined,
+                    borderLeft: activo ? "3px solid #1a9a7a" : "3px solid transparent",
+                  }}
                 >
-                  <td className="px-5 py-3 font-medium text-white">{c.placa}</td>
-                  <td className="px-4 py-3 text-right text-slate-300">{c.km.toLocaleString("es-PE")}</td>
-                  <td className="px-4 py-3 text-right text-slate-300">{c.litros.toLocaleString("es-PE")}</td>
-                  <td className="px-4 py-3 text-right text-slate-300">{c.l100km.toFixed(1)}</td>
-                  <td className={`px-4 py-3 text-right font-medium ${c.desvioPct > 0 ? "text-amber-400" : "text-green-400"}`}>
-                    {c.desvioPct > 0 ? "+" : ""}
-                    {c.desvioPct.toFixed(1)} %
+                  <td style={{ paddingLeft: "20px", fontWeight: 600, color: "#e6edf3" }}>{c.placa}</td>
+                  <td style={{ textAlign: "right" }}>{c.km.toLocaleString("es-PE")}</td>
+                  <td style={{ textAlign: "right" }}>{c.litros.toLocaleString("es-PE")}</td>
+                  <td style={{ textAlign: "right" }}>{c.l100km.toFixed(1)}</td>
+                  <td style={{
+                    textAlign: "right", fontWeight: 600,
+                    color: c.desvioPct > 0 ? "#00ebb0" : "#1a9a7a"
+                  }}>
+                    {c.desvioPct > 0 ? "+" : ""}{c.desvioPct.toFixed(1)} %
                   </td>
-                  <td className="px-4 py-3 text-right text-slate-300">{c.ralentiPct} %</td>
-                  <td className="px-4 py-3 text-right text-slate-300">{c.horas}</td>
-                  <td className="px-4 py-3 text-right text-slate-300">{c.pctGasto.toFixed(1)} %</td>
-                  <td className="px-4 py-3 text-right text-slate-300">{c.co2Ton.toFixed(2)}</td>
-                  <td className="px-5 py-3 text-right">
-                    <span
-                      className={`inline-block rounded-md px-2.5 py-1 text-xs font-semibold ${
-                        c.estado === "conduccion" ? "bg-green-500/10 text-green-400" : c.estado === "ralenti" ? "bg-amber-500/10 text-amber-400" : "bg-slate-500/20 text-slate-400"
-                      }`}
-                    >
-                      {c.estado === "conduccion" ? "CONDUCCIÓN" : c.estado === "ralenti" ? "RALENTÍ" : "OFFLINE"}
-                    </span>
+                  <td style={{ textAlign: "right" }}>{c.ralentiPct} %</td>
+                  <td style={{ textAlign: "right" }}>{c.horas}</td>
+                  <td style={{ textAlign: "right" }}>{c.pctGasto.toFixed(1)} %</td>
+                  <td style={{ textAlign: "right" }}>{c.co2Ton.toFixed(2)}</td>
+                  <td style={{ textAlign: "right", paddingRight: "20px" }}>
+                    <EstadoBadge estado={c.estado} />
                   </td>
                 </tr>
               );
@@ -113,4 +217,3 @@ export function FlotaTable({
     </div>
   );
 }
-
