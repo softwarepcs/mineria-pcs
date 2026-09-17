@@ -58,9 +58,9 @@ function MenuTree({ items, depth = 0, collapsed = false, onExpandSidebar }: Menu
                   type="button"
                   onClick={() => toggle(item.id)}
                   title={item.label}
-                  className="flex h-10 w-full items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-white"
+                  className="sidebar-nav-btn-collapsed"
                 >
-                  <Icon name={item.icon ?? "dot"} className="h-4 w-4 shrink-0" />
+                  <Icon name={item.icon ?? "dot"} className="h-[18px] w-[18px] shrink-0" />
                 </button>
               </li>
             );
@@ -72,14 +72,10 @@ function MenuTree({ items, depth = 0, collapsed = false, onExpandSidebar }: Menu
                 to={item.path ?? "#"}
                 title={item.label}
                 className={({ isActive }) =>
-                  `flex h-10 w-full items-center justify-center rounded-lg transition ${
-                    isActive
-                      ? "bg-blue-500/20 text-blue-300 shadow-sm"
-                      : "text-slate-300 hover:bg-white/10 hover:text-white"
-                  }`
+                  `sidebar-nav-link-collapsed ${isActive ? "sidebar-nav-active-collapsed" : ""}`
                 }
               >
-                <Icon name={item.icon ?? "arrowRight"} className="h-4 w-4 shrink-0" />
+                <Icon name={item.icon ?? "arrowRight"} className="h-[18px] w-[18px] shrink-0" />
               </NavLink>
             </li>
           );
@@ -89,7 +85,7 @@ function MenuTree({ items, depth = 0, collapsed = false, onExpandSidebar }: Menu
   }
 
   return (
-    <ul className={depth === 0 ? "space-y-0.5" : "mt-0.5 space-y-0.5 border-l border-white/10 pl-3"}>
+    <ul className={depth === 0 ? "space-y-0.5" : "mt-0.5 space-y-0.5 pl-6"}>
       {items.map((item) => {
         const hasChildren = (item.children?.length ?? 0) > 0;
         const isOpen = openIds.has(item.id);
@@ -100,31 +96,25 @@ function MenuTree({ items, depth = 0, collapsed = false, onExpandSidebar }: Menu
               <button
                 type="button"
                 onClick={() => toggle(item.id)}
-                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition ${
-                  isOpen ? "bg-white/10 text-white" : "text-slate-300 hover:bg-white/5 hover:text-white"
-                }`}
+                className={`sidebar-nav-parent ${isOpen ? "sidebar-nav-parent-open" : ""}`}
               >
-                <span className="flex items-center gap-2 truncate">
-                  <Icon name={item.icon ?? "dot"} className="h-4 w-4 shrink-0" />
+                <span className="flex items-center gap-3 truncate">
+                  <Icon name={item.icon ?? "dot"} className="h-[18px] w-[18px] shrink-0" />
                   <span className="truncate">{item.label}</span>
                 </span>
                 <Icon
                   name="chevronDown"
-                  className={`h-3.5 w-3.5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
                 />
               </button>
             ) : (
               <NavLink
                 to={item.path ?? "#"}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-                    isActive
-                      ? "bg-blue-500/15 text-blue-300 font-medium"
-                      : "text-slate-300 hover:bg-white/5 hover:text-white"
-                  }`
+                  `sidebar-nav-link ${isActive ? "sidebar-nav-link-active" : ""}`
                 }
               >
-                <Icon name={item.icon ?? "arrowRight"} className="h-4 w-4 shrink-0" />
+                <Icon name={item.icon ?? "arrowRight"} className="h-[18px] w-[18px] shrink-0" />
                 <span className="truncate">{item.label}</span>
               </NavLink>
             )}
@@ -174,9 +164,9 @@ function EmpresaAccordionItem({
             setOpen(true);
           }}
           title={`${empresa.nombre} (Ver menú)`}
-          className="flex h-10 w-full items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-cyan-300"
+          className="sidebar-nav-btn-collapsed"
         >
-          <Icon name="building" className="h-4 w-4 shrink-0" />
+          <Icon name="building" className="h-[18px] w-[18px] shrink-0" />
         </button>
       );
     }
@@ -186,14 +176,10 @@ function EmpresaAccordionItem({
         to={`/empresa/${empresa.id}`}
         title={empresa.nombre}
         className={({ isActive }) =>
-          `flex h-10 w-full items-center justify-center rounded-lg transition ${
-            isActive
-              ? "bg-blue-500/20 text-blue-300 shadow-sm"
-              : "text-slate-300 hover:bg-white/10 hover:text-white"
-          }`
+          `sidebar-nav-link-collapsed ${isActive ? "sidebar-nav-active-collapsed" : ""}`
         }
       >
-        <Icon name="building" className="h-4 w-4 shrink-0" />
+        <Icon name="building" className="h-[18px] w-[18px] shrink-0" />
       </NavLink>
     );
   }
@@ -203,39 +189,33 @@ function EmpresaAccordionItem({
       <NavLink
         to={`/empresa/${empresa.id}`}
         className={({ isActive }) =>
-          `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
-            isActive
-              ? "bg-blue-500/15 text-blue-300"
-              : "text-slate-200 hover:bg-white/5 hover:text-white"
-          }`
+          `sidebar-nav-link ${isActive ? "sidebar-nav-link-active" : ""}`
         }
       >
-        <Icon name="building" className="h-4 w-4 shrink-0" />
+        <Icon name="building" className="h-[18px] w-[18px] shrink-0" />
         <span className="truncate">{empresa.nombre}</span>
       </NavLink>
     );
   }
 
   return (
-    <div className={`rounded-lg transition ${open ? "bg-white/5 ring-1 ring-cyan-500/40" : ""}`}>
+    <div>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition ${
-          open ? "text-cyan-300" : "text-slate-200 hover:bg-white/5"
-        }`}
+        className={`sidebar-nav-parent ${open ? "sidebar-nav-parent-open" : ""}`}
       >
-        <span className="flex items-center gap-2 truncate">
-          <Icon name="building" className="h-4 w-4 shrink-0" />
+        <span className="flex items-center gap-3 truncate">
+          <Icon name="building" className="h-[18px] w-[18px] shrink-0" />
           <span className="truncate">{empresa.nombre}</span>
         </span>
         <Icon
           name="chevronDown"
-          className={`h-3.5 w-3.5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && (
-        <div className="px-2 pb-2">
+        <div className="pb-1">
           <MenuTree
             items={empresa.menu!}
             depth={1}
@@ -275,9 +255,9 @@ function AdministracionMenu({
           setOpen(true);
         }}
         title="Administración"
-        className="flex h-10 w-full items-center justify-center rounded-lg text-slate-300 transition hover:bg-white/10 hover:text-white"
+        className="sidebar-nav-btn-collapsed"
       >
-        <Icon name="wrench" className="h-4 w-4 shrink-0" />
+        <Icon name="wrench" className="h-[18px] w-[18px] shrink-0" />
       </button>
     );
   }
@@ -287,29 +267,25 @@ function AdministracionMenu({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition ${
-          open ? "text-white" : "text-slate-200 hover:bg-white/5"
-        }`}
+        className={`sidebar-nav-parent ${open ? "sidebar-nav-parent-open" : ""}`}
       >
-        <span className="flex items-center gap-2 truncate">
-          <Icon name="wrench" className="h-4 w-4 shrink-0" />
+        <span className="flex items-center gap-3 truncate">
+          <Icon name="wrench" className="h-[18px] w-[18px] shrink-0" />
           <span className="truncate">Administración</span>
         </span>
-        <Icon name="chevronDown" className={`h-3.5 w-3.5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+        <Icon name="chevronDown" className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <ul className="mt-0.5 space-y-0.5 border-l border-white/10 pl-3">
+        <ul className="mt-0.5 space-y-0.5 pl-6">
           {items.map((item) => (
             <li key={item.path}>
               <NavLink
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-                    isActive ? "bg-blue-500/15 text-blue-300 font-medium" : "text-slate-300 hover:bg-white/5 hover:text-white"
-                  }`
+                  `sidebar-nav-link ${isActive ? "sidebar-nav-link-active" : ""}`
                 }
               >
-                <Icon name={item.icon} className="h-4 w-4 shrink-0" />
+                <Icon name={item.icon} className="h-[18px] w-[18px] shrink-0" />
                 <span className="truncate">{item.label}</span>
               </NavLink>
             </li>
@@ -366,30 +342,31 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
 
   return (
     <aside
-      className={`flex h-full ${
-        collapsed ? "w-16 px-2" : "w-64 px-3"
-      } shrink-0 flex-col border-r border-white/10 bg-[#0e1b2e] py-4 transition-all duration-300 ease-in-out`}
+      className={`sidebar-root ${collapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}
     >
-      {/* Header con Peru Controls y la flecha para colapsar / desocultar */}
-      <div className="mb-4 flex items-center justify-between px-1">
+      {/* ─── Brand / Logo ─── */}
+      <div className="sidebar-brand-area">
         {!collapsed ? (
           <>
             <button
               type="button"
               onClick={toggleCollapse}
               title="Colapsar menú"
-              className="flex items-center gap-2 truncate text-left transition hover:opacity-80"
+              className="sidebar-brand-btn"
             >
-              <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500 shadow-[0_0_8px] shadow-blue-500" />
-              <span className="truncate text-sm font-bold tracking-wide text-white">
-                Peru Controls
+              <span className="sidebar-logo-icon">
+                <Icon name="database" className="h-4 w-4" />
+              </span>
+              <span className="sidebar-brand-text">
+                <span className="sidebar-brand-title">Fleet Control</span>
+                <span className="sidebar-brand-subtitle">PERU CONTROLS</span>
               </span>
             </button>
             <button
               type="button"
               onClick={toggleCollapse}
               title="Colapsar menú"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white"
+              className="sidebar-collapse-btn"
             >
               <Icon name="chevronLeft" className="h-4 w-4" />
             </button>
@@ -400,7 +377,7 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
               type="button"
               onClick={toggleCollapse}
               title="Peru Controls - Expandir menú"
-              className="group flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition hover:border-blue-500/40 hover:bg-blue-500/15 hover:text-blue-300"
+              className="sidebar-expand-btn"
             >
               <Icon name="chevronRight" className="h-4 w-4 transition group-hover:translate-x-0.5" />
             </button>
@@ -408,26 +385,24 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
         )}
       </div>
 
-      {/* Lista de navegación con su propio scroll interno */}
+      {/* ─── Navigation ─── */}
       <div className="sidebar-scroll flex-1 overflow-y-auto min-h-0 space-y-1">
         {esGlobal ? (
-          <nav className="space-y-1">
+          <nav className="space-y-0.5">
             <Link
               to="/dashboard"
-              title="Tablero administrador"
-              className={`flex items-center ${
-                collapsed ? "h-10 justify-center px-0" : "gap-2 px-3 py-2"
-              } rounded-lg text-sm font-medium text-slate-200 transition hover:bg-white/5 hover:text-white`}
+              title="Inicio"
+              className={`sidebar-nav-link ${collapsed ? "sidebar-nav-link-collapsed-inline" : ""}`}
             >
-              <Icon name="home" className="h-4 w-4 shrink-0" />
-              {!collapsed && <span className="truncate">Tablero administrador</span>}
+              <Icon name="home" className="h-[18px] w-[18px] shrink-0" />
+              {!collapsed && <span className="truncate">Inicio</span>}
             </Link>
 
             <AdministracionMenu collapsed={collapsed} onExpandSidebar={expandSidebar} />
 
-            <div className="my-3 border-t border-white/10" />
+            <div className="sidebar-divider" />
 
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {empresas.map((e) => (
                 <EmpresaAccordionItem
                   key={e.id}
@@ -439,9 +414,9 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
             </div>
           </nav>
         ) : (
-          <nav className="space-y-1">
+          <nav className="space-y-0.5">
             {!collapsed && (
-              <div className="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-slate-500 truncate">
+              <div className="sidebar-section-label">
                 {miEmpresa?.nombre ?? "Mi empresa"}
               </div>
             )}
@@ -456,17 +431,15 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
         )}
       </div>
 
-      {/* Cerrar sesión: siempre fijado al pie del sidebar */}
-      <div className="mt-auto shrink-0 pt-3 border-t border-white/10">
+      {/* ─── Cerrar sesión ─── */}
+      <div className="sidebar-footer">
         <button
           type="button"
           onClick={onLogout}
           title="Cerrar sesión"
-          className={`flex w-full items-center ${
-            collapsed ? "h-10 justify-center px-0" : "gap-2 px-3 py-2"
-          } rounded-lg text-sm text-slate-400 transition hover:bg-red-500/10 hover:text-red-400`}
+          className={`sidebar-logout-btn ${collapsed ? "sidebar-logout-collapsed" : ""}`}
         >
-          <Icon name="logout" className="h-4 w-4 shrink-0" />
+          <Icon name="logout" className="h-[18px] w-[18px] shrink-0" />
           {!collapsed && <span className="truncate">Cerrar sesión</span>}
         </button>
       </div>

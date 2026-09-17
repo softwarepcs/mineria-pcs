@@ -1,4 +1,4 @@
-﻿import { useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Sidebar } from "../components/Sidebar";
 import { Menu, X } from "lucide-react";
@@ -14,7 +14,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0b1220]">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#010409]">
       {/* Sidebar para Escritorio */}
       <div className="hidden md:block">
         <Sidebar onLogout={logout} />
@@ -26,7 +26,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
           {/* Fondo oscuro */}
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMenuAbierto(false)}></div>
           {/* Contenedor del Sidebar */}
-          <div className="relative flex w-[260px] flex-col bg-[#0e1b2e] shadow-2xl transition-transform" onClick={(e) => e.stopPropagation()}>
+          <div className="relative flex w-[260px] flex-col bg-[#0d1117] shadow-2xl transition-transform" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setMenuAbierto(false)}
               className="absolute -right-12 top-3 rounded-full bg-white/10 p-2 text-white hover:bg-red-500/80"
@@ -41,23 +41,23 @@ export function MainLayout({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex flex-1 flex-col h-screen min-w-0 overflow-hidden relative">
-        <header className="shrink-0 flex items-center justify-between md:justify-end border-b border-white/10 px-4 md:px-6 py-3 bg-[#0b1220]/90 backdrop-blur-sm z-10">
+        <header className="shrink-0 flex items-center justify-between md:justify-end border-b border-white/[0.06] px-4 md:px-6 py-3 bg-[#0d1117]/90 backdrop-blur-sm z-10">
           <button 
-            className="md:hidden rounded-md p-1.5 text-slate-300 hover:bg-white/10 hover:text-white ring-1 ring-white/20"
+            className="md:hidden rounded-md p-1.5 text-[#8b949e] hover:bg-white/[0.06] hover:text-[#e6edf3] ring-1 ring-white/[0.08]"
             onClick={() => setMenuAbierto(true)}
           >
             <Menu className="h-5 w-5" />
           </button>
 
           <div className="text-right">
-            <div className="text-sm font-medium text-white">{sesion?.usuario.nombre}</div>
-            <div className="text-xs text-slate-400">
+            <div className="text-sm font-medium text-[#e6edf3]">{sesion?.usuario.nombre}</div>
+            <div className="text-[11px] text-[#636e7b] uppercase tracking-wide">
               {sesion ? NOMBRE_ROL[sesion.usuario.rol] : ""}
             </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-5 md:p-6 min-w-0 sidebar-scroll relative">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-5 md:p-6 min-w-0 sidebar-scroll relative bg-[#010409]">{children}</main>
       </div>
     </div>
   );
