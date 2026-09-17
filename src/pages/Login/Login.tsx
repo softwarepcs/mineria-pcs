@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
@@ -25,7 +25,7 @@ export function Login() {
   return (
     <div
       className="relative h-screen w-full bg-cover bg-center bg-no-repeat flex flex-col px-6 sm:px-10 md:px-12 lg:px-20 pt-4 sm:pt-5 md:pt-6 pb-6 sm:pb-8 md:pb-10 overflow-hidden"
-      style={{ backgroundImage: "url('/assets/img/Banner1.jpeg')" }}
+      style={{ backgroundImage: "url('/assets/img/Banner-3.png')" }}
     >
       {/* Título de la cabecera arriba y centrado con slogan */}
       <div className="w-full text-center">
@@ -38,7 +38,7 @@ export function Login() {
       </div>
 
       {/* Contenedor principal — mt-auto lo empuja al fondo, justo arriba del footer */}
-      <div className="w-full max-w-[440px] my-auto sm:my-0 sm:mt-auto pb-2 mx-auto sm:mx-0 sm:ml-8 md:ml-14 lg:ml-20 xl:ml-28">
+      <div className="w-full max-w-[440px] my-auto sm:my-0 sm:mt-auto pb-2 mx-auto sm:mx-0 sm:ml-0 md:ml-0 lg:ml-2 xl:ml-4">
         {/* Tarjeta del Login (sin cambios de tamaño) */}
         <form
           onSubmit={handleSubmit}

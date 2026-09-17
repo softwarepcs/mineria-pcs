@@ -232,12 +232,12 @@ export function AlertasView({ empresaNombre }: { empresaNombre: string }) {
                       <button className="px-5 py-2 text-sm font-semibold rounded bg-[#df8f85] text-[#2c1311] hover:bg-[#e49b91] transition">
                         Reconocer
                       </button>
-                      <button className="px-5 py-2 text-sm font-medium rounded border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition">
+                      {/* <button className="px-5 py-2 text-sm font-medium rounded border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition">
                         Ver el viaje completo
-                      </button>
-                      <button className="px-5 py-2 text-sm font-medium rounded border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition">
+                      </button> */}
+                      {/* <button className="px-5 py-2 text-sm font-medium rounded border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition">
                         Cerrar con motivo
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 </div>
