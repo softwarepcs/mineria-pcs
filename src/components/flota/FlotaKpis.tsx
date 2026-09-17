@@ -57,11 +57,11 @@ export function FlotaKpis({
               <span style={{
                 padding: "4px 12px", borderRadius: "6px",
                 fontSize: "12px", fontWeight: 600,
-                background: selectedMaquinaria.estado === "revisar" ? "rgba(217,155,66,0.12)" : "rgba(26,154,122,0.12)",
-                border: `1px solid ${selectedMaquinaria.estado === "revisar" ? "rgba(217,155,66,0.3)" : "rgba(26,154,122,0.3)"}`,
-                color: selectedMaquinaria.estado === "revisar" ? "#d99b42" : "#1a9a7a"
+                background: selectedMaquinaria.estado === "ralenti" ? "rgba(217,155,66,0.12)" : "rgba(26,154,122,0.12)",
+                border: `1px solid ${selectedMaquinaria.estado === "ralenti" ? "rgba(217,155,66,0.3)" : "rgba(26,154,122,0.3)"}`,
+                color: selectedMaquinaria.estado === "ralenti" ? "#d99b42" : "#1a9a7a"
               }}>
-                {selectedMaquinaria.estado === "revisar" ? "EN REVISIÓN" : "EN LÍNEA"}
+                {selectedMaquinaria.estado === "ralenti" ? "RALENTÍ" : selectedMaquinaria.estado.toUpperCase().replace("_", " ")}
               </span>
               <button
                 type="button"

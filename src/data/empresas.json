@@ -6,6 +6,7 @@
     "indicadores": { "unidades": 12, "alertas": 3, "disponibilidad": 96 },
     "menu": [
       { "id": "home", "label": "Home", "path": "/empresa/1", "icon": "home" },
+      { "id": "operadores", "label": "Operadores", "path": "/empresa/1/operadores", "icon": "users" },
       { "id": "asistentes", "label": "Asistentes", "path": "/empresa/1/asistentes", "icon": "anchor" },
       {
         "id": "database",
@@ -100,3 +101,4 @@
     "indicadores": { "unidades": 10, "alertas": 0, "disponibilidad": 100 }
   }
 ]
+

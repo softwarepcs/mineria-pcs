@@ -3,6 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Icon } from "../../../components/Icon";
 import { getMaquinarias, getTelemetriaByMaquinaria } from "../../../services/telemetriaService";
+import operadoresData from "../../../data/operadores.json";
 
 interface TelemetriaPunto {
   id: string | number;
@@ -77,6 +78,15 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
   const [fechaInicio, setFechaInicio] = useState("2026-09-01");
   const [fechaFin, setFechaFin] = useState("2026-09-10");
   const [cargando, setCargando] = useState(false);
+
+  const [operadores, setOperadores] = useState<any[]>(operadoresData);
+
+  useEffect(() => {
+      fetch('/api/operadores')
+        .then(res => res.json())
+        .then(data => setOperadores(data))
+        .catch(err => console.error("Error fetching operadores:", err));
+  }, []);
 
   const [resultados, setResultados] = useState<TelemetriaPunto[]>([]);
   const [datosCargadosEnMapa, setDatosCargadosEnMapa] = useState(false);
@@ -364,6 +374,19 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
     return pages;
   };
 
+  // Resolve current operator
+  const operadorActual = operadores.find((o) => {
+    const maq = maquinarias.find((m) => String(m.id) === String(maquinariaSeleccionada));
+    const placa = maq ? maq.identificador || maq.placa : maquinariaSeleccionada;
+    return (
+      String(o.maquinariaId) === String(maquinariaSeleccionada) ||
+      String(o.maquinariaId) === String(placa)
+    );
+  });
+  const operadorNombre = operadorActual
+    ? `${operadorActual.nombre}`
+    : "Sin operador";
+
   // Reset page on filter change
   useEffect(() => {
     setPaginaActual(1);
@@ -542,13 +565,15 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
               <tr>
                 <th>Ítem</th>
                 <th>Fecha y hora</th>
+                <th>Operador / Venc. Lic.</th>
                 <th>Latitud</th>
                 <th>Longitud</th>
                 <th>Velocidad</th>
                 <th>Rumbo</th>
                 <th>Temperatura</th>
                 <th>RPM</th>
-                <th>Caudal</th>
+                <th>FR IN</th>
+                <th>FR RET</th>
                 <th>Consumo L/H</th>
                 <th>Total Acumulado L</th>
                 <th>Odómetro</th>
@@ -560,6 +585,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
                   <tr key={r.id}>
                     <td className="mp-cell-muted">{startIdx + i + 1}</td>
                     <td>{r.fecha}</td>
+                    <td className="text-slate-300 font-medium whitespace-nowrap">{operadorNombre}</td>
                     <td style={{ color: "#00ebb0", fontWeight: 600 }}>{r.lat.toFixed(6)}</td>
                     <td style={{ color: "#00ebb0", fontWeight: 600 }}>{r.lng.toFixed(6)}</td>
                     <td>{r.velocidad.toFixed(1)}</td>
@@ -567,6 +593,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
                     <td>{r.temIngreso.toFixed(1)}</td>
                     <td className="mp-cell-bold">{r.rpm}</td>
                     <td>{r.flujoIn.toFixed(1)}</td>
+                    <td>{r.flujoRet.toFixed(1)}</td>
                     <td style={{ color: "#00ebb0", fontWeight: 600 }}>{r.consumoGh.toFixed(1)}</td>
                     <td>{r.totalGal.toLocaleString("es-PE")}</td>
                     <td>{r.odometro}</td>
@@ -574,7 +601,7 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={12} className="mp-table-empty">
+                  <td colSpan={13} className="mp-table-empty">
                     {resultados.length === 0
                       ? "Selecciona un camión, define el rango de fechas y presiona 'Buscar' para consultar la información."
                       : "No se encontraron registros que coincidan con la búsqueda."}
@@ -630,3 +657,5 @@ export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
     </div>
   );
 }
+
+

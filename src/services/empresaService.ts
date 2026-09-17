@@ -1,4 +1,4 @@
-﻿import type { Empresa } from "../types";
+import type { Empresa } from "../types";
 
 const API_URL = 'http://localhost:3000';
 
@@ -13,7 +13,9 @@ function getAuthHeaders() {
 function generarMenuDefault(id: number) {
   return [
     { id: `home-${id}`, label: "Home", path: `/empresa/${id}`, icon: "home" },
+    { id: `operadores-${id}`, label: "Operadores", path: `/empresa/${id}/operadores`, icon: "users" },
     { id: `alertas-${id}`, label: "Alertas", path: `/empresa/${id}/alertas`, icon: "alert-triangle" },
+    { id: `camiones-${id}`, label: "Camiones", path: `/empresa/${id}/camiones`, icon: "truck" },
     { id: `database-${id}`, label: "Data Base", path: `/empresa/${id}/database`, icon: "database" }
   ];
 }

@@ -1,7 +1,7 @@
 type IconName =
   | "home" | "wrench" | "building" | "chevronDown" | "chevronUp" | "chevronLeft" | "chevronRight"
   | "dot" | "arrowRight" | "anchor" | "database" | "activity" | "droplet" | "snowflake"
-  | "shield" | "fuel" | "wind" | "logout";
+  | "shield" | "fuel" | "wind" | "logout" | "users" | "truck";
 
 const paths: Record<IconName, React.ReactElement> = {
   home: <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10" />,
@@ -22,6 +22,8 @@ const paths: Record<IconName, React.ReactElement> = {
   fuel: <path strokeLinecap="round" strokeLinejoin="round" d="M4 21V7a2 2 0 012-2h6a2 2 0 012 2v14M4 21h10m4-14l2 2v7a1.5 1.5 0 01-3 0v-3h-2" />,
   wind: <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h9a2.5 2.5 0 100-5M4 13h13a2.5 2.5 0 110 5M4 18h7" />,
   logout: <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V6a3 3 0 013-3h4a3 3 0 013 3v1" />,
+  users: <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.318l-1.318 1.318a4.5 4.5 0 00-1.318 3.182v2.364H14v-2.364a4.5 4.5 0 00-1.318-3.182L11.364 4.318zm0 0a4.5 4.5 0 014.5 4.5v2.364H7.5V8.818a4.5 4.5 0 014.5-4.5zM3.75 21v-2.25c0-1.657 1.343-3 3-3h10.5c1.657 0 3 1.343 3 3V21H3.75zM12 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />,
+  truck: <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V14l-3-4zM8 7V3a2 2 0 012-2h4a2 2 0 012 2v4M21 14H8m0 0V7m4 14a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0z" />
 };
 
 export function Icon({ name, className }: { name: string; className?: string }) {

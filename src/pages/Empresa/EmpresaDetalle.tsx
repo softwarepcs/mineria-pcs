@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { obtenerEmpresaPorId } from "../../services/empresaService";
 import type { Empresa } from "../../types";
@@ -7,6 +7,10 @@ import { useAuth } from "../../hooks/useAuth";
 import { FlotaHome } from "../../components/flota/FlotaHome";
 import { MotorPrincipal } from "./components/MotorPrincipal";
 import { AlertasView } from "./components/AlertasView";
+import { OperadoresView } from "./components/OperadoresView";
+import { OperadorDetalleView } from "./components/OperadorDetalleView";
+import { CamionesListaView } from "./components/CamionesListaView";
+import { CamionesDetalleView } from "./components/CamionesDetalleView";
 
 function MonitoreoWrapper({ empresaNombre }: { empresaNombre: string }) {
   return (
@@ -62,6 +66,14 @@ export function EmpresaDetalle() {
       case "achiques":
       case "combustible":
         return <MonitoreoWrapper empresaNombre={empresa.nombre} />;
+      case "operadores":
+        return <OperadoresView empresa={empresa} />;
+      case "operadores-detalle":
+        return <OperadorDetalleView />;
+      case "camiones":
+        return <CamionesListaView />;
+      case "camiones-detalle":
+        return <CamionesDetalleView />;
       default:
         return <FlotaHome empresa={empresa} />;
     }

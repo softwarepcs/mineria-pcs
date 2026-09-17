@@ -23,14 +23,14 @@ function EstadoBadge({ estado }: { estado: string }) {
     bg = "rgba(26,154,122,0.12)";
     color = "#1a9a7a";
     label = "EN LÍNEA";
-  } else if (estado === "revisar") {
+  } else if (estado === "ralentí") {
     bg = "rgba(217,155,66,0.12)";
     color = "#d99b42";
-    label = "REVISAR";
+    label = "RALENTÍ";
   } else if (estado === "ralenti") {
     bg = "rgba(217,155,66,0.12)";
     color = "#d99b42";
-    label = "REVISAR";
+    label = "RALENTÍ";
   } else if (estado === "sin_datos") {
     bg = "rgba(100,116,139,0.12)";
     color = "#636e7b";
@@ -71,7 +71,7 @@ export function FlotaTable({
 
   // ─── ALERTS PANEL (sidebar next to map) ───
   if (mode === "alerts") {
-    const alertas = ordenados.filter((c) => c.desvioPct > 0 || c.estado === "revisar" || (c.estado as string) === "sin_datos").slice(0, 5);
+    const alertas = ordenados.filter((c) => c.desvioPct > 0 || (c.estado as string) === "revisar" || (c.estado as string) === "sin_datos").slice(0, 5);
 
     return (
       <div style={{

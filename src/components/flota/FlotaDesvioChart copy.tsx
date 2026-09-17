@@ -2,7 +2,7 @@ import type { Maquinaria } from "../../types";
 
 export function FlotaDesvioChart({
   maquinarias,
-  objetivo: _objetivo,
+  objetivo,
   selectedId,
   onSelect,
 }: {
@@ -32,9 +32,12 @@ export function FlotaDesvioChart({
 
   const barH = 20;
   const rowGap = 6;
+  const leftRowCount = Math.max(negativos.length, positivos.length);
+  const rightRowCount = leftRowCount;
 
   // Obtener los peores infractores
   const topOffenders = positivos.slice(0, 2);
+
 
   return (
     <div style={{
@@ -148,6 +151,7 @@ export function FlotaDesvioChart({
             {positivos.map((c) => {
               const isSelected = selectedId === c.id;
               const barPct = Math.min((c.desvioPct / (rightCeil || 1)) * 100, 95);
+              const esAmbar = c.desvioPct >= 5 || c.estado === "revisar";
 
               return (
                 <div
@@ -172,13 +176,13 @@ export function FlotaDesvioChart({
                   <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
                     <div style={{
                       height: `${barH - 4}px`, borderRadius: "0 3px 3px 0",
-                      background: "#d99b42",
+                      background: esAmbar ? "#d99b42" : "#1a9a7a",
                       width: `${barPct}%`, minWidth: "4px",
                       transition: "width 0.3s ease",
                     }} />
                     <span style={{
                       fontSize: "10px", fontWeight: 700, marginLeft: "6px", whiteSpace: "nowrap",
-                      color: "#d99b42",
+                      color: esAmbar ? "#d99b42" : "#1a9a7a",
                     }}>
                       +{c.desvioPct.toFixed(1)} %
                     </span>
@@ -211,7 +215,7 @@ export function FlotaDesvioChart({
           Dentro o por debajo del objetivo
         </span>
       </div>
-      {/* Nota descriptiva inferior generada dinámicamente */}
+            {/* Nota descriptiva inferior generada dinámicamente */}
       {topOffenders.length === 2 ? (
         <p className="mt-3 text-xs leading-relaxed text-slate-400 font-sans">
           Dos maquinarias concentran el problema: <strong className="text-slate-200">{topOffenders[0].placa}</strong> y{" "}
