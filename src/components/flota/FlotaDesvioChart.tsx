@@ -2,7 +2,7 @@ import type { Maquinaria } from "../../types";
 
 export function FlotaDesvioChart({
   maquinarias,
-  objetivo,
+  objetivo: _objetivo,
   selectedId,
   onSelect,
 }: {
@@ -32,8 +32,6 @@ export function FlotaDesvioChart({
 
   const barH = 20;
   const rowGap = 6;
-  const leftRowCount = Math.max(negativos.length, positivos.length);
-  const rightRowCount = leftRowCount;
 
 
   return (
@@ -148,7 +146,6 @@ export function FlotaDesvioChart({
             {positivos.map((c) => {
               const isSelected = selectedId === c.id;
               const barPct = Math.min((c.desvioPct / (rightCeil || 1)) * 100, 95);
-              const esAmbar = c.desvioPct >= 5 || c.estado === "revisar";
 
               return (
                 <div
@@ -173,13 +170,13 @@ export function FlotaDesvioChart({
                   <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
                     <div style={{
                       height: `${barH - 4}px`, borderRadius: "0 3px 3px 0",
-                      background: esAmbar ? "#d99b42" : "#1a9a7a",
+                      background: "#d99b42",
                       width: `${barPct}%`, minWidth: "4px",
                       transition: "width 0.3s ease",
                     }} />
                     <span style={{
                       fontSize: "10px", fontWeight: 700, marginLeft: "6px", whiteSpace: "nowrap",
-                      color: esAmbar ? "#d99b42" : "#1a9a7a",
+                      color: "#d99b42",
                     }}>
                       +{c.desvioPct.toFixed(1)} %
                     </span>

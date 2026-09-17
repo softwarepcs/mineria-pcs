@@ -71,7 +71,7 @@ export function FlotaTable({
 
   // ─── ALERTS PANEL (sidebar next to map) ───
   if (mode === "alerts") {
-    const alertas = ordenados.filter((c) => c.desvioPct > 0 || c.estado === "revisar" || c.estado === "sin_datos").slice(0, 5);
+    const alertas = ordenados.filter((c) => c.desvioPct > 0 || c.estado === "revisar" || (c.estado as string) === "sin_datos").slice(0, 5);
 
     return (
       <div style={{
@@ -88,7 +88,7 @@ export function FlotaTable({
               ? "Consumo fuera de objetivo"
               : c.ralentiPct > 40
               ? `Ralentí alto · ${c.horas} h`
-              : c.estado === "sin_datos"
+              : (c.estado as string) === "sin_datos"
               ? "Sin transmisión reciente"
               : c.desvioPct > 50
               ? "Paradas extensas no planificadas"
@@ -197,7 +197,7 @@ export function FlotaTable({
                   <td style={{ textAlign: "right" }}>{c.l100km.toFixed(1)}</td>
                   <td style={{
                     textAlign: "right", fontWeight: 600,
-                    color: c.desvioPct > 0 ? "#00ebb0" : "#1a9a7a"
+                    color: c.desvioPct > 0 ? "#d99b42" : "#1a9a7a"
                   }}>
                     {c.desvioPct > 0 ? "+" : ""}{c.desvioPct.toFixed(1)} %
                   </td>
