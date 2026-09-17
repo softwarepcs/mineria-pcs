@@ -1,0 +1,208 @@
+{
+  "resumen": {
+    "criticas": 1,
+    "altas": 0,
+    "periodo": "Últimos 30 días",
+    "total": 6
+  },
+  "alertas": [
+    {
+      "id": "alt-1",
+      "tipo": "Velocidad sin consumo",
+      "severidad": "critica",
+      "estado": "activa",
+      "fecha": "08 SEP 2026",
+      "duracion": "41 MIN",
+      "duracionMin": 41,
+      "camion": "TC-TRUCK-08",
+      "ventanaHoraria": "08 SEP 2026 · 16:04-16:45",
+      "metricas": {
+        "duracion": "41 min",
+        "distanciaRecorrida": "47 km",
+        "velocidadMedia": "69 km/h",
+        "consumoRegistrado": "0,00 L",
+        "consumoEsperado": "20,8 L",
+        "altitudNeta": "-18 m",
+        "lecturasSensor": "478 / 492 · 97 %",
+        "ignicion": "ON toda la ventana"
+      },
+      "evidencia": {
+        "etiquetaZona": "Sin consumo con velocidad",
+        "horarioZona": "16:04 - 16:45",
+        "zonaPeligroInicioPct": 33,
+        "zonaPeligroFinPct": 85,
+        "caudalMax": 60,
+        "velocidadMax": 120,
+        "ticksTiempo": ["16:00", "16:10", "16:20", "16:30", "16:40"],
+        "puntosCaudal": [32, 36, 28, 30, 26, 31, 28, 25, 29, 23, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 25, 29, 36, 32, 33],
+        "puntosVelocidad": [62, 75, 70, 68, 73, 78, 76, 82, 80, 81, 84, 86, 85, 87, 85, 86, 88, 87, 88, 89, 87, 86, 85, 84, 83, 80, 78, 72]
+      },
+      "descripcion": "Las siete guardas se cumplen. La altitud neta descarta el corte de inyección por bajada y el 97 % de lecturas del sensor descarta un hueco de datos. El camión recorrió 47 kilómetros mientras el caudalímetro reportaba cero. El consumo esperado se calcula al rendimiento promedio del camión, 44,2 L/100 km."
+    },
+    {
+      "id": "alt-2",
+      "tipo": "Consumo fuera de objetivo",
+      "severidad": "alta",
+      "estado": "activa",
+      "fecha": "07 SEP 2026",
+      "duracion": "2 H 10 MIN",
+      "duracionMin": 130,
+      "camion": "TC-TRUCK-11",
+      "ventanaHoraria": "07 SEP 2026 · 09:15-11:25",
+      "metricas": {
+        "duracion": "130 min",
+        "distanciaRecorrida": "112 km",
+        "velocidadMedia": "52 km/h",
+        "consumoRegistrado": "68,40 L",
+        "consumoEsperado": "49,5 L",
+        "altitudNeta": "+140 m",
+        "lecturasSensor": "1280 / 1300 · 98 %",
+        "ignicion": "ON toda la ventana"
+      },
+      "evidencia": {
+        "etiquetaZona": "Consumo elevado en ruta",
+        "horarioZona": "09:30 - 11:00",
+        "zonaPeligroInicioPct": 25,
+        "zonaPeligroFinPct": 80,
+        "caudalMax": 60,
+        "velocidadMax": 120,
+        "ticksTiempo": ["09:15", "09:45", "10:15", "10:45", "11:15"],
+        "puntosCaudal": [24, 28, 48, 52, 55, 54, 50, 52, 51, 56, 54, 53, 50, 48, 49, 52, 50, 46, 32, 28, 25],
+        "puntosVelocidad": [45, 50, 52, 55, 53, 51, 54, 52, 50, 53, 55, 52, 54, 51, 50, 48, 52, 50, 48, 42, 35]
+      },
+      "descripcion": "Desvío de consumo de +38% respecto al valor de referencia para la ruta y carga actual. No se detectan anomalías de altitud que justifiquen la sobreinyección."
+    },
+    {
+      "id": "alt-3",
+      "tipo": "Sin señal de sensor",
+      "severidad": "normal",
+      "estado": "cerrada",
+      "fecha": "07 SEP 2026",
+      "duracion": "18 MIN",
+      "duracionMin": 18,
+      "camion": "TC-TRUCK-12",
+      "ventanaHoraria": "07 SEP 2026 · 14:02-14:20",
+      "metricas": {
+        "duracion": "18 min",
+        "distanciaRecorrida": "0 km",
+        "velocidadMedia": "0 km/h",
+        "consumoRegistrado": "0,00 L",
+        "consumoEsperado": "0,0 L",
+        "altitudNeta": "0 m",
+        "lecturasSensor": "0 / 216 · 0 %",
+        "ignicion": "OFF"
+      },
+      "evidencia": {
+        "etiquetaZona": "Pérdida de señal GPS/DFM",
+        "horarioZona": "14:02 - 14:20",
+        "zonaPeligroInicioPct": 20,
+        "zonaPeligroFinPct": 85,
+        "caudalMax": 60,
+        "velocidadMax": 120,
+        "ticksTiempo": ["14:00", "14:05", "14:10", "14:15", "14:20"],
+        "puntosCaudal": [22, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 21],
+        "puntosVelocidad": [55, 48, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 50]
+      },
+      "descripcion": "Pérdida momentánea de telemetría por ingreso a zona de túnel o sombra de señal satelital. Conectividad restablecida automáticamente."
+    },
+    {
+      "id": "alt-4",
+      "tipo": "Ralentí prolongado",
+      "severidad": "alta",
+      "estado": "activa",
+      "fecha": "06 SEP 2026",
+      "duracion": "53 MIN",
+      "duracionMin": 53,
+      "camion": "TC-TRUCK-07",
+      "ventanaHoraria": "06 SEP 2026 · 12:10-13:03",
+      "metricas": {
+        "duracion": "53 min",
+        "distanciaRecorrida": "0 km",
+        "velocidadMedia": "0 km/h",
+        "consumoRegistrado": "4,80 L",
+        "consumoEsperado": "0,9 L",
+        "altitudNeta": "0 m",
+        "lecturasSensor": "630 / 636 · 99 %",
+        "ignicion": "ON en ralentí"
+      },
+      "evidencia": {
+        "etiquetaZona": "Ralentí excesivo en patio",
+        "horarioZona": "12:10 - 13:03",
+        "zonaPeligroInicioPct": 20,
+        "zonaPeligroFinPct": 90,
+        "caudalMax": 60,
+        "velocidadMax": 120,
+        "ticksTiempo": ["12:10", "12:20", "12:35", "12:50", "13:03"],
+        "puntosCaudal": [25, 12, 6, 5.5, 5.8, 5.2, 5.4, 5.5, 5.3, 5.6, 5.4, 5.5, 5.2, 5.5, 18, 28],
+        "puntosVelocidad": [40, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 38]
+      },
+      "descripcion": "Motor encendido en parada sin justificación operativa superior al límite de 15 minutos en patio de carga."
+    },
+    {
+      "id": "alt-5",
+      "tipo": "Desvío de ruta",
+      "severidad": "normal",
+      "estado": "cerrada",
+      "fecha": "05 SEP 2026",
+      "duracion": "22 MIN",
+      "duracionMin": 22,
+      "camion": "TC-TRUCK-10",
+      "ventanaHoraria": "05 SEP 2026 · 17:40-18:02",
+      "metricas": {
+        "duracion": "22 min",
+        "distanciaRecorrida": "14 km",
+        "velocidadMedia": "38 km/h",
+        "consumoRegistrado": "6,10 L",
+        "consumoEsperado": "5,8 L",
+        "altitudNeta": "+12 m",
+        "lecturasSensor": "260 / 264 · 98 %",
+        "ignicion": "ON toda la ventana"
+      },
+      "evidencia": {
+        "etiquetaZona": "Ruta alterna por desvío",
+        "horarioZona": "17:40 - 18:02",
+        "zonaPeligroInicioPct": 25,
+        "zonaPeligroFinPct": 85,
+        "caudalMax": 60,
+        "velocidadMax": 120,
+        "ticksTiempo": ["17:40", "17:45", "17:50", "17:55", "18:02"],
+        "puntosCaudal": [28, 30, 26, 25, 27, 26, 28, 25, 26, 27, 29, 31],
+        "puntosVelocidad": [55, 48, 35, 38, 36, 40, 37, 39, 36, 42, 48, 54]
+      },
+      "descripcion": "Desvío no programado por obras en vía principal. El operador tomó la ruta alterna autorizada por el centro de control."
+    },
+    {
+      "id": "alt-6",
+      "tipo": "Parada no planificada",
+      "severidad": "critica",
+      "estado": "activa",
+      "fecha": "05 SEP 2026",
+      "duracion": "35 MIN",
+      "duracionMin": 35,
+      "camion": "TC-TRUCK-05",
+      "ventanaHoraria": "05 SEP 2026 · 08:30-09:05",
+      "metricas": {
+        "duracion": "35 min",
+        "distanciaRecorrida": "0 km",
+        "velocidadMedia": "0 km/h",
+        "consumoRegistrado": "0,20 L",
+        "consumoEsperado": "0,0 L",
+        "altitudNeta": "0 m",
+        "lecturasSensor": "415 / 420 · 99 %",
+        "ignicion": "OFF"
+      },
+      "evidencia": {
+        "etiquetaZona": "Parada en berma no programada",
+        "horarioZona": "08:30 - 09:05",
+        "zonaPeligroInicioPct": 25,
+        "zonaPeligroFinPct": 88,
+        "caudalMax": 60,
+        "velocidadMax": 120,
+        "ticksTiempo": ["08:30", "08:40", "08:50", "09:00", "09:05"],
+        "puntosCaudal": [30, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 28],
+        "puntosVelocidad": [65, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 58]
+      },
+      "descripcion": "Parada en berma no autorizada en el tramo Km 48. Pendiente confirmación de motivo mecánico con el operador."
+    }
+  ]
+}
