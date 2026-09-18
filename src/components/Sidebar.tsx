@@ -355,11 +355,11 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
               className="sidebar-brand-btn"
             >
               <span className="sidebar-logo-icon">
-                <Icon name="database" className="h-4 w-4" />
+                <Icon name="monitor" className="h-5 w-5 text-[#0df5c6]" />
               </span>
               <span className="sidebar-brand-text">
-                <span className="sidebar-brand-title">Fleet Control</span>
-                <span className="sidebar-brand-subtitle">PERU CONTROLS</span>
+                <span className="sidebar-brand-title">EDGE SMART</span>
+                {/* <span className="sidebar-brand-subtitle">PERU CONTROLS</span> */}
               </span>
             </button>
             <button

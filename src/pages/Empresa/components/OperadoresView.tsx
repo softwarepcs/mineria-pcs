@@ -338,8 +338,12 @@ export function OperadoresView({ empresa }: { empresa: Empresa }) {
               return (
                 <tr 
                   key={op.id} 
-                  className="transition-colors hover:bg-white/5 cursor-pointer"
-                  onClick={() => navigate(`/empresa/${empresa.id}/operadores-detalle`)}
+                  className={`transition-colors hover:bg-white/5 ${op.nombre === "Carlos Méndez" ? "cursor-pointer" : ""}`}
+                  onClick={() => {
+                    if (op.nombre === "Carlos Méndez") {
+                      navigate(`/empresa/${empresa.id}/operadores-detalle`);
+                    }
+                  }}
                 >
                   {/* OPERADOR */}
                   <td className="py-3 pl-4 pr-6">

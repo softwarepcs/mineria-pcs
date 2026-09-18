@@ -3,7 +3,7 @@ import { listarEmpresas } from "../../services/empresaService";
 import type { Empresa } from "../../types";
 import { useAuth } from "../../hooks/useAuth";
 
-const API_URL = 'http://localhost:3000';
+const API_URL = 'http://localhost:4000';
 
 export function Configuracion() {
   const { sesion } = useAuth();
