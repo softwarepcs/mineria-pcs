@@ -11,6 +11,7 @@ import { EmpresaDetalle } from "./pages/Empresa/EmpresaDetalle";
 import { Usuarios } from "./pages/Usuarios/Usuarios";
 import { Configuracion } from "./pages/Configuracion/Configuracion";
 import { NotAuthorized } from "./pages/NotAuthorized/NotAuthorized";
+import { GeocercasPage } from "./pages/Geocercas/GeocercasPage";
 
 function App() {
   return (
@@ -26,6 +27,17 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Dashboard />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/geocercas"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <GeocercasPage />
                 </MainLayout>
               </ProtectedRoute>
             }

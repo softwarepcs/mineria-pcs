@@ -173,11 +173,12 @@ export function AlertasView({ empresaNombre: _empresaNombre }: { empresaNombre?:
     setReconocidas((prev) => new Set([...prev, id]));
   };
 
-  const handleCerrar = (id: string) => {
+  const _handleCerrar = (id: string) => {
     setAlertasList((prev) =>
       prev.map((a) => (a.id === id ? { ...a, estado: "cerrada" as const } : a))
     );
   };
+  void _handleCerrar;
 
   const isCritica = selectedAlert?.severidad === "critica";
   const isAlta = selectedAlert?.severidad === "alta";

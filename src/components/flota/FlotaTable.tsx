@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import type { Maquinaria } from "../../types";
 
 type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto" | "co2Ton">;
@@ -59,6 +60,8 @@ export function FlotaTable({
   onSelect: (id: string) => void;
   mode?: "full" | "alerts";
 }) {
+  const { id } = useParams();
+  const empresaId = id || "1";
   const [orden, setOrden] = useState<{ col: Columna; dir: "asc" | "desc" }>({ col: "desvioPct", dir: "desc" });
 
   const ordenados = [...maquinarias].sort((a, b) =>
@@ -119,13 +122,26 @@ export function FlotaTable({
                     {razon}
                   </span>
                 </div>
-                <span style={{
-                  fontSize: "13px", fontWeight: 700,
-                  color: c.desvioPct > 0 ? "#d99b42" : "#1a9a7a",
-                  whiteSpace: "nowrap"
-                }}>
-                  +{c.desvioPct.toFixed(1)} %
-                </span>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+                  <span style={{
+                    fontSize: "13px", fontWeight: 700,
+                    color: c.desvioPct > 0 ? "#d99b42" : "#1a9a7a",
+                    whiteSpace: "nowrap"
+                  }}>
+                    +{c.desvioPct.toFixed(1)} %
+                  </span>
+                  <Link
+                    to={`/empresa/${empresaId}/camiones-detalle?camionId=${encodeURIComponent(c.id)}`}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      fontSize: "10px", fontWeight: 600, color: "#0df5c6",
+                      textDecoration: "none", display: "inline-flex", alignItems: "center"
+                    }}
+                    className="hover:underline"
+                  >
+                    Ver ficha →
+                  </Link>
+                </div>
               </div>
             );
           })}
@@ -191,7 +207,17 @@ export function FlotaTable({
                     borderLeft: activo ? "3px solid #1a9a7a" : "3px solid transparent",
                   }}
                 >
-                  <td style={{ paddingLeft: "20px", fontWeight: 600, color: "#e6edf3" }}>{c.placa}</td>
+                  <td style={{ paddingLeft: "20px", fontWeight: 600, color: "#e6edf3" }}>
+                    <Link
+                      to={`/empresa/${empresaId}/camiones-detalle?camionId=${encodeURIComponent(c.id)}`}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ color: "#e6edf3", textDecoration: "none" }}
+                      className="hover:underline hover:text-[#0df5c6] transition"
+                      title="Ver ficha completa"
+                    >
+                      {c.placa}
+                    </Link>
+                  </td>
                   <td style={{ textAlign: "right" }}>{c.km.toLocaleString("es-PE")}</td>
                   <td style={{ textAlign: "right" }}>{c.litros.toLocaleString("es-PE")}</td>
                   <td style={{ textAlign: "right" }}>{c.l100km.toFixed(1)}</td>
@@ -206,7 +232,22 @@ export function FlotaTable({
                   <td style={{ textAlign: "right" }}>{c.pctGasto.toFixed(1)} %</td>
                   <td style={{ textAlign: "right" }}>{c.co2Ton.toFixed(2)}</td>
                   <td style={{ textAlign: "right", paddingRight: "20px" }}>
-                    <EstadoBadge estado={c.estado} />
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px" }}>
+                      <EstadoBadge estado={c.estado} />
+                      <Link
+                        to={`/empresa/${empresaId}/camiones-detalle?camionId=${encodeURIComponent(c.id)}`}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          fontSize: "11px", fontWeight: 600, color: "#0df5c6",
+                          textDecoration: "none", padding: "2px 8px", borderRadius: "4px",
+                          background: "rgba(13,245,198,0.1)", border: "1px solid rgba(13,245,198,0.25)"
+                        }}
+                        className="hover:bg-[#0df5c6] hover:text-black transition"
+                        title="Ver ficha completa de este camión"
+                      >
+                        Ficha
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               );

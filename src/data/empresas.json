@@ -6,6 +6,7 @@
     "indicadores": { "unidades": 12, "alertas": 3, "disponibilidad": 96 },
     "menu": [
       { "id": "home", "label": "Home", "path": "/empresa/1", "icon": "home" },
+      { "id": "geocercas", "label": "Geocercas", "path": "/empresa/1/geocercas", "icon": "mapPin" },
       { "id": "operadores", "label": "Operadores", "path": "/empresa/1/operadores", "icon": "users" },
       { "id": "asistentes", "label": "Asistentes", "path": "/empresa/1/asistentes", "icon": "anchor" },
       {
@@ -58,6 +59,7 @@
     "indicadores": { "unidades": 8, "alertas": 0, "disponibilidad": 99 },
     "menu": [
       { "id": "home-2", "label": "Home", "path": "/empresa/2", "icon": "home" },
+      { "id": "geocercas-2", "label": "Geocercas", "path": "/empresa/2/geocercas", "icon": "mapPin" },
       {
         "id": "monitoreo-2",
         "label": "Monitoreo",
@@ -79,6 +81,7 @@
     "indicadores": { "unidades": 20, "alertas": 5, "disponibilidad": 91 },
     "menu": [
       { "id": "home-3", "label": "Home", "path": "/empresa/3", "icon": "home" },
+      { "id": "geocercas-3", "label": "Geocercas", "path": "/empresa/3/geocercas", "icon": "mapPin" },
       { "id": "database-3", "label": "Data Base", "path": "/empresa/3/database", "icon": "database" }
     ]
   },

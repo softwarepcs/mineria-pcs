@@ -389,14 +389,16 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
       <div className="sidebar-scroll flex-1 overflow-y-auto min-h-0 space-y-1">
         {esGlobal ? (
           <nav className="space-y-0.5">
-            <Link
+            <NavLink
               to="/dashboard"
               title="Inicio"
-              className={`sidebar-nav-link ${collapsed ? "sidebar-nav-link-collapsed-inline" : ""}`}
+              className={({ isActive }) =>
+                `sidebar-nav-link ${collapsed ? "sidebar-nav-link-collapsed-inline" : ""} ${isActive ? "sidebar-nav-link-active" : ""}`
+              }
             >
               <Icon name="home" className="h-[18px] w-[18px] shrink-0" />
               {!collapsed && <span className="truncate">Inicio</span>}
-            </Link>
+            </NavLink>
 
             <AdministracionMenu collapsed={collapsed} onExpandSidebar={expandSidebar} />
 

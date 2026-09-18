@@ -72,7 +72,7 @@ function createEndIcon() {
   });
 }
 
-export function MotorPrincipal({ empresaNombre }: { empresaNombre: string }) {
+export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombre: string }) {
   const [maquinarias, setMaquinarias] = useState<any[]>([]);
   const [maquinariaSeleccionada, setMaquinariaSeleccionada] = useState("");
   const [fechaInicio, setFechaInicio] = useState("2026-09-01");

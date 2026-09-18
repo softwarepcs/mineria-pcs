@@ -1,7 +1,8 @@
 type IconName =
   | "home" | "wrench" | "building" | "chevronDown" | "chevronUp" | "chevronLeft" | "chevronRight"
   | "dot" | "arrowRight" | "anchor" | "database" | "activity" | "droplet" | "snowflake"
-  | "shield" | "fuel" | "wind" | "logout" | "users" | "truck" | "monitor" | "cpu";
+  | "shield" | "fuel" | "wind" | "logout" | "users" | "truck" | "monitor" | "cpu"
+  | "mapPin" | "radio";
 
 const paths: Record<IconName, React.ReactElement> = {
   home: <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10" />,
@@ -36,7 +37,9 @@ const paths: Record<IconName, React.ReactElement> = {
       <rect x="9" y="9" width="6" height="6" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />
     </>
-  )
+  ),
+  mapPin: <path strokeLinecap="round" strokeLinejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />,
+  radio: <path strokeLinecap="round" strokeLinejoin="round" d="M4.9 19.1A10 10 0 014 12c0-2.4.9-4.8 2.6-6.6M19.1 4.9A10 10 0 0120 12c0 2.4-.9 4.8-2.6 6.6M7.8 16.2A6 6 0 017 12c0-1.5.6-2.9 1.6-4M16.2 7.8A6 6 0 0117 12c0 1.5-.6 2.9-1.6 4M12 12h.01" />
 };
 
 export function Icon({ name, className }: { name: string; className?: string }) {

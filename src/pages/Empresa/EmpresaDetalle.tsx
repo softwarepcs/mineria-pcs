@@ -11,6 +11,7 @@ import { OperadoresView } from "./components/OperadoresView";
 import { OperadorDetalleView } from "./components/OperadorDetalleView";
 import { CamionesListaView } from "./components/CamionesListaView";
 import { CamionesDetalleView } from "./components/CamionesDetalleView";
+import { GeocercasView } from "../../components/geocercas/GeocercasView";
 
 function MonitoreoWrapper({ empresaNombre }: { empresaNombre: string }) {
   return (
@@ -71,9 +72,11 @@ export function EmpresaDetalle() {
       case "operadores-detalle":
         return <OperadorDetalleView />;
       case "camiones":
-        return <CamionesListaView />;
+        return <CamionesListaView empresa={empresa} />;
       case "camiones-detalle":
-        return <CamionesDetalleView />;
+        return <CamionesDetalleView empresa={empresa} />;
+      case "geocercas":
+        return <GeocercasView empresa={empresa} />;
       default:
         return <FlotaHome empresa={empresa} />;
     }
@@ -94,14 +97,14 @@ export function EmpresaDetalle() {
           </Link>
         )}
 
-        {subruta && (
+        {/* {subruta && (
           <Link
             to={`/empresa/${id}`}
             className="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 transition hover:text-cyan-300"
           >
             Volver al Home de {empresa.nombre}
           </Link>
-        )}
+        )} */}
       </div>
 
       {renderContenidoEmpresa()}
