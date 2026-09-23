@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "../../../components/Icon";
-import { getMaquinarias, getTelemetriaByMaquinaria } from "../../../services/telemetriaService";
 import operadoresData from "../../../data/operadores.json";
+import { getMaquinarias, getTelemetriaByMaquinaria } from "../../../services/telemetriaService";
 
 interface TelemetriaPunto {
   id: string | number;
@@ -75,17 +75,17 @@ function createEndIcon() {
 export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombre: string }) {
   const [maquinarias, setMaquinarias] = useState<any[]>([]);
   const [maquinariaSeleccionada, setMaquinariaSeleccionada] = useState("");
-  const [fechaInicio, setFechaInicio] = useState("2026-09-01");
-  const [fechaFin, setFechaFin] = useState("2026-09-10");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
   const [cargando, setCargando] = useState(false);
 
   const [operadores, setOperadores] = useState<any[]>(operadoresData);
 
   useEffect(() => {
-      fetch('/api/operadores')
-        .then(res => res.json())
-        .then(data => setOperadores(data))
-        .catch(err => console.error("Error fetching operadores:", err));
+    fetch('/api/operadores')
+      .then(res => res.json())
+      .then(data => setOperadores(data))
+      .catch(err => console.error("Error fetching operadores:", err));
   }, []);
 
   const [resultados, setResultados] = useState<TelemetriaPunto[]>([]);
@@ -202,7 +202,7 @@ export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombr
       // Extraemos la placa de la maquinaria seleccionada
       const maq = maquinarias.find((m) => m.id.toString() === maquinariaSeleccionada);
       const placa = maq ? (maq.identificador || maq.placa || 'Desconocido') : 'Desconocido';
-      
+
       const filtrados = data.map((d: any) => ({
         ...d,
         placa

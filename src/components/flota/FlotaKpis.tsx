@@ -19,59 +19,46 @@ export function FlotaKpis({
     : resumen.rendimientoMedioL100km <= resumen.objetivoL100km;
 
   return (
-    <div>
+    <div className="w-full">
       {/* ─── Top bar: Title + badges + reporting ─── */}
-      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "16px" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "10px" }}>
-          <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#e6edf3", margin: 0 }}>
-            Flota {esIndividual && <span style={{ color: "#00ebb0", fontFamily: "monospace" }}>· Camión {selectedMaquinaria.placa}</span>}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+          <h2 className="text-base sm:text-lg font-bold text-[#e6edf3] m-0 flex items-center gap-1.5 flex-wrap">
+            <span>Flota</span>
+            {esIndividual && (
+              <span className="text-[#00ebb0] font-mono text-sm sm:text-base">
+                · Camión {selectedMaquinaria.placa}
+              </span>
+            )}
           </h2>
 
           {!esIndividual ? (
             <>
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: "5px",
-                padding: "4px 12px", borderRadius: "6px",
-                background: "rgba(26,154,122,0.12)", border: "1px solid rgba(26,154,122,0.3)",
-                fontSize: "12px", fontWeight: 500, color: "#1a9a7a"
-              }}>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#1a9a7a]/15 border border-[#1a9a7a]/30 text-xs font-medium text-[#1a9a7a]">
                 {resumen.equipos} equipos
               </span>
-              <span style={{
-                padding: "4px 12px", borderRadius: "6px",
-                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-                fontSize: "12px", color: "#8b949e"
-              }}>
+              <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.08] text-xs text-[#8b949e]">
                 {resumen.periodo}
               </span>
-              <span style={{
-                padding: "4px 12px", borderRadius: "6px",
-                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-                fontSize: "12px", color: "#8b949e"
-              }}>
+              <span className="hidden sm:inline-block px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.08] text-xs text-[#8b949e]">
                 Objetivo {resumen.objetivoL100km.toFixed(1)} L/100 km
               </span>
             </>
           ) : (
             <>
-              <span style={{
-                padding: "4px 12px", borderRadius: "6px",
-                fontSize: "12px", fontWeight: 600,
-                background: selectedMaquinaria.estado === "ralenti" ? "rgba(217,155,66,0.12)" : "rgba(26,154,122,0.12)",
-                border: `1px solid ${selectedMaquinaria.estado === "ralenti" ? "rgba(217,155,66,0.3)" : "rgba(26,154,122,0.3)"}`,
-                color: selectedMaquinaria.estado === "ralenti" ? "#d99b42" : "#1a9a7a"
-              }}>
+              <span
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
+                  selectedMaquinaria.estado === "ralenti"
+                    ? "bg-[#d99b42]/15 border border-[#d99b42]/30 text-[#d99b42]"
+                    : "bg-[#1a9a7a]/15 border border-[#1a9a7a]/30 text-[#1a9a7a]"
+                }`}
+              >
                 {selectedMaquinaria.estado === "ralenti" ? "RALENTÍ" : selectedMaquinaria.estado.toUpperCase().replace("_", " ")}
               </span>
               <button
                 type="button"
                 onClick={onReset}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "5px",
-                  padding: "4px 12px", borderRadius: "6px", cursor: "pointer",
-                  background: "rgba(26,154,122,0.1)", border: "1px solid rgba(26,154,122,0.3)",
-                  fontSize: "12px", fontWeight: 600, color: "#1a9a7a"
-                }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md cursor-pointer bg-[#1a9a7a]/10 border border-[#1a9a7a]/30 text-xs font-semibold text-[#1a9a7a] hover:bg-[#1a9a7a]/20 transition"
               >
                 ✕ Ver toda la flota
               </button>
@@ -80,19 +67,15 @@ export function FlotaKpis({
         </div>
 
         {!esIndividual && (
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#636e7b" }}>
-            <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#1a9a7a", display: "inline-block" }} />
-            {resumen.reportando} de {resumen.equipos} reportando
+          <div className="flex items-center gap-2 text-xs text-[#8b949e]">
+            <span className="w-2 h-2 rounded-full bg-[#1a9a7a] inline-block shrink-0" />
+            <span>{resumen.reportando} de {resumen.equipos} reportando</span>
           </div>
         )}
       </div>
 
-      {/* ─── 5 KPI Cards ─── */}
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "1px",
-        borderRadius: "12px", overflow: "hidden",
-        border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.03)"
-      }}>
+      {/* ─── 5 KPI Cards (Responsive grid: 2 cols on mobile, 3 on tablet, 5 on desktop) ─── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px rounded-xl overflow-hidden border border-white/[0.06] bg-white/[0.06]">
         {[
           {
             label: "CONSUMO TOTAL",
@@ -132,7 +115,7 @@ export function FlotaKpis({
               : resumen.ralentiFlotaPct.toFixed(1),
             unit: "%",
             sub: esIndividual
-              ? `${selectedMaquinaria.horas} horas de motor registradas`
+              ? `${selectedMaquinaria.horas} horas de motor`
               : `${resumen.ralentiLitros.toLocaleString("es-PE")} L · ${resumen.ralentiUsd.toLocaleString("es-PE")} USD`,
             subColor: "#d99b42",
           },
@@ -147,19 +130,27 @@ export function FlotaKpis({
               : `${resumen.horasMotor.toLocaleString("es-PE")} h de motor`,
           },
         ].map((kpi, i) => (
-          <div key={i} style={{
-            padding: "18px 20px",
-            background: "#0d1117",
-            borderRight: i < 4 ? "1px solid rgba(255,255,255,0.04)" : "none"
-          }}>
-            <p style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.06em", color: "#636e7b", margin: "0 0 8px 0" }}>
+          <div
+            key={i}
+            className={`p-3.5 sm:p-4 lg:p-5 bg-[#0d1117] flex flex-col justify-between ${
+              i === 4 ? "col-span-2 sm:col-span-1" : ""
+            }`}
+          >
+            <p className="text-[11px] font-semibold tracking-wider text-[#636e7b] m-0 mb-1.5 truncate uppercase">
               {kpi.label}
             </p>
-            <p style={{ fontSize: "26px", fontWeight: 700, color: "#e6edf3", margin: "0 0 4px 0", lineHeight: 1.1 }}>
-              {kpi.value}
-              <span style={{ fontSize: "13px", fontWeight: 400, color: "#636e7b", marginLeft: "6px" }}>{kpi.unit}</span>
+            <p className="text-xl sm:text-2xl lg:text-[26px] font-bold text-[#e6edf3] m-0 mb-1 leading-tight flex items-baseline flex-wrap gap-1">
+              <span>{kpi.value}</span>
+              <span className="text-xs sm:text-[13px] font-normal text-[#636e7b]">{kpi.unit}</span>
             </p>
-            <p style={{ fontSize: "11px", color: kpi.subColor || "#636e7b", margin: 0, fontWeight: kpi.subColor ? 500 : 400 }}>
+            <p
+              className="text-[11px] m-0 truncate"
+              style={{
+                color: kpi.subColor || "#636e7b",
+                fontWeight: kpi.subColor ? 500 : 400,
+              }}
+              title={typeof kpi.sub === "string" ? kpi.sub : undefined}
+            >
               {kpi.sub}
             </p>
           </div>

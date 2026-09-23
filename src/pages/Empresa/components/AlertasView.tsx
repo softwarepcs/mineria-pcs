@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ChevronLeft } from "lucide-react";
 import alertasData from "../../../data/alertasData.json";
 
 interface Evidencia {
@@ -163,22 +164,18 @@ function MiniChart({
 }
 
 export function AlertasView({ empresaNombre: _empresaNombre }: { empresaNombre?: string } = {}) {
-  const [alertasList, setAlertasList] = useState<AlertaItem[]>(alertasData.alertas as AlertaItem[]);
+  const [alertasList] = useState<AlertaItem[]>(alertasData.alertas as AlertaItem[]);
   const [selectedId, setSelectedId] = useState<string>(alertasData.alertas[0]?.id || "alt-1");
   const [reconocidas, setReconocidas] = useState<Set<string>>(new Set());
+  
+  // Mobile tab state: "list" or "detail"
+  const [mobileTab, setMobileTab] = useState<"list" | "detail">("list");
 
   const selectedAlert = alertasList.find((a) => a.id === selectedId) || alertasList[0];
 
   const handleReconocer = (id: string) => {
     setReconocidas((prev) => new Set([...prev, id]));
   };
-
-  const _handleCerrar = (id: string) => {
-    setAlertasList((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, estado: "cerrada" as const } : a))
-    );
-  };
-  void _handleCerrar;
 
   const isCritica = selectedAlert?.severidad === "critica";
   const isAlta = selectedAlert?.severidad === "alta";
@@ -190,72 +187,72 @@ export function AlertasView({ empresaNombre: _empresaNombre }: { empresaNombre?:
   const countAltas = alertasList.filter((a) => a.severidad === "alta" && a.estado !== "cerrada").length;
 
   return (
-    <div style={{ width: "100%", maxWidth: "1280px", margin: "0 auto", paddingBottom: "40px" }}>
+    <div className="w-full max-w-[1280px] mx-auto pb-10 px-2 sm:px-4 font-sans">
       {/* ─── Top Header ─── */}
-      <div style={{
-        display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between",
-        gap: "12px", marginBottom: "24px"
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <h2 style={{ fontSize: "24px", fontWeight: 700, color: "#ffffff", margin: 0 }}>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mr-1">
             Alertas
           </h2>
 
           {/* Badges */}
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: "6px",
-            padding: "3px 12px", borderRadius: "6px",
-            background: countCriticas > 0 ? "rgba(239, 83, 80, 0.12)" : "rgba(255,255,255,0.04)",
-            border: countCriticas > 0 ? "1px solid #ef5350" : "1px solid rgba(255,255,255,0.1)",
-            fontSize: "12px", fontWeight: 600,
-            color: countCriticas > 0 ? "#ef5350" : "#8b949e",
-          }}>
+          <div
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold ${
+              countCriticas > 0
+                ? "bg-red-500/15 border border-red-500 text-red-400"
+                : "bg-white/[0.04] border border-white/10 text-slate-400"
+            }`}
+          >
             Críticas {countCriticas}
           </div>
 
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: "6px",
-            padding: "3px 12px", borderRadius: "6px",
-            background: "transparent",
-            border: "1px solid rgba(255,255,255,0.1)",
-            fontSize: "12px", fontWeight: 500,
-            color: "#8b949e",
-          }}>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium border border-white/10 text-slate-400">
             Altas {countAltas}
           </div>
 
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: "6px",
-            padding: "3px 12px", borderRadius: "6px",
-            background: "transparent",
-            border: "1px solid rgba(255,255,255,0.1)",
-            fontSize: "12px", fontWeight: 500,
-            color: "#8b949e",
-          }}>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium border border-white/10 text-slate-400">
             {alertasData.resumen.periodo}
           </div>
         </div>
+
+        {/* Mobile Tab Toggle (< lg) */}
+        <div className="flex lg:hidden rounded-lg p-0.5 border border-white/10 bg-[#0e1420] w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setMobileTab("list")}
+            className={`flex-1 sm:flex-initial px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              mobileTab === "list"
+                ? "bg-white/10 text-white shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Lista de alertas ({alertasList.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileTab("detail")}
+            className={`flex-1 sm:flex-initial px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              mobileTab === "detail"
+                ? "bg-white/10 text-white shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Detalle de alerta
+          </button>
+        </div>
       </div>
 
-      {/* ─── Two-Column Main Layout ─── */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "310px 1fr",
-        gap: "20px",
-        alignItems: "start"
-      }}>
+      {/* ─── Two-Column Main Layout (Desktop: Side-by-side; Mobile: Tabbed/Responsive) ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[310px_1fr] gap-5 items-start">
 
         {/* ═══════ LEFT COLUMN: Lista de alertas ═══════ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <div style={{
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "0 4px 6px 4px", fontSize: "12px",
-          }}>
-            <span style={{ fontWeight: 600, color: "#e6edf3" }}>Lista de alertas</span>
-            <span style={{ color: "#636e7b" }}>{alertasList.length} alertas</span>
+        <div className={`flex-col gap-2.5 ${mobileTab === "list" ? "flex" : "hidden lg:flex"}`}>
+          <div className="flex justify-between items-center px-1 pb-1 text-xs">
+            <span className="font-semibold text-slate-200">Lista de alertas</span>
+            <span className="text-slate-500 font-mono">{alertasList.length} alertas</span>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div className="flex flex-col gap-2">
             {alertasList.map((a) => {
               const isSelected = selectedId === a.id;
               const cardCritica = a.severidad === "critica";
@@ -273,52 +270,48 @@ export function AlertasView({ empresaNombre: _empresaNombre }: { empresaNombre?:
               return (
                 <div
                   key={a.id}
-                  onClick={() => setSelectedId(a.id)}
-                  style={{
-                    display: "flex",
-                    borderRadius: "8px",
-                    background: isSelected ? "#161b22" : "#0d1117",
-                    border: isSelected
-                      ? "1px solid rgba(255,255,255,0.22)"
-                      : "1px solid rgba(255,255,255,0.06)",
-                    cursor: "pointer",
-                    overflow: "hidden",
-                    transition: "all 0.15s ease",
+                  onClick={() => {
+                    setSelectedId(a.id);
+                    setMobileTab("detail");
                   }}
+                  className={`flex rounded-lg overflow-hidden border cursor-pointer transition-all ${
+                    isSelected
+                      ? "bg-[#161b22] border-white/20 shadow-md"
+                      : "bg-[#0d1117] border-white/[0.06] hover:border-white/10 hover:bg-[#12161f]"
+                  }`}
                 >
                   {/* Colored indicator strip */}
-                  <div style={{
-                    width: "4px", flexShrink: 0, background: stripColor,
-                  }} />
+                  <div
+                    className="w-1 shrink-0"
+                    style={{ background: stripColor }}
+                  />
 
                   {/* Body */}
-                  <div style={{ padding: "12px 14px", flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px",
-                      marginBottom: "4px",
-                    }}>
-                      <span style={{
-                        fontSize: "13px", fontWeight: 700, color: "#e6edf3",
-                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                      }}>
+                  <div className="p-3 sm:py-3 sm:px-3.5 flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-xs sm:text-[13px] font-bold text-white truncate">
                         {a.tipo}
                       </span>
+
+                      {/* Status Badges: CRÍTICA, ALTA, CERRADA */}
+                      {cardCritica && !cardCerrada && (
+                        <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded border border-[#ef5350] text-[#ef5350] bg-red-500/10 shrink-0">
+                          CRÍTICA
+                        </span>
+                      )}
+                      {cardAlta && !cardCerrada && (
+                        <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded border border-[#d99b42] text-[#d99b42] bg-amber-500/10 shrink-0">
+                          ALTA
+                        </span>
+                      )}
                       {cardCerrada && (
-                        <span style={{
-                          fontSize: "9px", fontWeight: 700, letterSpacing: "0.04em",
-                          padding: "1px 6px", borderRadius: "4px",
-                          border: "1px solid rgba(255,255,255,0.15)",
-                          color: "#8b949e", flexShrink: 0,
-                        }}>
+                        <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded border border-white/15 text-slate-400 shrink-0">
                           CERRADA
                         </span>
                       )}
                     </div>
 
-                    <div style={{
-                      fontSize: "10px", color: "#636e7b", fontWeight: 500,
-                      letterSpacing: "0.02em",
-                    }}>
+                    <div className="text-[10px] text-slate-400 font-medium font-mono">
                       {a.fecha} &middot; {a.duracion} &middot; {a.camion}
                     </div>
                   </div>
@@ -330,212 +323,184 @@ export function AlertasView({ empresaNombre: _empresaNombre }: { empresaNombre?:
 
         {/* ═══════ RIGHT COLUMN: Detalle de Alerta ═══════ */}
         {selectedAlert && (
-          <div style={{
-            borderRadius: "12px",
-            background: "#0d1117",
-            border: isCritica
-              ? "1px solid #e05252"
-              : isAlta
-              ? "1px solid rgba(217, 155, 66, 0.4)"
-              : "1px solid rgba(255,255,255,0.08)",
-            boxShadow: isCritica
-              ? "0 0 24px rgba(224, 82, 82, 0.08)"
-              : "none",
-            padding: "24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "20px",
-          }}>
+          <div
+            className={`rounded-xl bg-[#0d1117] p-4 sm:p-6 flex flex-col gap-5 border transition-all ${
+              mobileTab === "detail" ? "flex" : "hidden lg:flex"
+            } ${
+              isCritica
+                ? "border-[#e05252] shadow-[0_0_24px_rgba(224,82,82,0.08)]"
+                : isAlta
+                ? "border-[#d99b42]/40"
+                : "border-white/[0.08]"
+            }`}
+          >
+            {/* Mobile Back Button (< lg) */}
+            <div className="flex lg:hidden pb-1">
+              <button
+                type="button"
+                onClick={() => setMobileTab("list")}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Volver a la lista de alertas</span>
+              </button>
+            </div>
 
             {/* Header of the detail card */}
-            <div style={{
-              display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: "12px",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                <h3 style={{
-                  fontSize: "20px", fontWeight: 700, margin: 0,
-                  color: isCritica ? "#ef5350" : isAlta ? "#d99b42" : "#e6edf3",
-                }}>
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h3
+                  className={`text-lg sm:text-xl font-bold tracking-tight ${
+                    isCritica ? "text-[#ef5350]" : isAlta ? "text-[#d99b42]" : "text-white"
+                  }`}
+                >
                   {selectedAlert.tipo}
                 </h3>
-                <span style={{
-                  fontSize: "10px", fontWeight: 700, letterSpacing: "0.04em",
-                  padding: "2px 8px", borderRadius: "4px",
-                  border: isCritica
-                    ? "1px solid #ef5350"
-                    : isAlta
-                    ? "1px solid #d99b42"
-                    : "1px solid rgba(255,255,255,0.2)",
-                  color: isCritica ? "#ef5350" : isAlta ? "#d99b42" : "#8b949e",
-                }}>
+                <span
+                  className={`text-[10px] font-bold tracking-wider px-2 py-0.5 rounded border ${
+                    isCritica
+                      ? "border-[#ef5350] text-[#ef5350] bg-red-500/10"
+                      : isAlta
+                      ? "border-[#d99b42] text-[#d99b42] bg-amber-500/10"
+                      : "border-white/20 text-slate-400"
+                  }`}
+                >
                   {isCritica ? "CRÍTICA" : isAlta ? "ALTA" : isCerrada ? "CERRADA" : "NORMAL"}
                 </span>
               </div>
 
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff", fontFamily: "monospace" }}>
+              <div className="text-left sm:text-right">
+                <div className="text-sm font-bold text-white font-mono">
                   {selectedAlert.camion}
                 </div>
-                <div style={{ fontSize: "11px", color: "#636e7b", marginTop: "2px" }}>
+                <div className="text-[11px] text-slate-400 font-mono mt-0.5">
                   {selectedAlert.ventanaHoraria}
                 </div>
               </div>
             </div>
 
-            {/* 4x2 Metric Grid */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              borderTop: "1px solid rgba(255,255,255,0.08)",
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
-            }}>
+            {/* 4x2 Metric Grid (Responsive: 2-col on mobile, 4-col on tablet/desktop) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 border-y border-white/[0.08] divide-y sm:divide-y-0 divide-white/[0.08]">
               {/* Row 1, Col 1: DURACIÓN */}
-              <div style={{
-                padding: "16px 14px",
-                borderRight: "1px solid rgba(255,255,255,0.08)",
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
-              }}>
-                <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.06em", color: "#636e7b", textTransform: "uppercase", marginBottom: "6px" }}>
+              <div className="p-3 sm:p-3.5 border-r border-white/[0.08] sm:border-b">
+                <div className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mb-1">
                   DURACIÓN
                 </div>
-                <div style={{ fontSize: "22px", fontWeight: 700, color: "#ffffff" }}>
+                <div className="text-xl sm:text-2xl font-bold text-white font-mono">
                   {selectedAlert.metricas.duracion.split(" ")[0]}{" "}
-                  <span style={{ fontSize: "12px", fontWeight: 500, color: "#8b949e" }}>
+                  <span className="text-xs font-medium text-slate-400 font-sans">
                     {selectedAlert.metricas.duracion.split(" ").slice(1).join(" ")}
                   </span>
                 </div>
               </div>
 
               {/* Row 1, Col 2: DISTANCIA RECORRIDA */}
-              <div style={{
-                padding: "16px 14px",
-                borderRight: "1px solid rgba(255,255,255,0.08)",
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
-              }}>
-                <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.06em", color: "#636e7b", textTransform: "uppercase", marginBottom: "6px" }}>
+              <div className="p-3 sm:p-3.5 sm:border-r border-white/[0.08] sm:border-b">
+                <div className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mb-1">
                   DISTANCIA RECORRIDA
                 </div>
-                <div style={{ fontSize: "22px", fontWeight: 700, color: "#ffffff" }}>
+                <div className="text-xl sm:text-2xl font-bold text-white font-mono">
                   {selectedAlert.metricas.distanciaRecorrida.split(" ")[0]}{" "}
-                  <span style={{ fontSize: "12px", fontWeight: 500, color: "#8b949e" }}>
+                  <span className="text-xs font-medium text-slate-400 font-sans">
                     {selectedAlert.metricas.distanciaRecorrida.split(" ").slice(1).join(" ")}
                   </span>
                 </div>
               </div>
 
               {/* Row 1, Col 3: VELOCIDAD MEDIA */}
-              <div style={{
-                padding: "16px 14px",
-                borderRight: "1px solid rgba(255,255,255,0.08)",
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
-              }}>
-                <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.06em", color: "#636e7b", textTransform: "uppercase", marginBottom: "6px" }}>
+              <div className="p-3 sm:p-3.5 border-r border-white/[0.08] sm:border-b">
+                <div className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mb-1">
                   VELOCIDAD MEDIA
                 </div>
-                <div style={{ fontSize: "22px", fontWeight: 700, color: "#ffffff" }}>
+                <div className="text-xl sm:text-2xl font-bold text-white font-mono">
                   {selectedAlert.metricas.velocidadMedia.split(" ")[0]}{" "}
-                  <span style={{ fontSize: "12px", fontWeight: 500, color: "#8b949e" }}>
+                  <span className="text-xs font-medium text-slate-400 font-sans">
                     {selectedAlert.metricas.velocidadMedia.split(" ").slice(1).join(" ")}
                   </span>
                 </div>
               </div>
 
               {/* Row 1, Col 4: CONSUMO REGISTRADO */}
-              <div style={{
-                padding: "16px 14px",
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
-              }}>
-                <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.06em", color: "#636e7b", textTransform: "uppercase", marginBottom: "6px" }}>
+              <div className="p-3 sm:p-3.5 sm:border-b border-white/[0.08]">
+                <div className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mb-1">
                   CONSUMO REGISTRADO
                 </div>
-                <div style={{ fontSize: "22px", fontWeight: 700, color: "#ffffff" }}>
+                <div className="text-xl sm:text-2xl font-bold text-white font-mono">
                   {selectedAlert.metricas.consumoRegistrado.split(" ")[0]}{" "}
-                  <span style={{ fontSize: "12px", fontWeight: 500, color: "#8b949e" }}>
+                  <span className="text-xs font-medium text-slate-400 font-sans">
                     {selectedAlert.metricas.consumoRegistrado.split(" ").slice(1).join(" ")}
                   </span>
                 </div>
               </div>
 
               {/* Row 2, Col 1: CONSUMO ESPERADO */}
-              <div style={{
-                padding: "16px 14px",
-                borderRight: "1px solid rgba(255,255,255,0.08)",
-              }}>
-                <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.06em", color: "#636e7b", textTransform: "uppercase", marginBottom: "6px" }}>
+              <div className="p-3 sm:p-3.5 border-r border-white/[0.08]">
+                <div className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mb-1">
                   CONSUMO ESPERADO
                 </div>
-                <div style={{ fontSize: "22px", fontWeight: 700, color: "#ffffff" }}>
+                <div className="text-xl sm:text-2xl font-bold text-white font-mono">
                   {selectedAlert.metricas.consumoEsperado.split(" ")[0]}{" "}
-                  <span style={{ fontSize: "12px", fontWeight: 500, color: "#8b949e" }}>
+                  <span className="text-xs font-medium text-slate-400 font-sans">
                     {selectedAlert.metricas.consumoEsperado.split(" ").slice(1).join(" ")}
                   </span>
                 </div>
               </div>
 
               {/* Row 2, Col 2: ALTITUD NETA */}
-              <div style={{
-                padding: "16px 14px",
-                borderRight: "1px solid rgba(255,255,255,0.08)",
-              }}>
-                <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.06em", color: "#636e7b", textTransform: "uppercase", marginBottom: "6px" }}>
+              <div className="p-3 sm:p-3.5 sm:border-r border-white/[0.08]">
+                <div className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mb-1">
                   ALTITUD NETA
                 </div>
-                <div style={{ fontSize: "22px", fontWeight: 700, color: "#ffffff" }}>
+                <div className="text-xl sm:text-2xl font-bold text-white font-mono">
                   {selectedAlert.metricas.altitudNeta.split(" ")[0]}{" "}
-                  <span style={{ fontSize: "12px", fontWeight: 500, color: "#8b949e" }}>
+                  <span className="text-xs font-medium text-slate-400 font-sans">
                     {selectedAlert.metricas.altitudNeta.split(" ").slice(1).join(" ")}
                   </span>
                 </div>
               </div>
 
               {/* Row 2, Col 3: LECTURAS DEL SENSOR */}
-              <div style={{
-                padding: "16px 14px",
-                borderRight: "1px solid rgba(255,255,255,0.08)",
-              }}>
-                <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.06em", color: "#636e7b", textTransform: "uppercase", marginBottom: "6px" }}>
+              <div className="p-3 sm:p-3.5 border-r border-white/[0.08]">
+                <div className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mb-1">
                   LECTURAS DEL SENSOR
                 </div>
-                <div style={{ fontSize: "17px", fontWeight: 700, color: "#ffffff", paddingTop: "4px" }}>
+                <div className="text-base sm:text-lg font-bold text-white font-mono pt-1">
                   {selectedAlert.metricas.lecturasSensor}
                 </div>
               </div>
 
               {/* Row 2, Col 4: IGNICIÓN */}
-              <div style={{ padding: "16px 14px" }}>
-                <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.06em", color: "#636e7b", textTransform: "uppercase", marginBottom: "6px" }}>
+              <div className="p-3 sm:p-3.5">
+                <div className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mb-1">
                   IGNICIÓN
                 </div>
-                <div style={{ fontSize: "15px", fontWeight: 700, color: "#ffffff", paddingTop: "6px" }}>
+                <div className="text-sm sm:text-base font-bold text-white pt-1">
                   {selectedAlert.metricas.ignicion}
                 </div>
               </div>
             </div>
 
             {/* Section: Evidencia */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff" }}>
+            <div className="flex flex-col gap-3.5">
+              <div className="text-sm font-bold text-white">
                 Evidencia
               </div>
 
               {/* Chart 1: Caudal de combustible */}
               <div>
-                <div style={{ fontSize: "11px", color: "#8b949e", marginBottom: "6px" }}>
+                <div className="text-[11px] text-slate-400 mb-1.5 font-medium">
                   Caudal de combustible &middot; L/h
                 </div>
-                <div style={{ display: "flex", gap: "8px", alignItems: "stretch" }}>
+                <div className="flex gap-2 items-stretch overflow-x-auto">
                   {/* Y-axis labels */}
-                  <div style={{
-                    width: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between",
-                    fontSize: "9px", color: "#636e7b", textAlign: "right", paddingRight: "4px",
-                  }}>
+                  <div className="w-6 flex flex-col justify-between text-[9px] text-slate-500 text-right pr-1 font-mono shrink-0 select-none">
                     <span>60</span>
                     <span>40</span>
                     <span>20</span>
                     <span>0</span>
                   </div>
                   {/* SVG Chart */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="flex-1 min-w-[280px]">
                     <MiniChart
                       puntos={selectedAlert.evidencia.puntosCaudal}
                       maxVal={selectedAlert.evidencia.caudalMax}
@@ -555,22 +520,19 @@ export function AlertasView({ empresaNombre: _empresaNombre }: { empresaNombre?:
 
               {/* Chart 2: Velocidad */}
               <div>
-                <div style={{ fontSize: "11px", color: "#8b949e", marginBottom: "6px" }}>
+                <div className="text-[11px] text-slate-400 mb-1.5 font-medium">
                   Velocidad &middot; km/h
                 </div>
-                <div style={{ display: "flex", gap: "8px", alignItems: "stretch" }}>
+                <div className="flex gap-2 items-stretch overflow-x-auto">
                   {/* Y-axis labels */}
-                  <div style={{
-                    width: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between",
-                    fontSize: "9px", color: "#636e7b", textAlign: "right", paddingRight: "4px",
-                  }}>
+                  <div className="w-6 flex flex-col justify-between text-[9px] text-slate-500 text-right pr-1 font-mono shrink-0 select-none">
                     <span>120</span>
                     <span>80</span>
                     <span>40</span>
                     <span>0</span>
                   </div>
                   {/* SVG Chart */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="flex-1 min-w-[280px]">
                     <MiniChart
                       puntos={selectedAlert.evidencia.puntosVelocidad}
                       maxVal={selectedAlert.evidencia.velocidadMax}
@@ -583,10 +545,7 @@ export function AlertasView({ empresaNombre: _empresaNombre }: { empresaNombre?:
                       }}
                     />
                     {/* Time ticks row */}
-                    <div style={{
-                      display: "flex", justifyContent: "space-between",
-                      fontSize: "10px", color: "#636e7b", marginTop: "4px",
-                    }}>
+                    <div className="flex justify-between text-[10px] text-slate-500 mt-1 font-mono select-none">
                       {selectedAlert.evidencia.ticksTiempo.map((tick, idx) => (
                         <span key={idx}>{tick}</span>
                       ))}
@@ -597,68 +556,21 @@ export function AlertasView({ empresaNombre: _empresaNombre }: { empresaNombre?:
             </div>
 
             {/* Description Paragraph */}
-            <p style={{
-              fontSize: "12px", lineHeight: "1.6", color: "#8b949e", margin: "4px 0 6px 0",
-            }}>
+            <p className="text-xs leading-relaxed text-slate-400 my-1">
               {selectedAlert.descripcion}
             </p>
 
             {/* Action Buttons */}
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px", marginTop: "6px" }}>
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               <button
                 type="button"
                 onClick={() => handleReconocer(selectedAlert.id)}
-                style={{
-                  padding: "9px 24px", borderRadius: "6px",
-                  background: yaReconocida ? "#1a9a7a" : "#ef5350",
-                  color: "#ffffff",
-                  fontSize: "12px", fontWeight: 700,
-                  border: "none", cursor: "pointer",
-                  transition: "background 0.2s",
-                }}
+                className={`w-full sm:w-auto px-6 py-2.5 rounded-lg text-xs font-bold text-white transition-colors ${
+                  yaReconocida ? "bg-[#1a9a7a]" : "bg-[#ef5350] hover:bg-[#e04845]"
+                }`}
               >
                 {yaReconocida ? "Reconocida ✓" : "Reconocer"}
               </button>
-
-              {/* <button
-                type="button"
-                style={{
-                  padding: "9px 20px", borderRadius: "6px",
-                  background: "transparent",
-                  color: "#e6edf3",
-                  fontSize: "12px", fontWeight: 500,
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  cursor: "pointer",
-                  transition: "border-color 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)")}
-                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)")}
-              >
-                Ver el viaje completo
-              </button> */}
-
-              {/* <button
-                type="button"
-                onClick={() => handleCerrar(selectedAlert.id)}
-                disabled={isCerrada}
-                style={{
-                  padding: "9px 20px", borderRadius: "6px",
-                  background: "transparent",
-                  color: isCerrada ? "#484f58" : "#e6edf3",
-                  fontSize: "12px", fontWeight: 500,
-                  border: isCerrada ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(255,255,255,0.15)",
-                  cursor: isCerrada ? "not-allowed" : "pointer",
-                  transition: "border-color 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isCerrada) e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!isCerrada) e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
-                }}
-              >
-                {isCerrada ? "Alerta cerrada" : "Cerrar con motivo"}
-              </button> */}
             </div>
 
           </div>

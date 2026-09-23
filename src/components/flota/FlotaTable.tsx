@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
 import type { Maquinaria } from "../../types";
 
 type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto" | "co2Ton">;
@@ -60,8 +59,6 @@ export function FlotaTable({
   onSelect: (id: string) => void;
   mode?: "full" | "alerts";
 }) {
-  const { id } = useParams();
-  const empresaId = id || "1";
   const [orden, setOrden] = useState<{ col: Columna; dir: "asc" | "desc" }>({ col: "desvioPct", dir: "desc" });
 
   const ordenados = [...maquinarias].sort((a, b) =>
@@ -77,15 +74,11 @@ export function FlotaTable({
     const alertas = ordenados.filter((c) => c.desvioPct > 0 || (c.estado as string) === "revisar" || (c.estado as string) === "sin_datos").slice(0, 5);
 
     return (
-      <div style={{
-        borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)",
-        background: "#0d1117", padding: "20px", overflow: "hidden",
-        display: "flex", flexDirection: "column",
-      }}>
-        <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#e6edf3", margin: "0 0 16px 0" }}>
+      <div className="h-full flex flex-col justify-start p-3.5 sm:p-4 md:p-5 rounded-xl border border-white/[0.06] bg-[#0d1117] overflow-hidden">
+        <h3 className="text-xs sm:text-sm font-bold text-[#e6edf3] m-0 mb-3 sm:mb-4">
           Requieren atención
         </h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px", flex: 1 }}>
+        <div className="flex flex-col gap-2 sm:gap-2.5 flex-1 overflow-y-auto max-h-[380px] lg:max-h-none">
           {alertas.map((c) => {
             const razon = c.desvioPct > 100
               ? "Consumo fuera de objetivo"
@@ -101,47 +94,32 @@ export function FlotaTable({
               <div
                 key={c.id}
                 onClick={() => onSelect(c.id)}
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "10px 12px", borderRadius: "8px", cursor: "pointer",
-                  background: selectedId === c.id ? "rgba(26,154,122,0.08)" : "rgba(255,255,255,0.02)",
-                  border: selectedId === c.id ? "1px solid rgba(26,154,122,0.25)" : "1px solid rgba(255,255,255,0.04)",
-                  transition: "background 0.15s, border-color 0.15s",
-                }}
+                className={`flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-lg cursor-pointer transition ${
+                  selectedId === c.id
+                    ? "bg-[#1a9a7a]/15 border border-[#1a9a7a]/30"
+                    : "bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08]"
+                }`}
               >
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
-                    <span style={{
-                      width: "8px", height: "8px", borderRadius: "50%",
-                      background: c.desvioPct > 100 ? "#d99b42" : "#d99b42",
-                      display: "inline-block"
-                    }} />
-                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#e6edf3" }}>{c.placa}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span
+                      className="w-2 h-2 rounded-full inline-block shrink-0"
+                      style={{ background: c.desvioPct > 100 ? "#d99b42" : "#d99b42" }}
+                    />
+                    <span className="text-xs sm:text-[13px] font-semibold text-[#e6edf3] truncate">
+                      {c.placa}
+                    </span>
                   </div>
-                  <span style={{ fontSize: "11px", color: "#636e7b", paddingLeft: "16px" }}>
+                  <span className="text-[11px] text-[#636e7b] pl-4 block truncate">
                     {razon}
                   </span>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-                  <span style={{
-                    fontSize: "13px", fontWeight: 700,
-                    color: c.desvioPct > 0 ? "#d99b42" : "#1a9a7a",
-                    whiteSpace: "nowrap"
-                  }}>
-                    +{c.desvioPct.toFixed(1)} %
-                  </span>
-                  <Link
-                    to={`/empresa/${empresaId}/camiones-detalle?camionId=${encodeURIComponent(c.id)}`}
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      fontSize: "10px", fontWeight: 600, color: "#0df5c6",
-                      textDecoration: "none", display: "inline-flex", alignItems: "center"
-                    }}
-                    className="hover:underline"
-                  >
-                    Ver ficha →
-                  </Link>
-                </div>
+                <span
+                  className="text-xs sm:text-[13px] font-bold whitespace-nowrap shrink-0"
+                  style={{ color: c.desvioPct > 0 ? "#d99b42" : "#1a9a7a" }}
+                >
+                  +{c.desvioPct.toFixed(1)} %
+                </span>
               </div>
             );
           })}
@@ -152,46 +130,46 @@ export function FlotaTable({
 
   // ─── FULL TABLE ───
   return (
-    <div className="mp-table-container">
-      <div className="mp-table-toolbar">
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#e6edf3", margin: 0 }}>
+    <div className="mp-table-container w-full rounded-xl border border-white/[0.06] bg-[#0d1117] overflow-hidden">
+      <div className="mp-table-toolbar flex flex-wrap items-center justify-between gap-2.5 px-3.5 sm:px-5 py-3 border-b border-white/[0.06]">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <h3 className="text-xs sm:text-sm font-semibold text-[#e6edf3] m-0">
             Comparativa por camión
           </h3>
           {selectedId && (
             <button
               type="button"
               onClick={() => onSelect("")}
-              style={{
-                padding: "3px 10px", borderRadius: "6px", cursor: "pointer",
-                background: "rgba(26,154,122,0.1)", border: "1px solid rgba(26,154,122,0.3)",
-                fontSize: "11px", fontWeight: 600, color: "#1a9a7a"
-              }}
+              className="px-2.5 py-1 rounded-md cursor-pointer bg-[#1a9a7a]/10 border border-[#1a9a7a]/30 text-xs font-semibold text-[#1a9a7a] hover:bg-[#1a9a7a]/20 transition"
             >
               ✕ Ver todos
             </button>
           )}
         </div>
-        <span style={{ fontSize: "11px", color: "#636e7b" }}>
+        <span className="text-[11px] text-[#636e7b]">
           ordenada por {COLUMNAS.find((c) => c.key === orden.col)?.label.toLowerCase()}
         </span>
       </div>
 
-      <div className="mp-table-wrapper">
-        <table className="mp-table">
+      <div className="mp-table-wrapper w-full overflow-x-auto scrollbar-thin">
+        <table className="mp-table w-full text-left text-xs border-collapse">
           <thead>
-            <tr>
-              <th style={{ paddingLeft: "20px" }}>Camión</th>
+            <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+              <th className="py-2.5 px-3.5 sm:px-5 text-[11px] font-semibold uppercase tracking-wider text-[#636e7b] whitespace-nowrap">
+                Camión
+              </th>
               {COLUMNAS.map((c) => (
                 <th
                   key={c.key}
                   onClick={() => alClicColumna(c.key)}
-                  style={{ cursor: "pointer", textAlign: "right", userSelect: "none" }}
+                  className="py-2.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-[#636e7b] whitespace-nowrap cursor-pointer text-right select-none hover:text-[#e6edf3] transition"
                 >
                   {c.label}
                 </th>
               ))}
-              <th style={{ textAlign: "right", paddingRight: "20px" }}>Estado</th>
+              <th className="py-2.5 px-3.5 sm:px-5 text-[11px] font-semibold uppercase tracking-wider text-[#636e7b] whitespace-nowrap text-right">
+                Estado
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -206,48 +184,26 @@ export function FlotaTable({
                     background: activo ? "rgba(26,154,122,0.06)" : undefined,
                     borderLeft: activo ? "3px solid #1a9a7a" : "3px solid transparent",
                   }}
+                  className="border-b border-white/[0.03] hover:bg-white/[0.025] transition"
                 >
-                  <td style={{ paddingLeft: "20px", fontWeight: 600, color: "#e6edf3" }}>
-                    <Link
-                      to={`/empresa/${empresaId}/camiones-detalle?camionId=${encodeURIComponent(c.id)}`}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ color: "#e6edf3", textDecoration: "none" }}
-                      className="hover:underline hover:text-[#0df5c6] transition"
-                      title="Ver ficha completa"
-                    >
-                      {c.placa}
-                    </Link>
+                  <td className="py-2 px-3.5 sm:px-5 font-semibold text-[#e6edf3] whitespace-nowrap">
+                    {c.placa}
                   </td>
-                  <td style={{ textAlign: "right" }}>{c.km.toLocaleString("es-PE")}</td>
-                  <td style={{ textAlign: "right" }}>{c.litros.toLocaleString("es-PE")}</td>
-                  <td style={{ textAlign: "right" }}>{c.l100km.toFixed(1)}</td>
-                  <td style={{
-                    textAlign: "right", fontWeight: 600,
-                    color: c.desvioPct > 0 ? "#d99b42" : "#1a9a7a"
-                  }}>
+                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.km.toLocaleString("es-PE")}</td>
+                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.litros.toLocaleString("es-PE")}</td>
+                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.l100km.toFixed(1)}</td>
+                  <td
+                    className="py-2 px-3 text-right font-semibold whitespace-nowrap"
+                    style={{ color: c.desvioPct > 0 ? "#d99b42" : "#1a9a7a" }}
+                  >
                     {c.desvioPct > 0 ? "+" : ""}{c.desvioPct.toFixed(1)} %
                   </td>
-                  <td style={{ textAlign: "right" }}>{c.ralentiPct} %</td>
-                  <td style={{ textAlign: "right" }}>{c.horas}</td>
-                  <td style={{ textAlign: "right" }}>{c.pctGasto.toFixed(1)} %</td>
-                  <td style={{ textAlign: "right" }}>{c.co2Ton.toFixed(2)}</td>
-                  <td style={{ textAlign: "right", paddingRight: "20px" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px" }}>
-                      <EstadoBadge estado={c.estado} />
-                      <Link
-                        to={`/empresa/${empresaId}/camiones-detalle?camionId=${encodeURIComponent(c.id)}`}
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                          fontSize: "11px", fontWeight: 600, color: "#0df5c6",
-                          textDecoration: "none", padding: "2px 8px", borderRadius: "4px",
-                          background: "rgba(13,245,198,0.1)", border: "1px solid rgba(13,245,198,0.25)"
-                        }}
-                        className="hover:bg-[#0df5c6] hover:text-black transition"
-                        title="Ver ficha completa de este camión"
-                      >
-                        Ficha
-                      </Link>
-                    </div>
+                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.ralentiPct} %</td>
+                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.horas}</td>
+                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.pctGasto.toFixed(1)} %</td>
+                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.co2Ton.toFixed(2)}</td>
+                  <td className="py-2 px-3.5 sm:px-5 text-right whitespace-nowrap">
+                    <EstadoBadge estado={c.estado} />
                   </td>
                 </tr>
               );

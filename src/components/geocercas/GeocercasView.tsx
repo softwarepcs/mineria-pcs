@@ -123,6 +123,9 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
   // Icon Picker Modal
   const [isIconModalOpen, setIsIconModalOpen] = useState(false);
 
+  // Mobile/Tablet view toggle ("panel" | "mapa") for screens < lg
+  const [vistaMovil, setVistaMovil] = useState<"panel" | "mapa">("mapa");
+
   // Map state
   const [capaMapa, setCapaMapa] = useState<"mapa" | "satelite">("mapa");
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -237,6 +240,26 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
+
+  // ResizeObserver for fluid map tile rendering on window resize or device rotation
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const resizeObserver = new ResizeObserver(() => {
+      mapRef.current?.invalidateSize();
+    });
+    resizeObserver.observe(mapContainerRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  // When switching view on mobile/tablet, invalidate size
+  useEffect(() => {
+    if (vistaMovil === "mapa") {
+      const timer = setTimeout(() => {
+        mapRef.current?.invalidateSize();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [vistaMovil]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -654,40 +677,73 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
   const tienePuntosFaltantes = (tipo === "polygon" && puntos.length < 3) || (tipo === "line" && puntos.length < 2);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] w-full overflow-hidden rounded-xl border border-white/10 bg-[#0d1117] shadow-2xl">
+    <div className="flex flex-col h-[calc(100vh-100px)] min-h-[520px] sm:min-h-[580px] w-full overflow-hidden rounded-xl border border-white/10 bg-[#0d1117] shadow-2xl">
       {/* Top Main Navigation Bar */}
-      <div className="shrink-0 flex items-center justify-between border-b border-white/10 bg-[#161b22] px-4 py-2.5">
-        <div className="flex items-center gap-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-            <Radio className="h-4 w-4" />
+      <div className="shrink-0 flex flex-wrap items-center justify-between border-b border-white/10 bg-[#161b22] px-3 sm:px-4 py-2 sm:py-2.5 gap-2">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shrink-0">
+            <Radio className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </span>
-          <div>
-            <h1 className="text-sm font-semibold text-white tracking-wide flex items-center gap-2">
-              Gestión de Geocercas
+          <div className="min-w-0">
+            <h1 className="text-xs sm:text-sm font-semibold text-white tracking-wide flex items-center gap-1.5 sm:gap-2 truncate">
+              <span>Gestión de Geocercas</span>
               {empresa && (
-                <span className="text-[11px] font-normal text-slate-400">
+                <span className="text-[10px] sm:text-[11px] font-normal text-slate-400 truncate hidden xs:inline">
                   — {empresa.nombre}
                 </span>
               )}
             </h1>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
               Creación y delimitación perimetral en tiempo real
             </p>
           </div>
         </div>
 
-        {saveSuccessMsg && (
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-medium animate-fade-in">
-            <Check className="h-3.5 w-3.5" />
-            ¡Geocerca guardada correctamente!
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Mobile / Tablet Segmented Switcher (hidden on desktop lg) */}
+          <div className="flex lg:hidden items-center bg-[#0d1117] rounded-lg p-0.5 border border-white/10">
+            <button
+              type="button"
+              onClick={() => setVistaMovil("panel")}
+              className={`px-2.5 py-1 text-xs font-medium rounded-md transition ${
+                vistaMovil === "panel"
+                  ? "bg-cyan-500 text-slate-950 font-semibold shadow"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Panel
+            </button>
+            <button
+              type="button"
+              onClick={() => setVistaMovil("mapa")}
+              className={`px-2.5 py-1 text-xs font-medium rounded-md transition ${
+                vistaMovil === "mapa"
+                  ? "bg-cyan-500 text-slate-950 font-semibold shadow"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Mapa
+            </button>
           </div>
-        )}
+
+          {saveSuccessMsg && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-medium animate-fade-in">
+              <Check className="h-3.5 w-3.5 shrink-0" />
+              <span className="hidden sm:inline">¡Geocerca guardada correctamente!</span>
+              <span className="sm:hidden">¡Guardado!</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Content Area: Left Panel + Right Map */}
-      <div className="flex flex-1 min-h-0 w-full overflow-hidden">
+      <div className="flex flex-1 min-h-0 w-full overflow-hidden relative">
         {/* ─── LEFT PANEL ─── */}
-        <div className="w-[390px] shrink-0 border-r border-white/10 bg-[#0d1117] flex flex-col h-full overflow-hidden">
+        <div
+          className={`w-full lg:w-[380px] xl:w-[410px] shrink-0 border-r border-white/10 bg-[#0d1117] flex flex-col h-full overflow-hidden ${
+            vistaMovil === "panel" ? "flex" : "hidden lg:flex"
+          }`}
+        >
           {/* Top Tabs: Geocercas | Grupos */}
           <div className="shrink-0 flex border-b border-white/10 bg-[#161b22]/70">
             <button
@@ -745,7 +801,7 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
                 </div>
 
                 {/* Nombre* + Color Swatch + Font Size */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
                   <label className="text-xs text-slate-300 w-16 shrink-0">
                     Nombre: <span className="text-red-400">*</span>
                   </label>
@@ -755,27 +811,29 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
                     placeholder="Nueva geocerca"
-                    className="flex-1 min-w-0 rounded border border-white/15 bg-[#161b22] px-2 py-1 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-400"
+                    className="flex-1 min-w-[120px] rounded border border-white/15 bg-[#161b22] px-2 py-1 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-400"
                   />
-                  {/* Color Swatch */}
-                  <input
-                    type="color"
-                    value={nombreColor}
-                    onChange={(e) => setNombreColor(e.target.value)}
-                    title="Color del nombre"
-                    className="h-6 w-6 rounded cursor-pointer border border-white/20 bg-transparent p-0"
-                  />
-                  {/* Font Size Dropdown */}
-                  <select
-                    value={fontSize}
-                    onChange={(e) => setFontSize(e.target.value)}
-                    className="rounded border border-white/15 bg-[#161b22] px-1.5 py-1 text-xs text-slate-300 outline-none focus:border-cyan-400"
-                  >
-                    <option value="10 px">10 px</option>
-                    <option value="12 px">12 px</option>
-                    <option value="14 px">14 px</option>
-                    <option value="16 px">16 px</option>
-                  </select>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Color Swatch */}
+                    <input
+                      type="color"
+                      value={nombreColor}
+                      onChange={(e) => setNombreColor(e.target.value)}
+                      title="Color del nombre"
+                      className="h-6 w-6 rounded cursor-pointer border border-white/20 bg-transparent p-0"
+                    />
+                    {/* Font Size Dropdown */}
+                    <select
+                      value={fontSize}
+                      onChange={(e) => setFontSize(e.target.value)}
+                      className="rounded border border-white/15 bg-[#161b22] px-1.5 py-1 text-xs text-slate-300 outline-none focus:border-cyan-400"
+                    >
+                      <option value="10 px">10 px</option>
+                      <option value="12 px">12 px</option>
+                      <option value="14 px">14 px</option>
+                      <option value="16 px">16 px</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* Recurso */}
@@ -1033,9 +1091,9 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
               </form>
 
               {/* Bottom Section: Toolbar + Geocercas List */}
-              <div className="flex flex-col flex-1 min-h-0 bg-[#0d1117]">
+              <div className="flex flex-col bg-[#0d1117] shrink-0">
                 {/* Search & Action Toolbar */}
-                <div className="p-2 border-b border-white/10 flex items-center gap-1.5 bg-[#161b22]/50">
+                <div className="sticky top-0 z-10 p-2 border-b border-white/10 flex items-center gap-1.5 bg-[#161b22] backdrop-blur-md flex-wrap sm:flex-nowrap shadow-sm">
                   <button
                     type="button"
                     onClick={() => {
@@ -1046,6 +1104,16 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
                   >
                     <Plus className="h-3 w-3" />
                     Crear
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setVistaMovil("mapa")}
+                    className="lg:hidden flex items-center gap-1 rounded bg-cyan-500/15 border border-cyan-500/30 px-2 py-1 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/25 transition"
+                    title="Ver mapa interactivo"
+                  >
+                    <MapPin className="h-3 w-3" />
+                    <span>Mapa</span>
                   </button>
 
                   <button
@@ -1090,7 +1158,7 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
                 </div>
 
                 {/* List Items */}
-                <div className="flex-1 overflow-y-auto sidebar-scroll divide-y divide-white/5">
+                <div className="divide-y divide-white/5 pb-8">
                   {geocercasFiltradas.length === 0 ? (
                     <div className="p-6 text-center text-xs text-slate-500">
                       No se encontraron geocercas coincidentes.
@@ -1204,8 +1272,17 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
           ref={mapWrapperRef}
           className={`flex-1 relative h-full bg-[#050b14] overflow-hidden ${
             isFullscreen ? "fixed inset-0 z-[99999]" : ""
-          }`}
+          } ${vistaMovil === "mapa" ? "flex flex-col" : "hidden lg:flex lg:flex-col"}`}
         >
+          {/* Floating button on map for mobile to switch back to panel */}
+          <button
+            type="button"
+            onClick={() => setVistaMovil("panel")}
+            className="lg:hidden absolute bottom-5 left-4 z-[1000] flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0d1117]/90 border border-white/15 text-xs font-medium text-white shadow-xl backdrop-blur-sm hover:bg-[#161b22] transition"
+          >
+            <Wrench className="h-3.5 w-3.5 text-cyan-400" />
+            <span>Editar / Lista</span>
+          </button>
           {/* Map Layer Controls Floating Top Left */}
           <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-1.5 bg-[#0d1117]/90 p-1.5 rounded-lg border border-white/10 shadow-xl backdrop-blur-sm">
             <div className="flex items-center gap-1">

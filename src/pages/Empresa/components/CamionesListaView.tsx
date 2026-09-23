@@ -6,6 +6,8 @@ import {
   Search,
   Plus,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   X,
   Battery,
   Signal,
@@ -709,6 +711,7 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
   // Map state
   const [capaMapa, setCapaMapa] = useState<"mapa" | "satelite">("mapa");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [vistaMovil, setVistaMovil] = useState<"unidades" | "mapa" | "detalle">("unidades");
 
   // Refs for Leaflet
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -762,6 +765,31 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
+
+  // ResizeObserver for responsive map resizing
+  useEffect(() => {
+    if (!mapWrapperRef.current) return;
+    const observer = new ResizeObserver(() => {
+      mapRef.current?.invalidateSize();
+    });
+    observer.observe(mapWrapperRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Invalidate map size and fly to current truck when mobile view changes to "mapa"
+  useEffect(() => {
+    if (vistaMovil === "mapa") {
+      setTimeout(() => {
+        if (!mapRef.current) return;
+        mapRef.current.invalidateSize();
+        if (currentTruck) {
+          mapRef.current.flyTo([currentTruck.lat, currentTruck.lng], 13, {
+            duration: 0.8,
+          });
+        }
+      }, 100);
+    }
+  }, [vistaMovil, currentTruck]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -914,9 +942,12 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
   // Fly to selected truck
   useEffect(() => {
     if (!mapRef.current || !currentTruck) return;
-    mapRef.current.flyTo([currentTruck.lat, currentTruck.lng], 13, {
-      duration: 0.8,
-    });
+    if (mapContainerRef.current && mapContainerRef.current.clientWidth > 0) {
+      mapRef.current.invalidateSize();
+      mapRef.current.flyTo([currentTruck.lat, currentTruck.lng], 13, {
+        duration: 0.8,
+      });
+    }
   }, [selectedId, currentTruck]);
 
   // Register New Unit
@@ -970,29 +1001,42 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] w-full overflow-hidden rounded-xl border border-white/10 bg-[#070b12] text-slate-200 font-sans shadow-2xl">
+    <div className="flex flex-col h-[calc(100vh-120px)] min-h-[500px] w-full overflow-hidden rounded-xl border border-white/10 bg-[#070b12] text-slate-200 font-sans shadow-2xl">
       {/* ─── TOP HEADER BAR ─── */}
-      <header className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-[#0c121d] px-4 py-2.5">
-        {/* Left Title + Badge */}
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold tracking-tight text-white">
-            Transporte
-          </h1>
-          <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-[#0df5c6]">
-            {filteredCamiones.length} unidades
-          </span>
+      <header className="shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-2.5 border-b border-white/10 bg-[#0c121d] px-3 sm:px-4 py-2 sm:py-2.5">
+        {/* Top line on mobile: Title + Badge + Mobile Register button */}
+        <div className="flex items-center justify-between w-full md:w-auto gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white">
+              Transporte
+            </h1>
+            <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 sm:px-2.5 py-0.5 text-xs font-semibold text-[#0df5c6]">
+              {filteredCamiones.length} unidades
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 md:hidden">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-1 rounded-lg bg-[#0df5c6] hover:bg-[#0bdba0] px-2.5 py-1 text-xs font-bold text-[#07131b] shadow-[0_0_12px_rgba(13,245,198,0.25)] transition"
+            >
+              <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+              <span>Registrar</span>
+            </button>
+          </div>
         </div>
 
-        {/* Center Search + Filter dropdowns */}
-        <div className="flex flex-wrap items-center gap-2 flex-1 max-w-2xl justify-end sm:justify-start">
+        {/* Search + Filter dropdowns + Mobile View Switcher */}
+        <div className="flex flex-wrap items-center gap-2 flex-1 max-w-none md:max-w-2xl justify-start">
           {/* Search Input */}
-          <div className="relative min-w-[220px] flex-1 max-w-xs">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+          <div className="relative flex-1 min-w-[140px] sm:min-w-[180px]">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar unidad, conductor o ubicación..."
+              placeholder="Buscar unidad, conductor..."
               className="w-full rounded-lg border border-white/10 bg-[#141b29] pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-[#0df5c6] transition"
             />
           </div>
@@ -1002,7 +1046,7 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
             <select
               value={filterEstado}
               onChange={(e) => setFilterEstado(e.target.value)}
-              className="appearance-none rounded-lg border border-white/10 bg-[#141b29] px-3 py-1.5 pr-7 text-xs text-slate-300 outline-none focus:border-[#0df5c6] cursor-pointer"
+              className="appearance-none rounded-lg border border-white/10 bg-[#141b29] px-2.5 py-1.5 pr-7 text-xs text-slate-300 outline-none focus:border-[#0df5c6] cursor-pointer"
             >
               <option value="todos">Estado</option>
               <option value="en_marcha">En marcha</option>
@@ -1014,11 +1058,11 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
           </div>
 
           {/* Filter: Conductor */}
-          <div className="relative hidden md:block">
+          <div className="relative hidden sm:block">
             <select
               value={filterConductor}
               onChange={(e) => setFilterConductor(e.target.value)}
-              className="appearance-none rounded-lg border border-white/10 bg-[#141b29] px-3 py-1.5 pr-7 text-xs text-slate-300 outline-none focus:border-[#0df5c6] cursor-pointer"
+              className="appearance-none rounded-lg border border-white/10 bg-[#141b29] px-2.5 py-1.5 pr-7 text-xs text-slate-300 outline-none focus:border-[#0df5c6] cursor-pointer"
             >
               <option value="todos">Conductor</option>
               {operadoresData.map((op) => (
@@ -1031,11 +1075,11 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
           </div>
 
           {/* Filter: Producto */}
-          <div className="relative hidden lg:block">
+          <div className="relative hidden md:block">
             <select
               value={filterProducto}
               onChange={(e) => setFilterProducto(e.target.value)}
-              className="appearance-none rounded-lg border border-white/10 bg-[#141b29] px-3 py-1.5 pr-7 text-xs text-slate-300 outline-none focus:border-[#0df5c6] cursor-pointer"
+              className="appearance-none rounded-lg border border-white/10 bg-[#141b29] px-2.5 py-1.5 pr-7 text-xs text-slate-300 outline-none focus:border-[#0df5c6] cursor-pointer"
             >
               <option value="todos">Producto</option>
               <option value="Cisterna">Cisterna</option>
@@ -1046,22 +1090,23 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
           </div>
 
           {/* Filter: Con alertas */}
-          <div className="relative hidden xl:block">
+          <div className="relative hidden lg:block">
             <select
               value={filterAlertas}
               onChange={(e) => setFilterAlertas(e.target.value)}
-              className="appearance-none rounded-lg border border-white/10 bg-[#141b29] px-3 py-1.5 pr-7 text-xs text-slate-300 outline-none focus:border-[#0df5c6] cursor-pointer"
+              className="appearance-none rounded-lg border border-white/10 bg-[#141b29] px-2.5 py-1.5 pr-7 text-xs text-slate-300 outline-none focus:border-[#0df5c6] cursor-pointer"
             >
-              <option value="todos">Con alertas</option>
+              <option value="todos">Alertas</option>
               <option value="con_alerta">Desvío &gt; 10%</option>
               <option value="sin_alerta">Normal</option>
             </select>
             <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-slate-400" />
           </div>
+
         </div>
 
-        {/* Right Primary Action */}
-        <div className="flex items-center gap-2">
+        {/* Right Primary Action on Desktop */}
+        <div className="hidden md:flex items-center gap-2">
           {saveAlert && (
             <span className="text-xs text-[#0df5c6] font-medium animate-fade-in flex items-center gap-1">
               <Check className="h-3.5 w-3.5" /> Unidad registrada
@@ -1078,12 +1123,59 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
         </div>
       </header>
 
+      {/* ─── DEDICATED MOBILE VIEW SWITCHER BAR (< xl) ─── */}
+      <div className="xl:hidden flex items-center bg-[#0a0f19] border-b border-white/10 p-2 gap-2 shrink-0 z-30">
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => setVistaMovil("unidades")}
+          className={`flex-1 py-2 px-1 text-xs font-bold rounded-lg transition text-center flex items-center justify-center gap-1 active:scale-95 ${
+            vistaMovil === "unidades"
+              ? "bg-[#0df5c6] text-[#07131b] shadow-md"
+              : "bg-[#141b29] text-slate-300 hover:text-white"
+          }`}
+        >
+          <span>Unidades</span>
+          <span className="text-[10px] opacity-80 font-mono">({filteredCamiones.length})</span>
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => setVistaMovil("mapa")}
+          className={`flex-1 py-2 px-1 text-xs font-bold rounded-lg transition text-center flex items-center justify-center gap-1 active:scale-95 ${
+            vistaMovil === "mapa"
+              ? "bg-[#0df5c6] text-[#07131b] shadow-md"
+              : "bg-[#141b29] text-slate-300 hover:text-white"
+          }`}
+        >
+          <span>Mapa</span>
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => setVistaMovil("detalle")}
+          className={`flex-1 py-2 px-1 text-xs font-bold rounded-lg transition text-center flex items-center justify-center gap-1 active:scale-95 truncate ${
+            vistaMovil === "detalle"
+              ? "bg-[#0df5c6] text-[#07131b] shadow-md"
+              : "bg-[#141b29] text-slate-300 hover:text-white"
+          }`}
+        >
+          <span>Detalle</span>
+          {currentTruck && <span className="text-[10px] opacity-80 truncate hidden xs:inline">({currentTruck.placa})</span>}
+        </button>
+      </div>
+
       {/* ─── 3-COLUMN MAIN BODY ─── */}
-      <div className="flex flex-1 min-h-0 w-full overflow-hidden">
+      <div className="flex flex-1 min-h-0 w-full overflow-hidden relative">
         {/* ─── COLUMN 1: LEFT LIST OF UNITS ─── */}
-        <aside className="w-[280px] shrink-0 border-r border-white/10 bg-[#090e18] flex flex-col h-full overflow-hidden">
-          <div className="shrink-0 px-3 py-2.5 border-b border-white/10 text-xs font-semibold text-slate-400">
-            Unidades ({filteredCamiones.length})
+        <aside
+          className={`w-full xl:w-[280px] shrink-0 border-r border-white/10 bg-[#090e18] flex flex-col h-full overflow-hidden ${
+            vistaMovil === "unidades" ? "flex" : "hidden xl:flex"
+          }`}
+        >
+          <div className="shrink-0 px-3 py-2.5 border-b border-white/10 text-xs font-semibold text-slate-400 flex items-center justify-between">
+            <span>Unidades ({filteredCamiones.length})</span>
+            <span className="text-[10px] text-slate-500 xl:hidden">Toca para centrar en el mapa</span>
           </div>
 
           <div className="flex-1 overflow-y-auto sidebar-scroll divide-y divide-white/[0.04]">
@@ -1095,7 +1187,10 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
               return (
                 <div
                   key={truck.id}
-                  onClick={() => setSelectedId(truck.id)}
+                  onClick={() => {
+                    setSelectedId(truck.id);
+                    setVistaMovil("mapa");
+                  }}
                   className={`p-3 cursor-pointer transition relative ${
                     isSelected
                       ? "bg-[#111c2e] border-l-4 border-[#0df5c6]"
@@ -1162,12 +1257,18 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
         {/* ─── COLUMN 2: MIDDLE MAP ─── */}
         <div
           ref={mapWrapperRef}
-          className={`flex-1 relative h-full bg-[#050911] overflow-hidden ${
+          className={`flex-1 relative h-full w-full bg-[#050911] overflow-hidden ${
             isFullscreen ? "fixed inset-0 z-[99999]" : ""
+          } ${
+            vistaMovil === "mapa" ? "flex" : "hidden xl:flex"
           }`}
         >
           {/* Map Controls Top Right */}
-          <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2">
+          <div
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            className="absolute top-3 right-3 z-[1000] flex items-center gap-2"
+          >
             {/* Mapa | Satélite Pill */}
             <div className="flex items-center rounded-lg bg-[#0d1422]/90 border border-white/15 p-0.5 shadow-xl backdrop-blur-sm">
               <button
@@ -1209,8 +1310,8 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
             </button>
           </div>
 
-          {/* Floating Bottom Legend */}
-          <div className="absolute bottom-4 left-4 z-[1000] flex items-center gap-4 px-3.5 py-1.5 rounded-full bg-[#0d1422]/90 border border-white/10 shadow-2xl backdrop-blur-md text-[11px] font-medium text-slate-300">
+          {/* Floating Bottom Legend (desktop only, to not overlap mobile bottom card) */}
+          <div className="hidden xl:flex absolute bottom-4 left-4 z-[1000] items-center gap-4 px-3.5 py-1.5 rounded-full bg-[#0d1422]/90 border border-white/10 shadow-2xl backdrop-blur-md text-[11px] font-medium text-slate-300">
             <span className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-[#0df5c6] shadow-[0_0_6px_#0df5c6]" />
               En marcha
@@ -1229,18 +1330,114 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
             </span>
           </div>
 
-          {/* Scale Legend bottom right */}
-          <div className="absolute bottom-4 right-4 z-[1000] flex items-center gap-1 text-[10px] font-mono text-slate-400 bg-black/50 px-2 py-0.5 rounded border border-white/10">
+          {/* Scale Legend bottom right (desktop only) */}
+          <div className="hidden xl:flex absolute bottom-4 right-4 z-[1000] items-center gap-1 text-[10px] font-mono text-slate-400 bg-black/50 px-2 py-0.5 rounded border border-white/10">
             <span className="w-8 border-b-2 border-slate-400 inline-block mr-1" />
             10 km
           </div>
 
+          {/* Mobile Selected Truck Bottom Floating Card (< xl) */}
+          {vistaMovil === "mapa" && currentTruck && (
+            <div
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              className="xl:hidden absolute bottom-3 left-3 right-3 z-[1000] rounded-xl border border-white/15 bg-[#0c121d]/95 backdrop-blur-md p-3 shadow-2xl animate-fade-in flex flex-col gap-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
+                    style={{
+                      backgroundColor: getStatusColor(currentTruck.estado),
+                      boxShadow: `0 0 8px ${getStatusColor(currentTruck.estado)}`,
+                    }}
+                  />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white tracking-wide truncate">
+                        {currentTruck.placa}
+                      </span>
+                      <span
+                        className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
+                        style={{
+                          color: getStatusColor(currentTruck.estado),
+                          backgroundColor: `${getStatusColor(currentTruck.estado)}20`,
+                        }}
+                      >
+                        {currentTruck.estadoLabel}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                      {currentTruck.conductor} • {currentTruck.modelo}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setVistaMovil("detalle")}
+                  className="shrink-0 flex items-center gap-1 rounded-lg bg-[#0df5c6] hover:bg-[#0bdba0] px-3 py-1.5 text-xs font-bold text-[#07131b] transition shadow"
+                >
+                  <span>Ver detalle</span>
+                  <ChevronRight className="h-3.5 w-3.5 stroke-[2.5]" />
+                </button>
+              </div>
+
+              {/* Quick Metrics Bar inside the card on mobile */}
+              <div className="grid grid-cols-4 gap-1 pt-1.5 border-t border-white/10 text-center">
+                <div className="bg-[#121926] rounded px-1 py-0.5">
+                  <span className="text-[8px] uppercase text-slate-400 block">Vel.</span>
+                  <span className="text-[11px] font-bold text-white font-mono">{currentTruck.velocidadKmH} <span className="text-[8px] text-slate-400">km/h</span></span>
+                </div>
+                <div className="bg-[#121926] rounded px-1 py-0.5">
+                  <span className="text-[8px] uppercase text-slate-400 block">Caudal</span>
+                  <span className="text-[11px] font-bold text-white font-mono">{currentTruck.caudalLh} <span className="text-[8px] text-slate-400">L/h</span></span>
+                </div>
+                <div className="bg-[#121926] rounded px-1 py-0.5">
+                  <span className="text-[8px] uppercase text-slate-400 block">Consumo</span>
+                  <span className="text-[11px] font-bold text-white font-mono">{currentTruck.consumoDiaL} <span className="text-[8px] text-slate-400">L</span></span>
+                </div>
+                <div className="bg-[#121926] rounded px-1 py-0.5">
+                  <span className="text-[8px] uppercase text-slate-400 block">Desvío</span>
+                  <span className={`text-[11px] font-bold font-mono ${currentTruck.desvioPct >= 0 ? "text-[#fbbf24]" : "text-[#0df5c6]"}`}>
+                    {currentTruck.desvioPct > 0 ? `+${currentTruck.desvioPct}%` : `${currentTruck.desvioPct}%`}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Map Container */}
-          <div ref={mapContainerRef} className="h-full w-full" />
+          <div ref={mapContainerRef} className="h-full w-full bg-[#050911]" />
         </div>
 
         {/* ─── COLUMN 3: RIGHT UNIT DETAIL PANEL ─── */}
-        <aside className="w-[340px] shrink-0 border-l border-white/10 bg-[#090e18] flex flex-col h-full overflow-y-auto sidebar-scroll">
+        <aside
+          className={`w-full xl:w-[340px] shrink-0 border-l border-white/10 bg-[#090e18] flex flex-col h-full overflow-y-auto sidebar-scroll ${
+            vistaMovil === "detalle" ? "flex" : "hidden xl:flex"
+          }`}
+        >
+          {/* Mobile Back Bar (< xl) */}
+          <div className="p-3 border-b border-white/10 flex xl:hidden items-center justify-between bg-[#0e1624]">
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => setVistaMovil("mapa")}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#0df5c6] hover:underline"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Volver al mapa</span>
+            </button>
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => setVistaMovil("unidades")}
+              className="text-xs text-slate-400 hover:text-white"
+            >
+              Ver todas las unidades
+            </button>
+          </div>
+
           {/* Header */}
           <div className="p-4 border-b border-white/10 relative">
             <div className="flex items-start justify-between">
@@ -1267,7 +1464,10 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
                 <button
                   type="button"
                   title="Cerrar detalle"
-                  onClick={() => setSelectedId("")}
+                  onClick={() => {
+                    setSelectedId("");
+                    setVistaMovil("mapa");
+                  }}
                   className="text-slate-400 hover:text-white p-1"
                 >
                   <X className="h-4 w-4" />
@@ -1534,10 +1734,10 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
               </button>
             </div>
 
-            <form onSubmit={handleRegister} className="space-y-3 text-xs">
+            <form onSubmit={handleRegister} className="space-y-3.5 text-xs">
               {/* Row 1: Nombre: * */}
-              <div className="flex items-center gap-3">
-                <label className="w-44 text-right text-slate-300 font-medium shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                   Nombre: <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -1545,17 +1745,17 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
                   required
                   value={formNombre}
                   onChange={(e) => setFormNombre(e.target.value)}
-                  className="flex-1 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] transition"
+                  className="w-full sm:flex-1 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] transition"
                   placeholder="Nueva unidad"
                 />
               </div>
 
               {/* Row 2: Tipo de unidad: */}
-              <div className="flex items-center gap-3">
-                <label className="w-44 text-right text-slate-300 font-medium shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                   Tipo de unidad:
                 </label>
-                <div className="relative flex-1">
+                <div className="relative w-full sm:flex-1">
                   <select
                     value={formTipoUnidad}
                     onChange={(e) => setFormTipoUnidad(e.target.value)}
@@ -1573,11 +1773,11 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
               </div>
 
               {/* Row 3: Tipo de dispositivo: * + Wrench icon */}
-              <div className="flex items-center gap-3">
-                <label className="w-44 text-right text-slate-300 font-medium shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                   Tipo de dispositivo: <span className="text-red-400">*</span>
                 </label>
-                <div className="flex items-center gap-2 flex-1">
+                <div className="flex items-center gap-2 w-full sm:flex-1">
                   <div className="relative flex-1">
                     <select
                       value={formTipoDispositivo}
@@ -1597,7 +1797,7 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
                   <button
                     type="button"
                     title="Configurar dispositivo"
-                    className="p-1.5 rounded border border-white/15 bg-[#162235] text-slate-400 hover:text-[#0df5c6] transition"
+                    className="p-1.5 rounded border border-white/15 bg-[#162235] text-slate-400 hover:text-[#0df5c6] transition shrink-0"
                   >
                     <Wrench className="h-3.5 w-3.5" />
                   </button>
@@ -1605,76 +1805,76 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
               </div>
 
               {/* Row 4: Dirección del servidor: */}
-              <div className="flex items-center gap-3">
-                <label className="w-44 text-right text-slate-300 font-medium shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                   Dirección del servidor:
                 </label>
                 <input
                   type="text"
                   value={formDireccionServidor}
                   onChange={(e) => setFormDireccionServidor(e.target.value)}
-                  className="flex-1 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] font-mono transition"
+                  className="w-full sm:flex-1 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] font-mono transition"
                   placeholder="srv.edgesmart.io:20100"
                 />
               </div>
 
               {/* Row 5: ID único: */}
-              <div className="flex items-center gap-3">
-                <label className="w-44 text-right text-slate-300 font-medium shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                   ID único:
                 </label>
                 <input
                   type="text"
                   value={formIdUnico}
                   onChange={(e) => setFormIdUnico(e.target.value)}
-                  className="flex-1 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] font-mono transition"
+                  className="w-full sm:flex-1 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] font-mono transition"
                   placeholder="IMEI / MAC / ID de unidad"
                 />
               </div>
 
               {/* Row 6: Número de teléfono: (2 inputs) */}
-              <div className="flex items-center gap-3">
-                <label className="w-44 text-right text-slate-300 font-medium shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                   Número de teléfono:
                 </label>
-                <div className="flex items-center gap-2 flex-1">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:flex-1">
                   <input
                     type="text"
                     value={formTelefonoCod}
                     onChange={(e) => setFormTelefonoCod(e.target.value)}
-                    className="w-32 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] font-mono transition"
+                    className="w-28 sm:w-32 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] font-mono transition"
                     placeholder="+54 9 11"
                   />
                   <input
                     type="text"
                     value={formTelefonoNum}
                     onChange={(e) => setFormTelefonoNum(e.target.value)}
-                    className="flex-1 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] font-mono transition"
+                    className="flex-1 min-w-[140px] rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] font-mono transition"
                     placeholder="Número de teléfono"
                   />
                 </div>
               </div>
 
               {/* Row 7: Contraseña: */}
-              <div className="flex items-center gap-3">
-                <label className="w-44 text-right text-slate-300 font-medium shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                   Contraseña:
                 </label>
                 <input
                   type="password"
                   value={formPassword}
                   onChange={(e) => setFormPassword(e.target.value)}
-                  className="flex-1 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] font-mono transition"
+                  className="w-full sm:flex-1 rounded border border-white/15 bg-[#121927] px-2.5 py-1.5 text-white outline-none focus:border-[#0df5c6] font-mono transition"
                   placeholder="••••••••"
                 />
               </div>
 
               {/* Row 8: Creador: */}
-              <div className="flex items-center gap-3">
-                <label className="w-44 text-right text-slate-300 font-medium shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                   Creador:
                 </label>
-                <div className="relative flex-1">
+                <div className="relative w-full sm:flex-1">
                   <select
                     value={formCreador}
                     onChange={(e) => setFormCreador(e.target.value)}
@@ -1689,144 +1889,150 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
               </div>
 
               {/* Row 9: Cuenta: */}
-              <div className="flex items-center gap-3">
-                <label className="w-44 text-right text-slate-300 font-medium shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                   Cuenta:
                 </label>
                 <input
                   type="text"
                   value={formCuenta}
                   disabled
-                  className="flex-1 rounded border border-white/5 bg-[#090e18] px-2.5 py-1.5 text-slate-500 cursor-not-allowed font-mono"
+                  className="w-full sm:flex-1 rounded border border-white/5 bg-[#090e18] px-2.5 py-1.5 text-slate-500 cursor-not-allowed font-mono"
                 />
               </div>
 
               {/* ─── COUNTERS SECTION ─── */}
-              <div className="border-t border-white/10 pt-3 space-y-2.5 mt-4">
+              <div className="border-t border-white/10 pt-3 space-y-3 mt-4">
                 {/* Contador de kilometraje */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="w-44 text-right text-slate-300 font-medium shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                     Contador de kilometraje:
                   </span>
-                  <div className="relative w-44">
-                    <select
-                      value={formKmFuente}
-                      onChange={(e) => setFormKmFuente(e.target.value)}
-                      className="w-full appearance-none rounded border border-white/15 bg-[#121927] px-2 py-1 pr-6 text-xs text-white outline-none focus:border-[#0df5c6] cursor-pointer"
-                    >
-                      <option value="GPS">GPS</option>
-                      <option value="Sensor de kilometraje">Sensor de kilometraje</option>
-                      <option value="CAN Bus / FMS">CAN Bus / FMS</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2 top-1.5 h-3 w-3 text-slate-400" />
-                  </div>
-                  <span className="text-slate-400 ml-1">
-                    Valor actual: <span className="text-red-400">*</span>
-                  </span>
-                  <input
-                    type="number"
-                    value={formKmValor}
-                    onChange={(e) => setFormKmValor(e.target.value)}
-                    className="w-20 rounded border border-white/15 bg-[#121927] px-2 py-1 text-xs text-white font-mono outline-none focus:border-[#0df5c6]"
-                  />
-                  <span className="text-slate-400 font-mono">km</span>
-                  <label className="flex items-center gap-1.5 text-slate-300 cursor-pointer ml-3">
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:flex-1">
+                    <div className="relative w-full sm:w-44">
+                      <select
+                        value={formKmFuente}
+                        onChange={(e) => setFormKmFuente(e.target.value)}
+                        className="w-full appearance-none rounded border border-white/15 bg-[#121927] px-2 py-1 pr-6 text-xs text-white outline-none focus:border-[#0df5c6] cursor-pointer"
+                      >
+                        <option value="GPS">GPS</option>
+                        <option value="Sensor de kilometraje">Sensor de kilometraje</option>
+                        <option value="CAN Bus / FMS">CAN Bus / FMS</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-2 top-1.5 h-3 w-3 text-slate-400" />
+                    </div>
+                    <span className="text-slate-400">
+                      Valor actual: <span className="text-red-400">*</span>
+                    </span>
                     <input
-                      type="checkbox"
-                      checked={formKmAuto}
-                      onChange={(e) => setFormKmAuto(e.target.checked)}
-                      className="rounded accent-[#0df5c6] cursor-pointer"
+                      type="number"
+                      value={formKmValor}
+                      onChange={(e) => setFormKmValor(e.target.value)}
+                      className="w-20 rounded border border-white/15 bg-[#121927] px-2 py-1 text-xs text-white font-mono outline-none focus:border-[#0df5c6]"
                     />
-                    Automático
-                  </label>
+                    <span className="text-slate-400 font-mono">km</span>
+                    <label className="flex items-center gap-1.5 text-slate-300 cursor-pointer ml-1 sm:ml-3">
+                      <input
+                        type="checkbox"
+                        checked={formKmAuto}
+                        onChange={(e) => setFormKmAuto(e.target.checked)}
+                        className="rounded accent-[#0df5c6] cursor-pointer"
+                      />
+                      Automático
+                    </label>
+                  </div>
                 </div>
 
                 {/* Contador de horas de motor */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="w-44 text-right text-slate-300 font-medium shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                     Contador de horas de motor:
                   </span>
-                  <div className="relative w-44">
-                    <select
-                      value={formHorasFuente}
-                      onChange={(e) => setFormHorasFuente(e.target.value)}
-                      className="w-full appearance-none rounded border border-white/15 bg-[#121927] px-2 py-1 pr-6 text-xs text-white truncate outline-none focus:border-[#0df5c6] cursor-pointer"
-                    >
-                      <option value="Sensor de ignición del motor">Sensor de ignición del mot...</option>
-                      <option value="Sensor de vibración">Sensor de vibración</option>
-                      <option value="Horómetro CAN Bus">Horómetro CAN Bus</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2 top-1.5 h-3 w-3 text-slate-400" />
-                  </div>
-                  <span className="text-slate-400 ml-1">
-                    Valor actual: <span className="text-red-400">*</span>
-                  </span>
-                  <input
-                    type="number"
-                    value={formHorasValor}
-                    onChange={(e) => setFormHorasValor(e.target.value)}
-                    className="w-20 rounded border border-white/15 bg-[#121927] px-2 py-1 text-xs text-white font-mono outline-none focus:border-[#0df5c6]"
-                  />
-                  <span className="text-slate-400 font-mono">h</span>
-                  <label className="flex items-center gap-1.5 text-slate-300 cursor-pointer ml-3">
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:flex-1">
+                    <div className="relative w-full sm:w-44">
+                      <select
+                        value={formHorasFuente}
+                        onChange={(e) => setFormHorasFuente(e.target.value)}
+                        className="w-full appearance-none rounded border border-white/15 bg-[#121927] px-2 py-1 pr-6 text-xs text-white truncate outline-none focus:border-[#0df5c6] cursor-pointer"
+                      >
+                        <option value="Sensor de ignición del motor">Sensor de ignición del mot...</option>
+                        <option value="Sensor de vibración">Sensor de vibración</option>
+                        <option value="Horómetro CAN Bus">Horómetro CAN Bus</option>
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-2 top-1.5 h-3 w-3 text-slate-400" />
+                    </div>
+                    <span className="text-slate-400">
+                      Valor actual: <span className="text-red-400">*</span>
+                    </span>
                     <input
-                      type="checkbox"
-                      checked={formHorasAuto}
-                      onChange={(e) => setFormHorasAuto(e.target.checked)}
-                      className="rounded accent-[#0df5c6] cursor-pointer"
+                      type="number"
+                      value={formHorasValor}
+                      onChange={(e) => setFormHorasValor(e.target.value)}
+                      className="w-20 rounded border border-white/15 bg-[#121927] px-2 py-1 text-xs text-white font-mono outline-none focus:border-[#0df5c6]"
                     />
-                    Automático
-                  </label>
+                    <span className="text-slate-400 font-mono">h</span>
+                    <label className="flex items-center gap-1.5 text-slate-300 cursor-pointer ml-1 sm:ml-3">
+                      <input
+                        type="checkbox"
+                        checked={formHorasAuto}
+                        onChange={(e) => setFormHorasAuto(e.target.checked)}
+                        className="rounded accent-[#0df5c6] cursor-pointer"
+                      />
+                      Automático
+                    </label>
+                  </div>
                 </div>
 
                 {/* Contador del tráfico GPRS */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="w-44 text-right text-slate-300 font-medium shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span className="w-full sm:w-44 text-left sm:text-right text-slate-300 font-medium shrink-0">
                     Contador del tráfico GPRS:
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setFormGprsValor("0")}
-                    className="w-44 rounded border border-white/15 bg-[#162235] hover:bg-[#1d2d46] px-2 py-1 text-xs text-slate-200 transition font-medium text-center"
-                  >
-                    Reiniciar contador
-                  </button>
-                  <span className="text-slate-400 ml-1">
-                    Valor actual:
-                  </span>
-                  <input
-                    type="number"
-                    value={formGprsValor}
-                    onChange={(e) => setFormGprsValor(e.target.value)}
-                    className="w-20 rounded border border-white/15 bg-[#121927] px-2 py-1 text-xs text-white font-mono outline-none focus:border-[#0df5c6]"
-                  />
-                  <span className="text-slate-400 font-mono">KB</span>
-                  <label className="flex items-center gap-1.5 text-slate-300 cursor-pointer ml-3">
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:flex-1">
+                    <button
+                      type="button"
+                      onClick={() => setFormGprsValor("0")}
+                      className="w-full sm:w-44 rounded border border-white/15 bg-[#162235] hover:bg-[#1d2d46] px-2 py-1 text-xs text-slate-200 transition font-medium text-center"
+                    >
+                      Reiniciar contador
+                    </button>
+                    <span className="text-slate-400">
+                      Valor actual:
+                    </span>
                     <input
-                      type="checkbox"
-                      checked={formGprsAuto}
-                      onChange={(e) => setFormGprsAuto(e.target.checked)}
-                      className="rounded accent-[#0df5c6] cursor-pointer"
+                      type="number"
+                      value={formGprsValor}
+                      onChange={(e) => setFormGprsValor(e.target.value)}
+                      className="w-20 rounded border border-white/15 bg-[#121927] px-2 py-1 text-xs text-white font-mono outline-none focus:border-[#0df5c6]"
                     />
-                    Automático
-                  </label>
+                    <span className="text-slate-400 font-mono">KB</span>
+                    <label className="flex items-center gap-1.5 text-slate-300 cursor-pointer ml-1 sm:ml-3">
+                      <input
+                        type="checkbox"
+                        checked={formGprsAuto}
+                        onChange={(e) => setFormGprsAuto(e.target.checked)}
+                        className="rounded accent-[#0df5c6] cursor-pointer"
+                      />
+                      Automático
+                    </label>
+                  </div>
                 </div>
               </div>
 
               {/* ─── FOOTER ACTIONS ─── */}
-              <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-4">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-white/10 mt-4">
+                <div className="flex items-center justify-between sm:justify-start gap-2">
                   <button
                     type="button"
                     onClick={() => alert("Propiedades exportadas en formato JSON / Wialon.")}
-                    className="rounded border border-white/15 bg-[#141d2d] hover:bg-[#1c283d] px-3 py-1.5 text-xs font-semibold text-slate-200 transition flex items-center gap-1.5 shadow-sm"
+                    className="flex-1 sm:flex-initial rounded border border-white/15 bg-[#141d2d] hover:bg-[#1c283d] px-3 py-1.5 text-xs font-semibold text-slate-200 transition flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     <Download className="h-3.5 w-3.5 text-slate-400" />
-                    Exportar propiedades
+                    <span>Exportar propiedades</span>
                   </button>
                   <div
                     title="Información y configuración avanzada de la unidad"
-                    className="text-amber-400 hover:text-amber-300 cursor-help transition"
+                    className="text-amber-400 hover:text-amber-300 cursor-help transition p-1"
                   >
                     <AlertCircle className="h-4 w-4" />
                   </div>
@@ -1836,13 +2042,13 @@ export function CamionesListaView({ empresa }: { empresa?: Empresa }) {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="rounded border border-white/15 bg-transparent hover:bg-white/5 px-4 py-1.5 text-xs font-medium text-slate-300 transition"
+                    className="flex-1 sm:flex-initial rounded border border-white/15 bg-transparent hover:bg-white/5 px-4 py-1.5 text-xs font-medium text-slate-300 transition text-center"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="rounded bg-[#0df5c6] hover:bg-[#0bdba0] px-6 py-1.5 text-xs font-bold text-[#07131b] shadow-[0_0_12px_rgba(13,245,198,0.3)] transition"
+                    className="flex-1 sm:flex-initial rounded bg-[#0df5c6] hover:bg-[#0bdba0] px-6 py-1.5 text-xs font-bold text-[#07131b] shadow-[0_0_12px_rgba(13,245,198,0.3)] transition text-center"
                   >
                     OK
                   </button>

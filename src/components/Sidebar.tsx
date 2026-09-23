@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { listarEmpresas, obtenerEmpresaPorId } from "../services/empresaService";
 import type { Empresa, MenuItem } from "../types";

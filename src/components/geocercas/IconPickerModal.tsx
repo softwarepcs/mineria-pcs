@@ -52,7 +52,7 @@ export function IconPickerModal({
           Selecciona un icono representativo para visualizar en la lista y mapa de geocercas:
         </p>
 
-        <div className="grid grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 max-h-64 overflow-y-auto pr-1">
           {AVAILABLE_ICONS.map((item) => {
             const IconComp = item.icon;
             const isSelected = selectedIcon === item.id;

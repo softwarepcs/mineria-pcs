@@ -86,10 +86,28 @@ export function FlotaMap({
 
     tileLayerRef.current = tile;
     mapRef.current = map;
+
+    // Small delay to ensure correct tile rendering on initial layout mount
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+
     return () => {
       map.remove();
       mapRef.current = null;
     };
+  }, []);
+
+  // ResizeObserver for fluid responsiveness on window resize, sidebar toggle or device rotation
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    });
+    resizeObserver.observe(containerRef.current);
+    return () => resizeObserver.disconnect();
   }, []);
 
   // Cambiar capa entre Mapa y Satélite
@@ -158,22 +176,27 @@ export function FlotaMap({
   return (
     <div
       ref={wrapperRef}
-      className={`mp-map-wrapper ${isFullscreen ? "mp-map-wrapper-fullscreen" : ""}`}
-      style={!isFullscreen ? { height: "100%", minHeight: "320px" } : undefined}
+      className={`mp-map-wrapper !mb-0 w-full rounded-xl overflow-hidden relative border border-white/[0.06] bg-[#161b22] ${
+        isFullscreen ? "mp-map-wrapper-fullscreen" : "h-[320px] sm:h-[380px] lg:h-[450px]"
+      }`}
     >
       {/* Layer toggle */}
-      <div className="mp-map-layer-toggle">
+      <div className="mp-map-layer-toggle !left-2.5 !top-2.5 sm:!left-3.5 sm:!top-3.5">
         <button
           type="button"
           onClick={() => setCapaMapa("mapa")}
-          className={`mp-map-layer-btn ${capaMapa === "mapa" ? "mp-map-layer-btn-active" : ""}`}
+          className={`mp-map-layer-btn !px-2.5 !py-1 sm:!px-3.5 sm:!py-1.5 text-xs ${
+            capaMapa === "mapa" ? "mp-map-layer-btn-active" : ""
+          }`}
         >
           Mapa
         </button>
         <button
           type="button"
           onClick={() => setCapaMapa("satelite")}
-          className={`mp-map-layer-btn ${capaMapa === "satelite" ? "mp-map-layer-btn-active" : ""}`}
+          className={`mp-map-layer-btn !px-2.5 !py-1 sm:!px-3.5 sm:!py-1.5 text-xs ${
+            capaMapa === "satelite" ? "mp-map-layer-btn-active" : ""
+          }`}
         >
           Satélite
         </button>
@@ -183,7 +206,7 @@ export function FlotaMap({
       <button
         type="button"
         onClick={toggleFullscreen}
-        className="mp-map-fullscreen-btn"
+        className="mp-map-fullscreen-btn !right-2.5 !top-2.5 sm:!right-3.5 sm:!top-3.5"
         title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
       >
         {isFullscreen ? (

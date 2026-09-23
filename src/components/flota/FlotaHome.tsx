@@ -14,38 +14,46 @@ export function FlotaHome({ empresa }: { empresa: Empresa }) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <div className="flex flex-col gap-4 sm:gap-5 w-full max-w-full">
       <FlotaKpis
         resumen={empresa.flota.resumen}
         maquinarias={empresa.flota.maquinarias}
         selectedId={selectedId}
         onReset={() => setSelectedId(null)}
       />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "16px" }}>
-        <FlotaMap
-          maquinarias={empresa.flota.maquinarias}
-          selectedId={selectedId}
-          onSelect={handleSelect}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-4 sm:gap-5 items-stretch">
+        <div className="w-full min-w-0">
+          <FlotaMap
+            maquinarias={empresa.flota.maquinarias}
+            selectedId={selectedId}
+            onSelect={handleSelect}
+          />
+        </div>
+        <div className="w-full min-w-0">
+          <FlotaTable
+            maquinarias={empresa.flota.maquinarias}
+            selectedId={selectedId}
+            onSelect={handleSelect}
+            mode="alerts"
+          />
+        </div>
+      </div>
+      <div className="w-full min-w-0">
         <FlotaTable
           maquinarias={empresa.flota.maquinarias}
           selectedId={selectedId}
           onSelect={handleSelect}
-          mode="alerts"
+          mode="full"
         />
       </div>
-      <FlotaTable
-        maquinarias={empresa.flota.maquinarias}
-        selectedId={selectedId}
-        onSelect={handleSelect}
-        mode="full"
-      />
-      <FlotaDesvioChart
-        maquinarias={empresa.flota.maquinarias}
-        objetivo={empresa.flota.resumen.objetivoL100km}
-        selectedId={selectedId}
-        onSelect={handleSelect}
-      />
+      <div className="w-full min-w-0">
+        <FlotaDesvioChart
+          maquinarias={empresa.flota.maquinarias}
+          objetivo={empresa.flota.resumen.objetivoL100km}
+          selectedId={selectedId}
+          onSelect={handleSelect}
+        />
+      </div>
     </div>
   );
 }
