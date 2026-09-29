@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Sesion, UsuarioSesion } from '@/types';
+import type { Sesion } from '@/types';
 import { login as loginService, obtenerPermisos } from '@/services/authService';
 import { guardarSesion, obtenerSesion, limpiarSesion } from '@/utils/session';
 
@@ -22,11 +22,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (usuario: string, password: string) => {
     set({ error: null });
     try {
-      const usuarioSesion: UsuarioSesion = await loginService(usuario, password);
+      const { usuario: usuarioSesion, token } = await loginService(usuario, password);
       const nuevaSesion: Sesion = {
         usuario: usuarioSesion,
         permisos: obtenerPermisos(usuarioSesion.rol),
         fechaInicio: new Date().toISOString(),
+        token: token,
       };
       set({ sesion: nuevaSesion });
       guardarSesion(nuevaSesion);
@@ -40,6 +41,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     set({ sesion: null });
     limpiarSesion();
-    localStorage.removeItem('token');
+    
   }
 }));

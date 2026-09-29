@@ -1,31 +1,22 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { obtenerEmpresaPorId, listarEmpresas } from "@/services/empresaService";
-import type { Empresa } from "@/types";
-import { GeocercasView } from "@/components/geocercas/GeocercasView";
+import { GeocercasView } from "@/features/geocercas/components/GeocercasView";
 
 export function GeocercasPage() {
   const { sesion } = useAuth();
-  const [empresa, setEmpresa] = useState<Empresa | null>(null);
-  const [cargando, setCargando] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      setCargando(true);
-      if (sesion?.usuario.empresaId) {
-        const emp = await obtenerEmpresaPorId(sesion.usuario.empresaId);
-        setEmpresa(emp ?? null);
+  
+  const { data: empresa, isLoading: cargando } = useQuery({
+    queryKey: ["geocercasPage_empresa", sesion?.usuario?.empresaId],
+    queryFn: async () => {
+      if (sesion?.usuario?.empresaId) {
+        return (await obtenerEmpresaPorId(sesion.usuario.empresaId)) ?? null;
       } else {
-        // If admin/global user, load first active empresa as default context
         const all = await listarEmpresas();
-        if (all.length > 0) {
-          setEmpresa(all[0]);
-        }
+        return all.length > 0 ? all[0] : null;
       }
-      setCargando(false);
-    }
-    load();
-  }, [sesion]);
+    },
+  });
 
   if (cargando) {
     return (

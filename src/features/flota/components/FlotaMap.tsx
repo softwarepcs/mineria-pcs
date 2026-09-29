@@ -1,4 +1,4 @@
-import { escapeHtml } from "@/utils/escapeHtml";
+import { useLeafletMap, escapeHtml } from "@/hooks/useLeafletMap";
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -36,28 +36,24 @@ export function FlotaMap({
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
-  const [capaMapa, setCapaMapa] = useState<"mapa" | "satelite">("mapa");
   const [isFullscreen, setIsFullscreen] = useState(false);
-
   const containerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Record<string, L.Marker>>({});
-  const tileLayerRef = useRef<L.TileLayer | null>(null);
+
+  const { map: mapInstance, capaMapa, setCapaMapa } = useLeafletMap(containerRef);
 
   // Fullscreen Listener
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
       setTimeout(() => {
-        if (mapRef.current) {
-          mapRef.current.invalidateSize();
-        }
+        if (mapInstance) mapInstance.invalidateSize();
       }, 200);
     };
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, []);
+  }, [mapInstance]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -69,70 +65,9 @@ export function FlotaMap({
     }
   };
 
-  // Initialize Map
-  useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
-
-    const map = L.map(containerRef.current, {
-      zoomControl: false,
-    });
-    
-    // Default zoom to Argentina (Vaca Muerta)
-    map.setView([-38.9516, -68.0591], 10);
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-
-    const tile = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; OpenStreetMap contributors',
-    }).addTo(map);
-
-    tileLayerRef.current = tile;
-    mapRef.current = map;
-
-    // Small delay to ensure correct tile rendering on initial layout mount
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 150);
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, []);
-
-  // ResizeObserver for fluid responsiveness on window resize, sidebar toggle or device rotation
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const resizeObserver = new ResizeObserver(() => {
-      if (mapRef.current) {
-        mapRef.current.invalidateSize();
-      }
-    });
-    resizeObserver.observe(containerRef.current);
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  // Cambiar capa entre Mapa y Satélite
-  useEffect(() => {
-    if (!mapRef.current || !tileLayerRef.current) return;
-    mapRef.current.removeLayer(tileLayerRef.current);
-
-    const url =
-      capaMapa === "satelite"
-        ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-
-    const attr =
-      capaMapa === "satelite"
-        ? "&copy; Esri &mdash; Source: Esri"
-        : "&copy; OpenStreetMap contributors";
-
-    const newTile = L.tileLayer(url, { attribution: attr, maxZoom: 19 }).addTo(mapRef.current);
-    tileLayerRef.current = newTile;
-  }, [capaMapa]);
-
   // Update Markers
   useEffect(() => {
-    const map = mapRef.current;
+    const map = mapInstance;
     if (!map) return;
 
     Object.values(markersRef.current).forEach((m) => m.remove());
@@ -158,7 +93,7 @@ export function FlotaMap({
 
   // Handle selectedId zoom
   useEffect(() => {
-    const map = mapRef.current;
+    const map = mapInstance;
     if (!map) return;
     if (!selectedId) {
       if (maquinarias.length > 0) {

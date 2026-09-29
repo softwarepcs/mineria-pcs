@@ -3,14 +3,14 @@ import { Link, useParams, Routes, Route } from "react-router-dom";
 import { useEmpresaStore } from "@/store/empresaStore";
 import { useAuth } from "@/hooks/useAuth";
 
-import { FlotaHome } from "@/components/flota/FlotaHome";
-import { MotorPrincipal } from "@/pages/Empresa/components/MotorPrincipal";
-import { AlertasView } from "@/pages/Empresa/components/AlertasView";
-import { OperadoresView } from "@/pages/Empresa/components/OperadoresView";
-import { OperadorDetalleView } from "@/pages/Empresa/components/OperadorDetalleView";
-import { CamionesListaView } from "@/pages/Empresa/components/CamionesListaView";
-import { CamionesDetalleView } from "@/pages/Empresa/components/CamionesDetalleView";
-import { GeocercasView } from "@/components/geocercas/GeocercasView";
+import { FlotaHome } from "@/features/flota/components/FlotaHome";
+import { MotorPrincipal } from "@/features/motor/components/MotorPrincipal";
+import { AlertasView } from "@/features/alertas/components/AlertasView";
+import { OperadoresView } from "@/features/operadores/components/OperadoresView";
+import { OperadorDetalleView } from "@/features/operadores/components/OperadorDetalleView";
+import { CamionesListaView } from "@/features/camiones/components/CamionesListaView";
+import { CamionesDetalleView } from "@/features/camiones/components/CamionesDetalleView";
+import { GeocercasView } from "@/features/geocercas/components/GeocercasView";
 
 function MonitoreoWrapper({ empresaNombre }: { empresaNombre: string }) {
   return (

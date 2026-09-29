@@ -1,6 +1,7 @@
 // @ts-nocheck
-import { escapeHtml } from "@/utils/escapeHtml";
+import { escapeHtml } from "@/hooks/useLeafletMap";
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getGeocercas, crearGeocerca, actualizarGeocerca, eliminarGeocerca } from "@/services/geocercaService";
@@ -42,7 +43,7 @@ import {
   calcularAreaHa,
   calcularPerimetroKm,
 } from "@/data/geocercasData";
-import { IconPickerModal } from "@/components/geocercas/IconPickerModal";
+import { IconPickerModal } from "./IconPickerModal";
 
 // Helper to render icon by name
 function renderGeocercaIcon(iconName: string, className = "h-4 w-4") {
@@ -90,13 +91,14 @@ function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: numbe
 
 export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
   // Tabs: "geocercas" | "grupos"
-  const [activeTab, setActiveTab] = useState<"geocercas" | "grupos">("geocercas");
+  const [activeTab, setActiveTab] = useState<"geocercas" | "lista">("lista");
 
   // Geocercas state
-  const [geocercas, setGeocercas] = useState<Geocerca[]>([]);
-  useEffect(() => {
-    getGeocercas().then(setGeocercas).catch(console.error);
-  }, []);
+  const queryClient = useQueryClient();
+  const { data: geocercas = [] } = useQuery({
+    queryKey: ["geocercas"],
+    queryFn: getGeocercas,
+  });
   const [editingId, setEditingId] = useState<string | null>("geo-1"); // Start by previewing Avenida Central
 
   // Form Fields

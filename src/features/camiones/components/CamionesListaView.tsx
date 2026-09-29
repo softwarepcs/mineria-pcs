@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { Search, Plus, ChevronDown, Check } from "lucide-react";
 import type { Empresa } from "@/types";
 import { getGeocercas } from "@/services/geocercaService";
-import { escapeHtml } from "@/utils/escapeHtml";
+import { escapeHtml } from "@/hooks/useLeafletMap";
 import { apiClient } from "@/utils/apiClient";
 
 import { CamionesListSide } from "./CamionesLista/CamionesListSide";

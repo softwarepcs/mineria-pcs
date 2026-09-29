@@ -1,4 +1,4 @@
-﻿// Roles del sistema
+// Roles del sistema
 // 1 = Administrador principal
 // 2 = Administrador
 // 3 = Empresa
@@ -52,6 +52,7 @@ export interface Sesion {
   usuario: UsuarioSesion;
   permisos: Permisos;
   fechaInicio: string;
+  token: string;
 }
 
 export interface MenuItemLegacy {

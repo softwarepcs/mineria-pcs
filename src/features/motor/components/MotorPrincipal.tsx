@@ -1,7 +1,8 @@
-import { escapeHtml } from "@/utils/escapeHtml";
+import { useLeafletMap, escapeHtml } from "@/hooks/useLeafletMap";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Icon } from "@/components/Icon";
 import { getOperadores } from "@/services/operadorService";
 import { getMaquinarias, getTelemetriaByMaquinaria } from "@/services/telemetriaService";
@@ -74,43 +75,53 @@ function createEndIcon() {
 }
 
 export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombre: string }) {
-  const [maquinarias, setMaquinarias] = useState<any[]>([]);
   const [maquinariaSeleccionada, setMaquinariaSeleccionada] = useState("");
   const [fechaInicio, setFechaInicio] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 7); return d.toISOString().split("T")[0]; });
   const [fechaFin, setFechaFin] = useState(() => new Date().toISOString().split("T")[0]);
   const [cargando, setCargando] = useState(false);
 
-  const [operadores, setOperadores] = useState<any[]>([]);
-  useEffect(() => {
-    getOperadores().then(setOperadores).catch(console.error);
-  }, []);
+  const { data: operadores = [] } = useQuery({
+    queryKey: ["operadores"],
+    queryFn: getOperadores,
+  });
 
   const [resultados, setResultados] = useState<TelemetriaPunto[]>([]);
   const [datosCargadosEnMapa, setDatosCargadosEnMapa] = useState(false);
   const [busquedaTabla, setBusquedaTabla] = useState("");
   const [mostrarRegistros, setMostrarRegistros] = useState(25);
   const [paginaActual, setPaginaActual] = useState(1);
-  const [capaMapa, setCapaMapa] = useState<"mapa" | "satelite">("mapa");
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapWrapperRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const tileLayerRef = useRef<L.TileLayer | null>(null);
-  const markersGroupRef = useRef<L.LayerGroup | null>(null);
+
+  const { map: mapInstance, markersGroup: markersGroupLayer, capaMapa, setCapaMapa } = useLeafletMap(mapContainerRef, {
+    center: [-34.6037, -58.3816]
+  });
+
+  const { data: maquinarias = [] } = useQuery({
+    queryKey: ["maquinarias"],
+    queryFn: getMaquinarias,
+  });
+
+  useEffect(() => {
+    if (maquinarias.length > 0 && !maquinariaSeleccionada) {
+      setMaquinariaSeleccionada(maquinarias[0].id.toString());
+    }
+  }, [maquinarias, maquinariaSeleccionada]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
       setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
+        if (mapInstance) {
+          mapInstance.invalidateSize();
         }
       }, 200);
     };
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, []);
+  }, [mapInstance]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -122,71 +133,14 @@ export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombr
     }
   };
 
-  // Cargar maquinarias al montar
-  useEffect(() => {
-    getMaquinarias()
-      .then((data) => {
-        setMaquinarias(data);
-        if (data.length > 0) {
-          setMaquinariaSeleccionada(data[0].id.toString());
-        }
-      })
-      .catch((err) => console.error("Error cargando maquinarias:", err));
-  }, []);
-
-  // Inicializar Leaflet Map
-  useEffect(() => {
-    if (!mapContainerRef.current || mapInstanceRef.current) return;
-
-    // Centrar en Argentina (Buenos Aires) por defecto. Mover control de zoom abajo a la derecha.
-    const map = L.map(mapContainerRef.current, {
-      zoomControl: false,
-    }).setView([-34.6037, -58.3816], 10);
-
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-
-    const tile = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors",
-      maxZoom: 19,
-    }).addTo(map);
-
-    tileLayerRef.current = tile;
-    markersGroupRef.current = L.layerGroup().addTo(map);
-    mapInstanceRef.current = map;
-
-    return () => {
-      map.remove();
-      mapInstanceRef.current = null;
-    };
-  }, []);
-
-  // Cambiar capa entre Mapa y Satélite
-  useEffect(() => {
-    if (!mapInstanceRef.current || !tileLayerRef.current) return;
-    mapInstanceRef.current.removeLayer(tileLayerRef.current);
-
-    const url =
-      capaMapa === "satelite"
-        ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-
-    const attr =
-      capaMapa === "satelite"
-        ? "&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-        : "&copy; OpenStreetMap contributors";
-
-    const newTile = L.tileLayer(url, { attribution: attr, maxZoom: 19 }).addTo(mapInstanceRef.current);
-    tileLayerRef.current = newTile;
-  }, [capaMapa]);
-
   // Al cambiar de camión/maquinaria: LIMPIAR la tabla y el mapa
   const handleCambioMaquinaria = (nuevoId: string) => {
     setMaquinariaSeleccionada(nuevoId);
     setResultados([]);
     setDatosCargadosEnMapa(false);
     setPaginaActual(1);
-    if (markersGroupRef.current) {
-      markersGroupRef.current.clearLayers();
+    if (markersGroupLayer) {
+      markersGroupLayer.clearLayers();
     }
   };
 
@@ -194,6 +148,15 @@ export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombr
   const handleBuscar = async () => {
     if (!maquinariaSeleccionada) return;
     if (!fechaInicio || !fechaFin) { alert("Debes seleccionar inicio y fin"); return; }
+    
+    // Front-end validation for 90 days
+    const diffTime = Math.abs(new Date(fechaFin).getTime() - new Date(fechaInicio).getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays > 90) {
+      alert("⚠️ Aviso: Por políticas de rendimiento, el filtrado de telemetría permite un rango máximo de 3 meses (90 días). Por favor, ajusta las fechas.");
+      return;
+    }
+
     setCargando(true);
     try {
       const data = await getTelemetriaByMaquinaria(maquinariaSeleccionada, fechaInicio, fechaFin, 5000);
@@ -208,8 +171,8 @@ export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombr
       setResultados(filtrados);
       setDatosCargadosEnMapa(false);
       setPaginaActual(1);
-      if (markersGroupRef.current) {
-        markersGroupRef.current.clearLayers();
+      if (markersGroupLayer) {
+        markersGroupLayer.clearLayers();
       }
     } catch (error) {
       console.error("Error al buscar telemetría:", error);
@@ -221,8 +184,8 @@ export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombr
 
   // Botón Cargar Datos al Mapa: dibuja la ruta y los puntitos en el mapa
   const handleCargarAlMapa = () => {
-    if (!mapInstanceRef.current || !markersGroupRef.current) return;
-    markersGroupRef.current.clearLayers();
+    if (!mapInstance || !markersGroupLayer) return;
+    markersGroupLayer.clearLayers();
 
     if (resultados.length === 0) {
       alert("Primero presiona 'Buscar' para obtener los datos que se cargarán al mapa.");
@@ -256,7 +219,7 @@ export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombr
           <strong>Lat/Lng:</strong> ${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}
         </div>`
       );
-      markersGroupRef.current?.addLayer(marker);
+      markersGroupLayer?.addLayer(marker);
     });
 
     // Dibujar línea del tracking
@@ -267,14 +230,14 @@ export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombr
         opacity: 0.85,
         dashArray: "4, 6",
       });
-      markersGroupRef.current.addLayer(rutaLine);
+      markersGroupLayer.addLayer(rutaLine);
     }
 
     setDatosCargadosEnMapa(true);
 
     if (latLngs.length > 0) {
       const bounds = L.latLngBounds(latLngs);
-      mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+      mapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }
   };
 

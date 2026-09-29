@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import type { UsuarioSesion } from "@/types";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { listarUsuarios } from "@/services/usuarioService";
 
 const NOMBRE_ROL: Record<number, string> = {
@@ -15,29 +15,17 @@ const ROL_STYLES: Record<number, string> = {
 };
 
 export function Usuarios() {
-  const [usuarios, setUsuarios] = useState<UsuarioSesion[]>([]);
-  const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0 });
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  const cargar = (page: number) => {
-    setCargando(true);
-    listarUsuarios(page, meta.limit)
-      .then(({ data, meta }) => {
-        setUsuarios(data);
-        setMeta(meta);
-        setCargando(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("Error al cargar la lista de usuarios.");
-        setCargando(false);
-      });
-  };
+  const { data, isLoading: cargando, isError } = useQuery({
+    queryKey: ["usuarios", page, limit],
+    queryFn: () => listarUsuarios(page, limit),
+  });
 
-  useEffect(() => {
-    cargar(meta.page);
-  }, []);
+  const usuarios = data?.data || [];
+  const meta = data?.meta || { page, limit, total: 0 };
+  const error = isError ? "Error al cargar la lista de usuarios." : null;
 
   return (
     <div>
@@ -97,14 +85,14 @@ export function Usuarios() {
           <div className="flex gap-2">
             <button
               disabled={meta.page <= 1}
-              onClick={() => cargar(meta.page - 1)}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
               className="rounded bg-white/5 px-3 py-1 hover:bg-white/10 disabled:opacity-50"
             >
               Anterior
             </button>
             <button
               disabled={meta.page * meta.limit >= meta.total}
-              onClick={() => cargar(meta.page + 1)}
+              onClick={() => setPage((p) => p + 1)}
               className="rounded bg-white/5 px-3 py-1 hover:bg-white/10 disabled:opacity-50"
             >
               Siguiente

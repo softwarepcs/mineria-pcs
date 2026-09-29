@@ -1,5 +1,7 @@
 // @ts-nocheck
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getOperadores } from "@/services/operadorService";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import type { Empresa } from "@/types";
@@ -14,6 +16,7 @@ export function CamionesDetalleView({ empresa }: { empresa?: Empresa }) {
   const camionIdParam = searchParams.get("camionId");
 
   const [periodo, setPeriodo] = useState<"hoy" | "7dias" | "30dias">("30dias");
+  const { data: operadoresData = [] } = useQuery({ queryKey: ["operadores"], queryFn: getOperadores });
 
   // Find the selected truck from empresa.flota.maquinarias or DEFAULT_CAMIONES
   const truck = useMemo(() => {
@@ -87,7 +90,7 @@ export function CamionesDetalleView({ empresa }: { empresa?: Empresa }) {
           o.maquinariaId === placaStr ||
           (o.maquinariaId && idStr.includes(o.maquinariaId)) ||
           (o.maquinariaId && placaStr.includes(o.maquinariaId))
-      ) || operadoresData[targetIdx % operadoresData.length];
+      ) || (operadoresData.length > 0 ? operadoresData[targetIdx % operadoresData.length] : {});
 
     const modelo = target.modelo || truckModels[targetIdx % truckModels.length];
     const tipoCarga = target.tipoCarga || cargoTypes[targetIdx % cargoTypes.length];

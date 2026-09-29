@@ -7,21 +7,20 @@ import { apiClient } from "@/utils/apiClient";
 export async function login(
   email: string,
   password: string
-): Promise<UsuarioSesion> {
+): Promise<{ usuario: UsuarioSesion, token: string }> {
   const response = await apiClient.post('/auth/login', { email, password });
   const data = response.data;
   
-  // Guardar token JWT globalmente (para las siguientes llamadas)
-  localStorage.setItem('token', data.access_token);
-
-  // Mapear respuesta del backend a la interfaz del frontend
   return {
-    id: data.usuario.id,
-    email: email,
-    nombre: data.usuario.nombres,
-    rol: data.roles?.includes('SuperAdmin') ? 1 : (data.roles?.includes('Administrador') ? 2 : 3),
-    rolesBackend: data.roles || [],
-    empresaId: data.empresaId || null
+    usuario: {
+      id: data.usuario.id,
+      email: email,
+      nombre: data.usuario.nombres,
+      rol: data.roles?.includes('SuperAdmin') ? 1 : (data.roles?.includes('Administrador') ? 2 : 3),
+      rolesBackend: data.roles || [],
+      empresaId: data.empresaId || null
+    },
+    token: data.access_token
   };
 }
 

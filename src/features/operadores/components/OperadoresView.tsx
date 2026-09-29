@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import type { Empresa, Maquinaria } from "@/types";
 import { Icon } from "@/components/Icon";
@@ -162,20 +163,11 @@ function OperadorModal({
 /** Componente Principal de la Vista */
 export function OperadoresView({ empresa }: { empresa: Empresa }) {
   const navigate = useNavigate();
-  const [operadores, setOperadores] = useState<Operador[]>([]);
-
-  
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await getOperadores();
-        setOperadores(data as any[]);
-      } catch (err) {
-        console.error("Error fetching operadores from real API:", err);
-      }
-    }
-    load();
-  }, []);
+  const queryClient = useQueryClient();
+  const { data: operadores = [] } = useQuery({
+    queryKey: ["operadores"],
+    queryFn: getOperadores,
+  });
   
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -196,10 +188,9 @@ export function OperadoresView({ empresa }: { empresa: Empresa }) {
         tipoDocumentoId: 1, // Fallback DNI
         numeroDocumento: nuevoData.legajo || `DOC-${Date.now()}`
       };
-      const res = await crearOperador(payload);
-      // Reload operators
-      const data = await getOperadores();
-      setOperadores(data as any[]);
+      await crearOperador(payload);
+      // Invalidate query to reload operators
+      await queryClient.invalidateQueries({ queryKey: ["operadores"] });
       setIsModalOpen(false);
     } catch (err) {
       console.error("Error saving operador:", err);
