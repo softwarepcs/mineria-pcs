@@ -1,4 +1,4 @@
-import type { Maquinaria } from "../../types";
+import type { Maquinaria } from "@/types";
 
 export function FlotaDesvioChart({
   maquinarias,

@@ -14,7 +14,7 @@ export interface Usuario {
   empresaNombre?: string;
 }
 
-export type UsuarioSesion = Omit<Usuario, "password">;
+export type UsuarioSesion = Omit<Usuario, "password"> & { rolesBackend?: string[] };
 
 export interface MenuItem {
   id: string;

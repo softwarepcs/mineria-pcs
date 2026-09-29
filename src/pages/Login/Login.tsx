@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Login() {
   const { sesion, login, error } = useAuth();
@@ -12,7 +12,11 @@ export function Login() {
   const [verPassword, setVerPassword] = useState(false);
 
   if (sesion) {
-    return <Navigate to="/dashboard" replace />;
+    if (sesion.permisos.verTodasLasEmpresas) {
+      return <Navigate to="/dashboard" replace />;
+    } else {
+      return <Navigate to={`/empresa/${sesion.usuario.empresaId}`} replace />;
+    }
   }
 
   async function handleSubmit(e: FormEvent) {

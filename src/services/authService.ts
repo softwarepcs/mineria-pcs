@@ -1,7 +1,6 @@
-import type { UsuarioSesion, Permisos } from "../types";
+import type { UsuarioSesion, Permisos } from "@/types";
 
-const API_URL = 'http://localhost:3000';
-
+import { apiClient } from "@/utils/apiClient";
 /**
  * Conecta con la API real del backend para la autenticación
  */
@@ -9,20 +8,8 @@ export async function login(
   email: string,
   password: string
 ): Promise<UsuarioSesion> {
-  const response = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    // El backend recibe 'email'
-    body: JSON.stringify({ email, password })
-  });
-
-  if (!response.ok) {
-    throw new Error("Usuario o contraseña incorrectos");
-  }
-
-  const data = await response.json();
+  const response = await apiClient.post('/auth/login', { email, password });
+  const data = response.data;
   
   // Guardar token JWT globalmente (para las siguientes llamadas)
   localStorage.setItem('token', data.access_token);
@@ -32,7 +19,8 @@ export async function login(
     id: data.usuario.id,
     email: email,
     nombre: data.usuario.nombres,
-    rol: data.roles?.includes('SuperAdmin') ? 1 : data.roles?.includes('Admin') ? 2 : 3,
+    rol: data.roles?.includes('SuperAdmin') ? 1 : (data.roles?.includes('Administrador') ? 2 : 3),
+    rolesBackend: data.roles || [],
     empresaId: data.empresaId || null
   };
 }

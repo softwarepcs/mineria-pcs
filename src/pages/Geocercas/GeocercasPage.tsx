@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../../hooks/useAuth";
-import { obtenerEmpresaPorId, listarEmpresas } from "../../services/empresaService";
-import type { Empresa } from "../../types";
-import { GeocercasView } from "../../components/geocercas/GeocercasView";
+import { useAuth } from "@/hooks/useAuth";
+import { obtenerEmpresaPorId, listarEmpresas } from "@/services/empresaService";
+import type { Empresa } from "@/types";
+import { GeocercasView } from "@/components/geocercas/GeocercasView";
 
 export function GeocercasPage() {
   const { sesion } = useAuth();

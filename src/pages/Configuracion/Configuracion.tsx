@@ -1,14 +1,9 @@
 import { useEffect, useState } from "react";
-import { listarEmpresas } from "../../services/empresaService";
-import type { Empresa } from "../../types";
-import { useAuth } from "../../hooks/useAuth";
-
-const API_URL = 'http://localhost:4000';
+import { apiClient } from "@/utils/apiClient";
 
 export function Configuracion() {
-  const { sesion } = useAuth();
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [selectedEmpresaId, setSelectedEmpresaId] = useState<number | null>(null);
+  const [maquinarias, setMaquinarias] = useState<any[]>([]);
+  const [selectedMaquinariaId, setSelectedMaquinariaId] = useState<number | null>(null);
   
   const [formData, setFormData] = useState({
     objetivoFlotaL100km: 40.0,
@@ -21,30 +16,26 @@ export function Configuracion() {
   const [mensaje, setMensaje] = useState("");
 
   useEffect(() => {
-    listarEmpresas().then((data) => {
-      setEmpresas(data);
-      if (data.length > 0) {
-        setSelectedEmpresaId(data[0].id);
+    apiClient.get('/maquinarias').then((res) => {
+      setMaquinarias(res.data);
+      if (res.data.length > 0) {
+        setSelectedMaquinariaId(res.data[0].id);
       }
       setCargando(false);
-    });
+    }).catch(console.error);
   }, []);
 
   useEffect(() => {
-    if (selectedEmpresaId) {
-      cargarConfiguracion(selectedEmpresaId);
+    if (selectedMaquinariaId) {
+      cargarConfiguracion(selectedMaquinariaId);
     }
-  }, [selectedEmpresaId]);
+  }, [selectedMaquinariaId]);
 
   const cargarConfiguracion = async (id: number) => {
     try {
-      const token = sesion?.usuario ? localStorage.getItem('token') : null; // Asumimos que manejan token o nada por ahora (mock)
-      const headers: any = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const res = await fetch(`${API_URL}/maestros/empresas/${id}/configuracion`, { headers });
-      if (res.ok) {
-        const data = await res.json();
+      const res = await apiClient.get(`/maquinarias/${id}/configuracion`);
+      if (res.data) {
+        const data = res.data;
         if (data) {
           setFormData({
             objetivoFlotaL100km: data.objetivoFlotaL100km || 40.0,
@@ -58,31 +49,20 @@ export function Configuracion() {
       }
     } catch (e) {
       console.error("Error cargando configuración", e);
+      setFormData({ objetivoFlotaL100km: 40.0, precioUsdPorLitro: 1.10, emisionesCo2Factor: 2.68 });
     }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedEmpresaId) return;
+    if (!selectedMaquinariaId) return;
     setGuardando(true);
     setMensaje("");
 
     try {
-      const token = sesion?.usuario ? localStorage.getItem('token') : null;
-      const headers: any = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
+      await apiClient.patch(`/maquinarias/${selectedMaquinariaId}/configuracion`, formData);
 
-      const res = await fetch(`${API_URL}/maestros/empresas/${selectedEmpresaId}/configuracion`, {
-        method: "PATCH",
-        headers,
-        body: JSON.stringify(formData)
-      });
-
-      if (res.ok) {
-        setMensaje("Configuración actualizada con éxito.");
-      } else {
-        setMensaje("Error al actualizar la configuración.");
-      }
+      setMensaje("Configuración actualizada con éxito.");
     } catch (err) {
       setMensaje("Error de conexión con el servidor.");
     } finally {
@@ -94,7 +74,7 @@ export function Configuracion() {
     return (
       <div className="flex items-center gap-3 text-sm text-slate-400">
         <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-blue-500" />
-        Cargando empresas...
+        Cargando maquinarias...
       </div>
     );
   }
@@ -110,14 +90,14 @@ export function Configuracion() {
 
       <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-300 mb-2">Seleccionar Empresa</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Seleccionar Maquinaria</label>
           <select
             className="w-full sm:w-1/2 rounded-md border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            value={selectedEmpresaId || ""}
-            onChange={(e) => setSelectedEmpresaId(Number(e.target.value))}
+            value={selectedMaquinariaId || ""}
+            onChange={(e) => setSelectedMaquinariaId(Number(e.target.value))}
           >
-            {empresas.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.nombre}</option>
+            {maquinarias.map(maq => (
+              <option key={maq.id} value={maq.id}>{maq.identificador} {maq.placa ? `(${maq.placa})` : ''}</option>
             ))}
           </select>
         </div>

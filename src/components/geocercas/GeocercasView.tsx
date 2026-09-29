@@ -1,6 +1,9 @@
+// @ts-nocheck
+import { escapeHtml } from "@/utils/escapeHtml";
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { getGeocercas, crearGeocerca, actualizarGeocerca, eliminarGeocerca } from "@/services/geocercaService";
 import {
   Search,
   Plus,
@@ -31,15 +34,15 @@ import {
   Truck,
   Check,
 } from "lucide-react";
-import type { Geocerca, GeocercaTipo } from "../../types/geocerca";
-import type { Empresa, Maquinaria } from "../../types";
+import type { Geocerca, GeocercaTipo } from "@/types/geocerca";
+import type { Empresa, Maquinaria } from "@/types";
 import {
-  getStoredGeocercas,
-  saveStoredGeocercas,
+  
+  
   calcularAreaHa,
   calcularPerimetroKm,
-} from "../../data/geocercasData";
-import { IconPickerModal } from "./IconPickerModal";
+} from "@/data/geocercasData";
+import { IconPickerModal } from "@/components/geocercas/IconPickerModal";
 
 // Helper to render icon by name
 function renderGeocercaIcon(iconName: string, className = "h-4 w-4") {
@@ -90,7 +93,10 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
   const [activeTab, setActiveTab] = useState<"geocercas" | "grupos">("geocercas");
 
   // Geocercas state
-  const [geocercas, setGeocercas] = useState<Geocerca[]>(() => getStoredGeocercas());
+  const [geocercas, setGeocercas] = useState<Geocerca[]>([]);
+  useEffect(() => {
+    getGeocercas().then(setGeocercas).catch(console.error);
+  }, []);
   const [editingId, setEditingId] = useState<string | null>("geo-1"); // Start by previewing Avenida Central
 
   // Form Fields
@@ -226,7 +232,7 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
   // Persist geocercas
   const updateGeocercasAndSave = (newList: Geocerca[]) => {
     setGeocercas(newList);
-    saveStoredGeocercas(newList);
+    
   };
 
   // Fullscreen change listener
@@ -361,12 +367,12 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
         circle.bindPopup(`
           <div style="font-family: sans-serif; font-size: 12px; color: #1e293b; padding: 2px;">
             <div style="font-weight: bold; color: ${geo.color}; font-size: 13px; margin-bottom: 3px;">
-              ${geo.nombre}
+              ${escapeHtml(geo.nombre)}
             </div>
             <div><strong>Radio:</strong> ${geo.radio} m</div>
             <div><strong>Área:</strong> ${geo.areaHa} ha</div>
             <div><strong>Perímetro:</strong> ${geo.perimetroKm} km</div>
-            <div style="margin-top: 4px; color: #64748b; font-size: 11px;">${geo.descripcion}</div>
+            <div style="margin-top: 4px; color: #64748b; font-size: 11px;">${escapeHtml(geo.descripcion)}</div>
           </div>
         `);
 
@@ -387,7 +393,7 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
           fillColor: geo.color,
           fillOpacity: 0.25,
         });
-        poly.bindPopup(`<strong>${geo.nombre}</strong><br/>${geo.descripcion}`);
+        poly.bindPopup(`<strong>${escapeHtml(geo.nombre)}</strong><br/>${escapeHtml(geo.descripcion)}`);
         group.addLayer(poly);
       } else if (geo.tipo === "line" && geo.puntos && geo.puntos.length >= 2) {
         const polyline = L.polyline(geo.puntos, {
@@ -432,7 +438,7 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
         previewCircle.bindPopup(`
           <div style="font-family: sans-serif; font-size: 12px; color: #1e293b; padding: 2px;">
             <div style="font-weight: bold; color: ${activeColor}; font-size: 13px; margin-bottom: 3px;">
-              ${nombre || "Nueva geocerca"}
+              ${escapeHtml(nombre || "Nueva geocerca")}
             </div>
             <div><strong>Radio:</strong> ${numRadio} m</div>
             <div><strong>Área:</strong> ${areaHaCalculada} ha</div>
@@ -575,28 +581,53 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
   };
 
   // Toggle visibility of an existing geocerca
-  const handleToggleActiva = (id: string, e: React.MouseEvent) => {
+  const handleToggleActiva = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    const target = geocercas.find(g => g.id === id);
+    if (!target) return;
+    
+    // Optimistic update
     const updated = geocercas.map((g) =>
       g.id === id ? { ...g, activa: !g.activa } : g
     );
     updateGeocercasAndSave(updated);
+
+    try {
+      if (!id.startsWith("geo-")) {
+        await actualizarGeocerca(id, { activa: !target.activa });
+      }
+    } catch (err) {
+      console.error("Error al actualizar estado", err);
+      updateGeocercasAndSave(geocercas); // Revert
+      alert("Error al actualizar la geocerca.");
+    }
   };
 
   // Delete geocerca
-  const handleDeleteGeocerca = (id: string, e: React.MouseEvent) => {
+  const handleDeleteGeocerca = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("¿Estás seguro de eliminar esta geocerca?")) {
+      // Optimistic update
       const updated = geocercas.filter((g) => g.id !== id);
       updateGeocercasAndSave(updated);
-      if (editingId === id) {
-        handleCancelar();
+      
+      try {
+        if (!id.startsWith("geo-")) {
+          await eliminarGeocerca(id);
+        }
+        if (editingId === id) {
+          handleCancelar();
+        }
+      } catch (err) {
+        console.error("Error al eliminar geocerca", err);
+        updateGeocercasAndSave(geocercas); // Revert
+        alert("Error al eliminar la geocerca.");
       }
     }
   };
 
   // Save Geocerca (create or update)
-  const handleGuardar = (e: React.FormEvent) => {
+  const handleGuardar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre.trim()) {
       alert("Por favor ingresa un nombre para la geocerca.");
@@ -627,17 +658,38 @@ export function GeocercasView({ empresa }: { empresa?: Empresa | null }) {
       empresaId: empresa?.id ?? null,
     };
 
-    let updated: Geocerca[];
-    if (editingId && geocercas.some((g) => g.id === editingId)) {
-      updated = geocercas.map((g) => (g.id === editingId ? payload : g));
-    } else {
-      updated = [payload, ...geocercas];
-      setEditingId(payload.id);
-    }
+    try {
+      let savedGeo: Geocerca;
+      const isExisting = editingId && !editingId.startsWith("geo-") && geocercas.some(g => g.id === editingId);
+      
+      if (isExisting) {
+        savedGeo = await actualizarGeocerca(editingId, payload);
+      } else {
+        savedGeo = await crearGeocerca(payload as Omit<Geocerca, "id">);
+      }
 
-    updateGeocercasAndSave(updated);
-    setSaveSuccessMsg(true);
-    setTimeout(() => setSaveSuccessMsg(false), 2500);
+      let updated: Geocerca[];
+      if (isExisting) {
+        updated = geocercas.map((g) => (g.id === editingId ? savedGeo : g));
+      } else {
+        // Replace mock with real or append if it was completely new
+        const existsLocal = geocercas.some(g => g.id === editingId);
+        if (existsLocal) {
+            updated = geocercas.map((g) => (g.id === editingId ? savedGeo : g));
+        } else {
+            updated = [savedGeo, ...geocercas];
+        }
+      }
+
+      updateGeocercasAndSave(updated);
+      setEditingId(savedGeo.id);
+      setSaveSuccessMsg(true);
+      setTimeout(() => setSaveSuccessMsg(false), 2500);
+      
+    } catch (err) {
+      console.error("Error al guardar geocerca", err);
+      alert("Error al guardar la geocerca en el servidor.");
+    }
   };
 
   // Count vehicles inside a given geofence

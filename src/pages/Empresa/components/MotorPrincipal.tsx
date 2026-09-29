@@ -1,9 +1,10 @@
+import { escapeHtml } from "@/utils/escapeHtml";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
-import { Icon } from "../../../components/Icon";
-import operadoresData from "../../../data/operadores.json";
-import { getMaquinarias, getTelemetriaByMaquinaria } from "../../../services/telemetriaService";
+import { Icon } from "@/components/Icon";
+import { getOperadores } from "@/services/operadorService";
+import { getMaquinarias, getTelemetriaByMaquinaria } from "@/services/telemetriaService";
 
 interface TelemetriaPunto {
   id: string | number;
@@ -75,17 +76,13 @@ function createEndIcon() {
 export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombre: string }) {
   const [maquinarias, setMaquinarias] = useState<any[]>([]);
   const [maquinariaSeleccionada, setMaquinariaSeleccionada] = useState("");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [fechaInicio, setFechaInicio] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 7); return d.toISOString().split("T")[0]; });
+  const [fechaFin, setFechaFin] = useState(() => new Date().toISOString().split("T")[0]);
   const [cargando, setCargando] = useState(false);
 
-  const [operadores, setOperadores] = useState<any[]>(operadoresData);
-
+  const [operadores, setOperadores] = useState<any[]>([]);
   useEffect(() => {
-    fetch('/api/operadores')
-      .then(res => res.json())
-      .then(data => setOperadores(data))
-      .catch(err => console.error("Error fetching operadores:", err));
+    getOperadores().then(setOperadores).catch(console.error);
   }, []);
 
   const [resultados, setResultados] = useState<TelemetriaPunto[]>([]);
@@ -196,9 +193,10 @@ export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombr
   // Botón Buscar: llena la tabla con los datos del camión y rango de fecha desde Backend
   const handleBuscar = async () => {
     if (!maquinariaSeleccionada) return;
+    if (!fechaInicio || !fechaFin) { alert("Debes seleccionar inicio y fin"); return; }
     setCargando(true);
     try {
-      const data = await getTelemetriaByMaquinaria(maquinariaSeleccionada, fechaInicio, fechaFin);
+      const data = await getTelemetriaByMaquinaria(maquinariaSeleccionada, fechaInicio, fechaFin, 5000);
       // Extraemos la placa de la maquinaria seleccionada
       const maq = maquinarias.find((m) => m.id.toString() === maquinariaSeleccionada);
       const placa = maq ? (maq.identificador || maq.placa || 'Desconocido') : 'Desconocido';
@@ -250,7 +248,7 @@ export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombr
 
       const marker = L.marker([r.lat, r.lng], { icon }).bindPopup(
         `<div style="font-family:sans-serif;font-size:12px;color:#0b1220;">
-          <strong>${index === 0 ? '🟢 Inicio' : index === lastIdx ? '🔴 Fin' : `Punto ${index + 1}`} · ${r.placa}</strong><br/>
+          <strong>${index === 0 ? '🟢 Inicio' : index === lastIdx ? '🔴 Fin' : `Punto ${index + 1}`} · ${escapeHtml(r.placa)}</strong><br/>
           <strong>Fecha:</strong> ${r.fecha}<br/>
           <strong>Velocidad:</strong> ${r.velocidad} km/h · <strong>RPM:</strong> ${r.rpm}<br/>
           <strong>Flujo In:</strong> ${r.flujoIn} · <strong>Flujo Ret:</strong> ${r.flujoRet}<br/>
@@ -416,7 +414,7 @@ export function MotorPrincipal({ empresaNombre: _empresaNombre }: { empresaNombr
             onChange={(e) => handleCambioMaquinaria(e.target.value)}
             className="mp-filter-input"
           >
-            {maquinarias.map((c) => (
+            {(maquinarias || []).map((c) => (
               <option key={c.id} value={c.id}>
                 {c.identificador || c.placa}
               </option>

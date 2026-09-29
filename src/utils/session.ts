@@ -1,13 +1,13 @@
-import type { Sesion } from "../types";
+import type { Sesion } from "@/types";
 
 const SESSION_KEY = "multiempresa_sesion";
 
 export function guardarSesion(sesion: Sesion): void {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(sesion));
+  localStorage.setItem(SESSION_KEY, JSON.stringify(sesion));
 }
 
 export function obtenerSesion(): Sesion | null {
-  const raw = sessionStorage.getItem(SESSION_KEY);
+  const raw = localStorage.getItem(SESSION_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as Sesion;
@@ -17,5 +17,5 @@ export function obtenerSesion(): Sesion | null {
 }
 
 export function limpiarSesion(): void {
-  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY);
 }

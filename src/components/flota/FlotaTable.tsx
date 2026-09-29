@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Maquinaria } from "../../types";
+import type { Maquinaria } from "@/types";
 
 type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto" | "co2Ton">;
 
@@ -22,11 +22,11 @@ function EstadoBadge({ estado }: { estado: string }) {
   if (estado === "conduccion" || estado === "en_linea") {
     bg = "rgba(26,154,122,0.12)";
     color = "#1a9a7a";
-    label = "EN LÍNEA";
+    label = "EN CONDUCCION";
   } else if (estado === "ralentí") {
     bg = "rgba(217,155,66,0.12)";
     color = "#d99b42";
-    label = "RALENTÍ";
+    label = "EN RALENTÍ";
   } else if (estado === "ralenti") {
     bg = "rgba(217,155,66,0.12)";
     color = "#d99b42";

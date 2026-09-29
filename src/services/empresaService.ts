@@ -1,14 +1,6 @@
-import type { Empresa } from "../types";
+import type { Empresa } from "@/types";
 
-const API_URL = 'http://localhost:3000';
-
-function getAuthHeaders() {
-  const token = localStorage.getItem('token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  };
-}
+import { apiClient } from "@/utils/apiClient";
 
 function generarMenuDefault(id: number) {
   return [
@@ -27,15 +19,9 @@ function generarMenuDefault(id: number) {
  * Llama al backend para listar las empresas (Empresas)
  */
 export async function listarEmpresas(): Promise<Empresa[]> {
-  const response = await fetch(`${API_URL}/empresas`, {
-    headers: getAuthHeaders()
-  });
-  
-  if (!response.ok) {
-    throw new Error('Error cargando empresas desde el backend');
-  }
-  
-  const data = await response.json();
+  try {
+    const response = await apiClient.get('/empresas');
+    const data = response.data;
   return data.map((e: any) => ({
     id: e.id,
     nombre: e.nombreRazonSocial,
@@ -44,32 +30,24 @@ export async function listarEmpresas(): Promise<Empresa[]> {
     // En el listado global no cargamos toda la data pesada de analíticas
     indicadores: { unidades: 0, alertas: 0, disponibilidad: 0 }
   }));
+  } catch (error) {
+    throw new Error('Error cargando empresas desde el backend');
+  }
 }
 
 /**
  * Llama al backend para obtener detalle de una empresa
  */
 export async function obtenerEmpresaPorId(id: number): Promise<Empresa | undefined> {
-  const response = await fetch(`${API_URL}/empresas/${id}`, {
-    headers: getAuthHeaders()
-  });
-
-  if (!response.ok) {
-    if (response.status === 404) return undefined;
-    throw new Error('Error cargando detalle de empresa');
-  }
-
-  const e = await response.json();
+  try {
+    const response = await apiClient.get(`/empresas/${id}`);
+    const e = response.data;
   
   // Llamamos al nuevo endpoint de analíticas
   let analyticsData: any = null;
   try {
-    const analyticsRes = await fetch(`${API_URL}/analytics/flota/dashboard?empresaId=${id}`, {
-      headers: getAuthHeaders()
-    });
-    if (analyticsRes.ok) {
-      analyticsData = await analyticsRes.json();
-    }
+    const analyticsRes = await apiClient.get(`/analytics/flota/dashboard?empresaId=${id}`);
+    analyticsData = analyticsRes.data;
   } catch (error) {
     console.error("Error obteniendo analíticas:", error);
   }
@@ -85,40 +63,40 @@ export async function obtenerEmpresaPorId(id: number): Promise<Empresa | undefin
       const rawMaqs = fl.maquinarias || fl.camiones || [];
       const resumen = fl.resumen || {
         equipos: rawMaqs.length,
-        periodo: "Septiembre 2026",
-        objetivoL100km: 40.0,
-        reportando: rawMaqs.length,
-        kmTotal: 35150,
-        consumoTotalL: 14430,
-        costoUsd: 15873,
-        precioUsdPorL: 1.10,
-        rendimientoMedioL100km: 41.1,
-        desvioVsObjetivoPct: 2.6,
-        ralentiFlotaPct: 16.2,
-        ralentiLitros: 2338,
-        ralentiUsd: 2572,
-        emisionesCo2Ton: 38.7,
-        horasMotor: 1133
+        periodo: "Sin datos",
+        objetivoL100km: 0,
+        reportando: 0,
+        kmTotal: 0,
+        consumoTotalL: 0,
+        costoUsd: 0,
+        precioUsdPorL: 0,
+        rendimientoMedioL100km: 0,
+        desvioVsObjetivoPct: 0,
+        ralentiFlotaPct: 0,
+        ralentiLitros: 0,
+        ralentiUsd: 0,
+        emisionesCo2Ton: 0,
+        horasMotor: 0
       };
 
       const normalizedMaqs = rawMaqs.map((m: any, idx: number) => ({
         id: String(m.id || `c${idx + 1}`),
-        placa: m.placa || `TC-TRUCK-${String(idx + 1).padStart(2, '0')}`,
-        km: m.km ?? 6500,
-        litros: m.litros ?? 2800,
-        l100km: m.l100km ?? 38.5,
+        placa: m.placa || `Unidad ${String(idx + 1).padStart(2, '0')}`,
+        km: m.km ?? 0,
+        litros: m.litros ?? 0,
+        l100km: m.l100km ?? 0,
         desvioPct: m.desvioPct ?? 0,
-        ralentiPct: m.ralentiPct ?? 14,
-        horas: m.horas ?? 180,
-        pctGasto: m.pctGasto ?? 16,
-        co2Ton: m.co2Ton ?? 3.5,
+        ralentiPct: m.ralentiPct ?? 0,
+        horas: m.horas ?? 0,
+        pctGasto: m.pctGasto ?? 0,
+        co2Ton: m.co2Ton ?? 0,
         estado: m.estado === "conduccion" || m.estado === "en_linea"
           ? "conduccion"
           : m.estado === "ralenti" || m.estado === "revisar"
           ? "ralenti"
           : "offline",
-        lat: m.lat ?? (-34.588 + (idx * 0.015)),
-        lng: m.lng ?? (-58.41 - (idx * 0.018))
+        lat: m.lat ?? 0,
+        lng: m.lng ?? 0
       }));
 
       return {
@@ -132,4 +110,8 @@ export async function obtenerEmpresaPorId(id: number): Promise<Empresa | undefin
       disponibilidad: e.indicadores?.disponibilidad || 100 
     }
   };
+  } catch (error: any) {
+    if (error.response?.status === 404) return undefined;
+    throw new Error('Error cargando detalle de empresa');
+  }
 }

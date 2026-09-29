@@ -1,28 +1,22 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
-import { listarEmpresas } from "../../services/empresaService";
-import type { Empresa } from "../../types";
-import { IndicatorCard } from "../../components/IndicatorCard";
-import { MapPlaceholder } from "../../components/MapPlaceholder";
+import { useAuth } from "@/hooks/useAuth";
+import { useEmpresaStore } from "@/store/empresaStore";
+import { IndicatorCard } from "@/components/IndicatorCard";
+import { MapPlaceholder } from "@/components/MapPlaceholder";
 
 export function Dashboard() {
   const { sesion } = useAuth();
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const { empresas, cargandoLista: cargando, cargarEmpresas } = useEmpresaStore();
 
   const esGlobal = sesion?.permisos.verTodasLasEmpresas ?? false;
 
   useEffect(() => {
-    async function cargar() {
-      if (!sesion || !esGlobal) return;
-      setCargando(true);
-      const data = await listarEmpresas();
-      setEmpresas(data);
-      setCargando(false);
+    if (sesion && esGlobal) {
+      cargarEmpresas();
     }
-    cargar();
-  }, [sesion, esGlobal]);
+  }, [sesion, esGlobal, cargarEmpresas]);
+
 
   if (!esGlobal) {
     if (sesion?.usuario.empresaId != null) {

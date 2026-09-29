@@ -1,6 +1,6 @@
 import { useState } from "react";
-import monitoreoData from "../../../../data/monitoreoData.json";
-import { Icon } from "../../../../components/Icon";
+import monitoreoData from "@/data/monitoreoData.json";
+import { Icon } from "@/components/Icon";
 
 export function TanquesView({ empresaNombre }: { empresaNombre: string }) {
   const [tanques] = useState(monitoreoData.tanques);

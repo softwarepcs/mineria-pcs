@@ -1,4 +1,4 @@
-import type { Geocerca } from "../types/geocerca";
+import type { Geocerca } from "@/types/geocerca";
 
 export const DEFAULT_GEOCERCAS: Geocerca[] = [
   {

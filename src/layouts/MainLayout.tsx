@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { useAuth } from "../hooks/useAuth";
-import { Sidebar } from "../components/Sidebar";
+import { useAuth } from "@/hooks/useAuth";
+import { Sidebar } from "@/components/Sidebar";
 import { Menu, X } from "lucide-react";
 
 const NOMBRE_ROL: Record<number, string> = {

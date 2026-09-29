@@ -1,7 +1,8 @@
+import { escapeHtml } from "@/utils/escapeHtml";
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { Maquinaria } from "../../types";
+import type { Maquinaria } from "@/types";
 
 function truckIcon(estado: Maquinaria["estado"], selected: boolean) {
   let color = "#64748b";
@@ -142,7 +143,7 @@ export function FlotaMap({
       const marker = L.marker([c.lat, c.lng], { icon: truckIcon(c.estado, c.id === selectedId) })
         .addTo(map)
         .bindPopup(
-          `<div style="font-family:sans-serif;font-size:13px;"><strong>${c.placa}</strong><br/>${c.l100km.toFixed(1)} L/100km - ${estadoLabel}</div>`
+          `<div style="font-family:sans-serif;font-size:13px;"><strong>${escapeHtml(c.placa)}</strong><br/>${c.l100km.toFixed(1)} L/100km - ${estadoLabel}</div>`
         )
         .on("click", () => onSelect(c.id));
       markersRef.current[c.id] = marker;

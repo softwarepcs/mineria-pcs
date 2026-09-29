@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { UsuarioSesion } from "../../types";
-import { listarUsuarios } from "../../services/usuarioService";
+import type { UsuarioSesion } from "@/types";
+import { listarUsuarios } from "@/services/usuarioService";
 
 const NOMBRE_ROL: Record<number, string> = {
   1: "Administrador principal",
@@ -16,13 +16,16 @@ const ROL_STYLES: Record<number, string> = {
 
 export function Usuarios() {
   const [usuarios, setUsuarios] = useState<UsuarioSesion[]>([]);
+  const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0 });
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    listarUsuarios()
-      .then((data) => {
+  const cargar = (page: number) => {
+    setCargando(true);
+    listarUsuarios(page, meta.limit)
+      .then(({ data, meta }) => {
         setUsuarios(data);
+        setMeta(meta);
         setCargando(false);
       })
       .catch((err) => {
@@ -30,6 +33,10 @@ export function Usuarios() {
         setError("Error al cargar la lista de usuarios.");
         setCargando(false);
       });
+  };
+
+  useEffect(() => {
+    cargar(meta.page);
   }, []);
 
   return (
@@ -81,6 +88,30 @@ export function Usuarios() {
           </table>
         )}
       </div>
+
+      {!cargando && meta.total > 0 && (
+        <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
+          <div>
+            Mostrando {((meta.page - 1) * meta.limit) + 1} a {Math.min(meta.page * meta.limit, meta.total)} de {meta.total} usuarios
+          </div>
+          <div className="flex gap-2">
+            <button
+              disabled={meta.page <= 1}
+              onClick={() => cargar(meta.page - 1)}
+              className="rounded bg-white/5 px-3 py-1 hover:bg-white/10 disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            <button
+              disabled={meta.page * meta.limit >= meta.total}
+              onClick={() => cargar(meta.page + 1)}
+              className="rounded bg-white/5 px-3 py-1 hover:bg-white/10 disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

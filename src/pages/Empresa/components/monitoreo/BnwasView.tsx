@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import monitoreoData from "../../../../data/monitoreoData.json";
-import { Icon } from "../../../../components/Icon";
+import monitoreoData from "@/data/monitoreoData.json";
+import { Icon } from "@/components/Icon";
 
 export function BnwasView({ empresaNombre }: { empresaNombre: string }) {
   const [bnwas] = useState(monitoreoData.bnwas);

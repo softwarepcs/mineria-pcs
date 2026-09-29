@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { Empresa } from "../../types";
-import { FlotaKpis } from "./FlotaKpis";
-import { FlotaMap } from "./FlotaMap";
-import { FlotaTable } from "./FlotaTable";
-import { FlotaDesvioChart } from "./FlotaDesvioChart";
+import type { Empresa } from "@/types";
+import { FlotaKpis } from "@/components/flota/FlotaKpis";
+import { FlotaMap } from "@/components/flota/FlotaMap";
+import { FlotaTable } from "@/components/flota/FlotaTable";
+import { FlotaDesvioChart } from "@/components/flota/FlotaDesvioChart";
 
 export function FlotaHome({ empresa }: { empresa: Empresa }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);

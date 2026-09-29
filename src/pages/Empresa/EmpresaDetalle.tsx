@@ -1,17 +1,16 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { obtenerEmpresaPorId } from "../../services/empresaService";
-import type { Empresa } from "../../types";
-import { useAuth } from "../../hooks/useAuth";
+import { useEffect } from "react";
+import { Link, useParams, Routes, Route } from "react-router-dom";
+import { useEmpresaStore } from "@/store/empresaStore";
+import { useAuth } from "@/hooks/useAuth";
 
-import { FlotaHome } from "../../components/flota/FlotaHome";
-import { MotorPrincipal } from "./components/MotorPrincipal";
-import { AlertasView } from "./components/AlertasView";
-import { OperadoresView } from "./components/OperadoresView";
-import { OperadorDetalleView } from "./components/OperadorDetalleView";
-import { CamionesListaView } from "./components/CamionesListaView";
-import { CamionesDetalleView } from "./components/CamionesDetalleView";
-import { GeocercasView } from "../../components/geocercas/GeocercasView";
+import { FlotaHome } from "@/components/flota/FlotaHome";
+import { MotorPrincipal } from "@/pages/Empresa/components/MotorPrincipal";
+import { AlertasView } from "@/pages/Empresa/components/AlertasView";
+import { OperadoresView } from "@/pages/Empresa/components/OperadoresView";
+import { OperadorDetalleView } from "@/pages/Empresa/components/OperadorDetalleView";
+import { CamionesListaView } from "@/pages/Empresa/components/CamionesListaView";
+import { CamionesDetalleView } from "@/pages/Empresa/components/CamionesDetalleView";
+import { GeocercasView } from "@/components/geocercas/GeocercasView";
 
 function MonitoreoWrapper({ empresaNombre }: { empresaNombre: string }) {
   return (
@@ -25,22 +24,17 @@ function MonitoreoWrapper({ empresaNombre }: { empresaNombre: string }) {
 }
 
 export function EmpresaDetalle() {
-  const { id, subruta } = useParams();
+  const { id } = useParams();
   const { sesion } = useAuth();
-  const [empresa, setEmpresa] = useState<Empresa | null>(null);
-  const [cargando, setCargando] = useState(true);
+  const { empresaActual: empresa, cargandoActual: cargando, cargarEmpresaPorId } = useEmpresaStore();
   
   const esAdministrador = sesion?.usuario.rol === 1 || sesion?.usuario.rol === 2;
   const empresaIdNum = Number(id);
 
   useEffect(() => {
     if (!id) return;
-    setCargando(true);
-    obtenerEmpresaPorId(empresaIdNum).then((data) => {
-      setEmpresa(data ?? null);
-      setCargando(false);
-    });
-  }, [id, empresaIdNum]);
+    cargarEmpresaPorId(empresaIdNum);
+  }, [id, empresaIdNum, cargarEmpresaPorId]);
 
   if (cargando) {
     return (
@@ -55,31 +49,25 @@ export function EmpresaDetalle() {
     return <div className="text-sm text-slate-400">Empresa no encontrada.</div>;
   }
 
-  const renderContenidoEmpresa = () => {
-    switch (subruta) {
-      case "motor-principal":
-      case "database":
-        return <MotorPrincipal empresaNombre={empresa.nombre} />;
-      case "alertas":
-        return <AlertasView empresaNombre={empresa.nombre} />;
-      case "monitoreo":
-      case "tanques":
-      case "achiques":
-      case "combustible":
-        return <MonitoreoWrapper empresaNombre={empresa.nombre} />;
-      case "operadores":
-        return <OperadoresView empresa={empresa} />;
-      case "operadores-detalle":
-        return <OperadorDetalleView />;
-      case "camiones":
-        return <CamionesListaView empresa={empresa} />;
-      case "camiones-detalle":
-        return <CamionesDetalleView empresa={empresa} />;
-      case "geocercas":
-        return <GeocercasView empresa={empresa} />;
-      default:
-        return <FlotaHome empresa={empresa} />;
-    }
+  const renderRutasAnidadas = () => {
+    return (
+      <Routes>
+        <Route index element={<FlotaHome empresa={empresa} />} />
+        <Route path="motor-principal" element={<MotorPrincipal empresaNombre={empresa.nombre} />} />
+        <Route path="database" element={<MotorPrincipal empresaNombre={empresa.nombre} />} />
+        <Route path="alertas" element={<AlertasView empresaNombre={empresa.nombre} />} />
+        <Route path="monitoreo" element={<MonitoreoWrapper empresaNombre={empresa.nombre} />} />
+        <Route path="tanques" element={<MonitoreoWrapper empresaNombre={empresa.nombre} />} />
+        <Route path="achiques" element={<MonitoreoWrapper empresaNombre={empresa.nombre} />} />
+        <Route path="combustible" element={<MonitoreoWrapper empresaNombre={empresa.nombre} />} />
+        <Route path="operadores" element={<OperadoresView empresa={empresa} />} />
+        <Route path="operadores-detalle" element={<OperadorDetalleView />} />
+        <Route path="camiones" element={<CamionesListaView empresa={empresa} />} />
+        <Route path="camiones-detalle" element={<CamionesDetalleView empresa={empresa} />} />
+        <Route path="geocercas" element={<GeocercasView empresa={empresa} />} />
+        <Route path="*" element={<FlotaHome empresa={empresa} />} />
+      </Routes>
+    );
   };
 
   return (
@@ -107,7 +95,7 @@ export function EmpresaDetalle() {
         )} */}
       </div>
 
-      {renderContenidoEmpresa()}
+      {renderRutasAnidadas()}
     </div>
   );
 }

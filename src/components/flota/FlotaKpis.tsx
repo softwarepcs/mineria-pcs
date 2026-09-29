@@ -1,4 +1,4 @@
-import type { FlotaResumen, Maquinaria } from "../../types";
+import type { FlotaResumen, Maquinaria } from "@/types";
 
 export function FlotaKpis({
   resumen,

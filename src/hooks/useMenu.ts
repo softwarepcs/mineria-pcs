@@ -1,5 +1,5 @@
-import type { MenuItem, Rol } from "../types";
-import { useAuth } from "./useAuth";
+import type { MenuItem, Rol } from "@/types";
+import { useAuth } from "@/hooks/useAuth";
 
 const MENU_ROL_1: MenuItem[] = [
   { id: "m1-dash", label: "Dashboard", path: "/dashboard", icon: "home" },

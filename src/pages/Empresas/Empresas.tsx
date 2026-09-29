@@ -1,18 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { listarEmpresas } from "../../services/empresaService";
-import type { Empresa } from "../../types";
+import { useEmpresaStore } from "@/store/empresaStore";
 
 export function Empresas() {
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const { empresas, cargandoLista: cargando, cargarEmpresas } = useEmpresaStore();
 
   useEffect(() => {
-    listarEmpresas().then((data) => {
-      setEmpresas(data);
-      setCargando(false);
-    });
-  }, []);
+    cargarEmpresas();
+  }, [cargarEmpresas]);
+
 
   if (cargando) {
     return (

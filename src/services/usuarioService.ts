@@ -1,27 +1,12 @@
-import type { UsuarioSesion, Rol } from "../types";
+import type { UsuarioSesion, Rol } from "@/types";
 
-const API_URL = 'http://localhost:3000';
+import { apiClient } from "@/utils/apiClient";
 
-function getAuthHeaders() {
-  const token = localStorage.getItem('token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  };
-}
-
-export async function listarUsuarios(): Promise<UsuarioSesion[]> {
-  const response = await fetch(`${API_URL}/usuarios`, {
-    headers: getAuthHeaders()
-  });
-
-  if (!response.ok) {
-    throw new Error('Error cargando usuarios desde el backend');
-  }
-
-  const data = await response.json();
+export async function listarUsuarios(page = 1, limit = 10): Promise<{ data: UsuarioSesion[], meta: any }> {
+  const response = await apiClient.get(`/usuarios?page=${page}&limit=${limit}`);
+  const data = response.data.data || response.data;
   
-  return data.map((u: any) => {
+  const mappedData = data.map((u: any) => {
     // Mapeamos el rol del backend al rol numérico del frontend
     // Backend: roles = [{ rol: { id: 1, nombre: "SuperAdmin" } }]
     // Frontend: 1 = Admin Principal, 2 = Admin, 3 = Empresa
@@ -29,7 +14,7 @@ export async function listarUsuarios(): Promise<UsuarioSesion[]> {
     if (u.roles && u.roles.length > 0) {
       const backendRolName = u.roles[0]?.rol?.nombre;
       if (backendRolName === 'SuperAdmin') rolId = 1;
-      else if (backendRolName === 'Admin') rolId = 2;
+      else if (backendRolName === 'Administrador' || backendRolName === 'Admin') rolId = 2;
       else if (backendRolName === 'User') rolId = 3;
     }
 
@@ -42,4 +27,9 @@ export async function listarUsuarios(): Promise<UsuarioSesion[]> {
       empresaNombre: u.empresa?.nombreRazonSocial,
     };
   });
+
+  return {
+    data: mappedData,
+    meta: response.data.meta || { page, limit, total: mappedData.length }
+  };
 }

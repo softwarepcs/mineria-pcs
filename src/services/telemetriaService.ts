@@ -1,29 +1,16 @@
-const API_URL = 'http://localhost:3000';
-
-function getAuthHeaders() {
-  const token = localStorage.getItem('token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  };
-}
+import { apiClient } from "@/utils/apiClient";
 
 export async function getMaquinarias(): Promise<any[]> {
-  const response = await fetch(`${API_URL}/maquinarias`, {
-    headers: getAuthHeaders()
-  });
-  if (!response.ok) throw new Error('Error cargando maquinarias');
-  return await response.json();
+  const response = await apiClient.get('/maquinarias');
+  return response.data.data || response.data;
 }
 
-export async function getTelemetriaByMaquinaria(maquinariaId: string, fechaInicio?: string, fechaFin?: string) {
+export async function getTelemetriaByMaquinaria(maquinariaId: string, fechaInicio?: string, fechaFin?: string, limite: number = 5000) {
   const params = new URLSearchParams();
-  if (fechaInicio) params.append('fechaInicio', fechaInicio);
-  if (fechaFin) params.append('fechaFin', fechaFin);
+  if (fechaInicio) params.append('fechaInicio', fechaInicio.includes('T') ? fechaInicio : `${fechaInicio}T00:00:00.000Z`);
+  if (fechaFin) params.append('fechaFin', fechaFin.includes('T') ? fechaFin : `${fechaFin}T23:59:59.999Z`);
+  params.append('limite', limite.toString());
   const queryString = params.toString() ? `?${params.toString()}` : '';
-  const response = await fetch(`${API_URL}/telemetria/maquinaria/${maquinariaId}${queryString}`, {
-    headers: getAuthHeaders()
-  });
-  if (!response.ok) throw new Error('Error cargando telemetria');
-  return await response.json();
+  const response = await apiClient.get(`/telemetria/maquinaria/${maquinariaId}${queryString}`);
+  return response.data.data || response.data;
 }
