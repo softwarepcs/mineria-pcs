@@ -1,6 +1,7 @@
-import { useState } from "react";
 import type { MaquinariaStats as Maquinaria } from "@/features/flota/api";
 import { ESTADO_UNIDAD } from "@/features/flota/estado";
+import { DataTable, type Columna as ColumnaTabla } from "@/shared/ui/DataTable";
+import { Badge } from "@/shared/ui/Badge";
 
 type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto" | "co2Ton">;
 
@@ -17,14 +18,7 @@ const COLUMNAS: { key: Columna; label: string }[] = [
 
 function EstadoBadge({ estado }: { estado: Maquinaria["estado"] }) {
   const { color, etiqueta } = ESTADO_UNIDAD[estado] ?? ESTADO_UNIDAD.offline;
-  return (
-    <span
-      className="inline-block rounded px-2.5 py-0.5 text-[11px] font-bold tracking-wide"
-      style={{ background: `${color}1f`, color, border: `1px solid ${color}33` }}
-    >
-      {etiqueta.toUpperCase()}
-    </span>
-  );
+  return <Badge etiqueta={etiqueta} color={color} />;
 }
 
 export function FlotaTable({
@@ -38,19 +32,13 @@ export function FlotaTable({
   onSelect: (id: string) => void;
   mode?: "full" | "alerts";
 }) {
-  const [orden, setOrden] = useState<{ col: Columna; dir: "asc" | "desc" }>({ col: "desvioPct", dir: "desc" });
-
-  const ordenados = [...maquinarias].sort((a, b) =>
-    orden.dir === "desc" ? b[orden.col] - a[orden.col] : a[orden.col] - b[orden.col]
-  );
-
-  function alClicColumna(col: Columna) {
-    setOrden((prev) => (prev.col === col ? { col, dir: prev.dir === "desc" ? "asc" : "desc" } : { col, dir: "desc" }));
-  }
 
   // ─── ALERTS PANEL (sidebar next to map) ───
   if (mode === "alerts") {
-    const alertas = ordenados.filter((c) => c.desvioPct > 0 || (c.estado as string) === "revisar" || (c.estado as string) === "sin_datos").slice(0, 5);
+    const alertas = [...maquinarias]
+      .sort((a, b) => b.desvioPct - a.desvioPct)
+      .filter((c) => c.desvioPct > 0 || (c.estado as string) === "revisar" || (c.estado as string) === "sin_datos")
+      .slice(0, 5);
 
     return (
       <div className="h-full flex flex-col justify-start p-3.5 sm:p-4 md:p-5 rounded-xl border border-white/[0.06] bg-[#0d1117] overflow-hidden">
@@ -108,8 +96,28 @@ export function FlotaTable({
   }
 
   // ─── FULL TABLE ───
+  const columnasTabla: ColumnaTabla<Maquinaria>[] = [
+    { key: "placa", encabezado: "Camión", render: (c) => <span className="font-semibold text-[#e6edf3]">{c.placa}</span> },
+    ...COLUMNAS.map(c => ({
+      key: c.key,
+      encabezado: c.label,
+      ordenable: true,
+      valorOrden: (fila: Maquinaria) => fila[c.key],
+      alinear: "right" as const,
+      render: (fila: Maquinaria) => {
+        if (c.key === "km" || c.key === "litros") return fila[c.key].toLocaleString("es-PE");
+        if (c.key === "l100km") return fila[c.key].toFixed(1);
+        if (c.key === "desvioPct") return <span style={{ color: fila.desvioPct > 0 ? "#d99b42" : "#1a9a7a" }} className="font-semibold">{fila.desvioPct > 0 ? "+" : ""}{fila.desvioPct.toFixed(1)} %</span>;
+        if (c.key === "ralentiPct" || c.key === "pctGasto") return `${fila[c.key].toFixed(c.key === "pctGasto" ? 1 : 0)} %`;
+        if (c.key === "co2Ton") return fila[c.key].toFixed(2);
+        return fila[c.key];
+      }
+    })),
+    { key: "estado", encabezado: "Estado", alinear: "right" as const, render: (c) => <EstadoBadge estado={c.estado} /> }
+  ];
+
   return (
-    <div className="mp-table-container w-full rounded-xl border border-white/[0.06] bg-[#0d1117] overflow-hidden">
+    <div className="mp-table-container flex flex-col w-full rounded-xl border border-white/[0.06] bg-[#0d1117] overflow-hidden">
       <div className="mp-table-toolbar flex flex-wrap items-center justify-between gap-2.5 px-3.5 sm:px-5 py-3 border-b border-white/[0.06]">
         <div className="flex items-center gap-2.5 flex-wrap">
           <h3 className="text-xs sm:text-sm font-semibold text-[#e6edf3] m-0">
@@ -125,70 +133,17 @@ export function FlotaTable({
             </button>
           )}
         </div>
-        <span className="text-[11px] text-[#636e7b]">
-          ordenada por {COLUMNAS.find((c) => c.key === orden.col)?.label.toLowerCase()}
-        </span>
       </div>
 
-      <div className="mp-table-wrapper w-full overflow-x-auto scrollbar-thin">
-        <table className="mp-table w-full text-left text-xs border-collapse">
-          <thead>
-            <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-              <th className="py-2.5 px-3.5 sm:px-5 text-[11px] font-semibold uppercase tracking-wider text-[#636e7b] whitespace-nowrap">
-                Camión
-              </th>
-              {COLUMNAS.map((c) => (
-                <th
-                  key={c.key}
-                  onClick={() => alClicColumna(c.key)}
-                  className="py-2.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-[#636e7b] whitespace-nowrap cursor-pointer text-right select-none hover:text-[#e6edf3] transition"
-                >
-                  {c.label}
-                </th>
-              ))}
-              <th className="py-2.5 px-3.5 sm:px-5 text-[11px] font-semibold uppercase tracking-wider text-[#636e7b] whitespace-nowrap text-right">
-                Estado
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {ordenados.map((c) => {
-              const activo = c.id === selectedId;
-              return (
-                <tr
-                  key={c.id}
-                  onClick={() => onSelect(activo ? "" : c.id)}
-                  style={{
-                    cursor: "pointer",
-                    background: activo ? "rgba(26,154,122,0.06)" : undefined,
-                    borderLeft: activo ? "3px solid #1a9a7a" : "3px solid transparent",
-                  }}
-                  className="border-b border-white/[0.03] hover:bg-white/[0.025] transition"
-                >
-                  <td className="py-2 px-3.5 sm:px-5 font-semibold text-[#e6edf3] whitespace-nowrap">
-                    {c.placa}
-                  </td>
-                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.km.toLocaleString("es-PE")}</td>
-                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.litros.toLocaleString("es-PE")}</td>
-                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.l100km.toFixed(1)}</td>
-                  <td
-                    className="py-2 px-3 text-right font-semibold whitespace-nowrap"
-                    style={{ color: c.desvioPct > 0 ? "#d99b42" : "#1a9a7a" }}
-                  >
-                    {c.desvioPct > 0 ? "+" : ""}{c.desvioPct.toFixed(1)} %
-                  </td>
-                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.ralentiPct} %</td>
-                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.horas}</td>
-                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.pctGasto.toFixed(1)} %</td>
-                  <td className="py-2 px-3 text-right text-[#c9d1d9] whitespace-nowrap">{c.co2Ton.toFixed(2)}</td>
-                  <td className="py-2 px-3.5 sm:px-5 text-right whitespace-nowrap">
-                    <EstadoBadge estado={c.estado} />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="flex-1 overflow-hidden">
+        <DataTable
+          columnas={columnasTabla}
+          datos={maquinarias}
+          keyExtractor={(c) => c.id}
+          onClickFila={(c) => onSelect(c.id === selectedId ? "" : c.id)}
+          filaActiva={selectedId}
+          ordenInicial={{ col: "desvioPct", dir: "desc" }}
+        />
       </div>
     </div>
   );

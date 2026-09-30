@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { useEmpresas } from "@/features/empresas/hooks";
-import { IndicatorCard } from "@/components/IndicatorCard";
 import { Cargando, ErrorCarga, SinDatos } from "@/shared/ui/Estados";
+import { PageHeader } from "@/shared/ui/PageHeader";
+import { StatCard } from "@/shared/ui/StatCard";
+import { Badge } from "@/shared/ui/Badge";
 
 /** Panel del SuperAdmin: indicadores reales por empresa (unidades, alertas abiertas, disponibilidad). */
 export function Dashboard() {
@@ -16,13 +18,12 @@ export function Dashboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white">Dashboard general</h1>
-      <p className="mt-1 text-sm text-slate-400">Información global de todas las empresas</p>
+      <PageHeader titulo="Dashboard general" descripcion="Información global de todas las empresas" />
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <IndicatorCard label="Empresas activas" value={`${activas}/${empresas.length}`} accent="blue" />
-        <IndicatorCard label="Unidades registradas" value={totalUnidades} accent="green" />
-        <IndicatorCard label="Alertas sin atender" value={totalAlertas} accent="red" />
+        <StatCard titulo="Empresas activas" valor={`${activas}/${empresas.length}`} color="text-blue-400" />
+        <StatCard titulo="Unidades registradas" valor={totalUnidades} color="text-green-400" />
+        <StatCard titulo="Alertas sin atender" valor={totalAlertas} color={totalAlertas > 0 ? "text-red-400" : "text-white"} />
       </div>
 
       <h2 className="mb-3 mt-8 text-lg font-semibold text-white">Empresas</h2>
@@ -38,9 +39,7 @@ export function Dashboard() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="text-sm font-medium text-white">{e.nombre}</div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${e.estado ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}>
-                  {e.estado ? "Activa" : "Inactiva"}
-                </span>
+                <Badge etiqueta={e.estado ? "Activa" : "Inactiva"} variante={e.estado ? "success" : "danger"} tamano="md" />
               </div>
               <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
                 <div>
@@ -65,3 +64,4 @@ export function Dashboard() {
     </div>
   );
 }
+

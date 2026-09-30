@@ -6,6 +6,8 @@ import { Cargando, ErrorCarga, SinDatos } from "@/shared/ui/Estados";
 import { Campo, Input, Select, BotonPrimario, MensajeError } from "@/shared/ui/Formulario";
 import { avisar } from "@/shared/ui/Avisos";
 import { mensajeError } from "@/shared/api/errores";
+import { PageHeader } from "@/shared/ui/PageHeader";
+import { Panel } from "@/shared/ui/Panel";
 
 // Los mismos que usa el backend al crear una configuración sin datos
 const POR_DEFECTO = { objetivoFlotaL100km: 40, precioUsdPorLitro: 1.1, emisionesCo2Factor: 2.68 };
@@ -63,12 +65,9 @@ export function Configuracion() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Métricas y Metas</h1>
-        <p className="mt-1 text-sm text-slate-400">Parámetros de cálculo del dashboard de flota, por unidad.</p>
-      </div>
+      <PageHeader titulo="Métricas y Metas" descripcion="Parámetros de cálculo del dashboard de flota, por unidad." />
 
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+      <Panel padding="lg">
         <div className="mb-6 grid gap-4 sm:grid-cols-2">
           {esGlobal && (
             <Campo etiqueta="Empresa">
@@ -118,7 +117,7 @@ export function Configuracion() {
             <BotonPrimario type="submit" cargando={guardar.isPending}>Guardar cambios</BotonPrimario>
           </form>
         )}
-      </div>
+      </Panel>
     </div>
   );
 }

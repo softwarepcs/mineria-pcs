@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnidades } from "../hooks";
@@ -11,6 +11,7 @@ import { Cargando, ErrorCarga } from "@/shared/ui/Estados";
 import { avisar } from "@/shared/ui/Avisos";
 import type { EstadoUnidad } from "../api";
 import { ESTADO_UNIDAD, unirConHoy } from "../estado";
+import { SearchInput } from "@/shared/ui/SearchInput";
 import { UnidadesLista } from "./UnidadesLista";
 import { UnidadesMapa } from "./UnidadesMapa";
 import { UnidadPanel } from "./UnidadPanel";
@@ -100,16 +101,12 @@ export function CamionesListaView({ empresa }: { empresa: EmpresaDetalle }) {
         </div>
 
         <div className="flex flex-1 flex-wrap items-center gap-2 md:max-w-2xl">
-          <div className="relative min-w-[160px] flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar placa, marca, operador..."
-              className="w-full rounded-lg border border-white/10 bg-[#141b29] py-1.5 pl-8 pr-3 text-xs text-white outline-none placeholder:text-slate-500 focus:border-[#0df5c6]"
-            />
-          </div>
+          <SearchInput
+            valor={busqueda}
+            onChange={setBusqueda}
+            placeholder="Buscar placa, marca, operador..."
+            className="flex-1"
+          />
           <Filtro valor={filtroEstado} onCambiar={(v) => setFiltroEstado(v as EstadoUnidad | "")}>
             <option value="">Estado</option>
             {(Object.keys(ESTADO_UNIDAD) as EstadoUnidad[]).map((e) => <option key={e} value={e}>{ESTADO_UNIDAD[e].etiqueta}</option>)}

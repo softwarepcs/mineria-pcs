@@ -5,6 +5,8 @@ import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Cargando, ErrorCarga, SinDatos } from "@/shared/ui/Estados";
 import { GraficoLinea } from "@/shared/ui/GraficoLinea";
+import { PageHeader } from "@/shared/ui/PageHeader";
+import { DataTable, type Columna } from "@/shared/ui/DataTable";
 import { avisar } from "@/shared/ui/Avisos";
 import { mensajeError } from "@/shared/api/errores";
 import { fechaHora, hora, num } from "@/shared/utils/formato";
@@ -123,29 +125,26 @@ function DetalleEvento({ id, empresaId, puedeAtender, onVolver }: { id: string; 
 
 function CrucesGeocerca({ empresaId }: { empresaId: number }) {
   const { data = [], isLoading, error } = useAlertasGeocerca(empresaId);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- tipo inferido del hook
+  const columnas: Columna<any>[] = [
+    { key: "fecha", encabezado: "Fecha", render: (c) => <span className="font-mono text-xs">{fechaHora(c.fechaHora)}</span> },
+    { key: "evento", encabezado: "Evento", render: (c) => <span className={`text-xs font-bold ${c.tipoEvento === "ENTRADA" ? "text-emerald-400" : "text-amber-400"}`}>{c.tipoEvento}</span> },
+    { key: "geocerca", encabezado: "Geocerca", render: (c) => c.geocerca },
+    { key: "unidad", encabezado: "Unidad", render: (c) => <Link to={`/empresa/${empresaId}/camiones/${c.maquinariaId}`} className="font-mono text-cyan-300 hover:underline">{c.maquinaria}</Link> },
+  ];
+
   if (isLoading) return <Cargando />;
   if (error) return <ErrorCarga error={error} />;
-  if (!data.length) return <SinDatos titulo="Sin entradas ni salidas de geocercas registradas" />;
+
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/5">
-      <table className="w-full min-w-[600px] text-left text-sm">
-        <thead className="border-b border-white/10 bg-[#0e1420]/60 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-          <tr><th className="px-4 py-3">Fecha</th><th className="px-4 py-3">Evento</th><th className="px-4 py-3">Geocerca</th><th className="px-4 py-3">Unidad</th></tr>
-        </thead>
-        <tbody className="divide-y divide-white/5">
-          {data.map((c) => (
-            <tr key={c.id}>
-              <td className="px-4 py-2.5 font-mono text-xs">{fechaHora(c.fechaHora)}</td>
-              <td className={`px-4 py-2.5 text-xs font-bold ${c.tipoEvento === "ENTRADA" ? "text-emerald-400" : "text-amber-400"}`}>{c.tipoEvento}</td>
-              <td className="px-4 py-2.5">{c.geocerca}</td>
-              <td className="px-4 py-2.5">
-                <Link to={`/empresa/${empresaId}/camiones/${c.maquinariaId}`} className="font-mono text-cyan-300 hover:underline">{c.maquinaria}</Link>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      columnas={columnas}
+      datos={data}
+      keyExtractor={(c) => c.id}
+      vacio={<SinDatos titulo="Sin entradas ni salidas de geocercas registradas" />}
+      minWidth="600px"
+    />
   );
 }
 
@@ -169,21 +168,26 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-2 pb-10 font-sans sm:px-4">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <h2 className="mr-1 text-2xl font-bold tracking-tight text-white">Alertas</h2>
-          <span className={`rounded-md border px-3 py-1 text-xs font-semibold ${criticas ? "border-red-500 bg-red-500/15 text-red-400" : "border-white/10 text-slate-400"}`}>Críticas sin atender {criticas}</span>
-          <span className="rounded-md border border-white/10 px-3 py-1 text-xs text-slate-400">Altas sin atender {altas}</span>
-          <span className="rounded-md border border-white/10 px-3 py-1 text-xs text-slate-400">Últimas 100</span>
-        </div>
-        <div className="flex rounded-lg border border-white/10 bg-[#0e1420] p-0.5">
-          {(["motor", "geocercas"] as const).map((p) => (
-            <button key={p} type="button" onClick={() => setPestana(p)} className={`rounded-md px-4 py-1.5 text-xs font-semibold ${pestana === p ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"}`}>
-              {p === "motor" ? "Reglas de motor" : "Geocercas"}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PageHeader
+        titulo="Alertas"
+        className="mb-5"
+        accion={
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`rounded-md border px-3 py-1 text-xs font-semibold ${criticas ? "border-red-500 bg-red-500/15 text-red-400" : "border-white/10 text-slate-400"}`}>Críticas sin atender {criticas}</span>
+              <span className="rounded-md border border-white/10 px-3 py-1 text-xs text-slate-400">Altas sin atender {altas}</span>
+              <span className="rounded-md border border-white/10 px-3 py-1 text-xs text-slate-400">Últimas 100</span>
+            </div>
+            <div className="flex rounded-lg border border-white/10 bg-[#0e1420] p-0.5">
+              {(["motor", "geocercas"] as const).map((p) => (
+                <button key={p} type="button" onClick={() => setPestana(p)} className={`rounded-md px-4 py-1.5 text-xs font-semibold ${pestana === p ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"}`}>
+                  {p === "motor" ? "Reglas de motor" : "Geocercas"}
+                </button>
+              ))}
+            </div>
+          </div>
+        }
+      />
 
       {pestana === "geocercas" ? (
         <CrucesGeocerca empresaId={empresa.id} />

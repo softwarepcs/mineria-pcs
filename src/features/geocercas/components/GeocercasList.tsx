@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Search, ArrowDownAZ, Plus, Eye, EyeOff, Trash2, Truck, Circle, Pentagon } from "lucide-react";
+import { ArrowDownAZ, Plus, Eye, EyeOff, Trash2, Truck, Circle, Pentagon } from "lucide-react";
 import type { Geocerca, TipoGeocerca } from "../api";
 import { colorSeguro } from "@/shared/utils/escapeHtml";
+import { SearchInput } from "@/shared/ui/SearchInput";
 
 export function GeocercasList({
   geocercas,
@@ -49,10 +50,7 @@ export function GeocercasList({
           <option value="CIRCULO">Círculos</option>
           <option value="POLIGONO">Polígonos</option>
         </select>
-        <div className="relative flex-1">
-          <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar" className="w-full rounded border border-white/15 bg-[#161b22] py-1 pl-6 pr-2 text-[11px] text-white outline-none placeholder:text-slate-500" />
-          <Search className="absolute left-1.5 top-2 h-3 w-3 text-slate-500" />
-        </div>
+        <SearchInput valor={busqueda} onChange={setBusqueda} placeholder="Buscar" className="flex-1" />
       </div>
 
       {lista.length === 0 ? (
