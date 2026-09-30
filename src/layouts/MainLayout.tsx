@@ -2,12 +2,8 @@ import { useState, type ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Sidebar } from "@/components/Sidebar";
 import { Menu, X } from "lucide-react";
+import { etiquetaRol } from "@/auth/permisos";
 
-const NOMBRE_ROL: Record<number, string> = {
-  1: "Administrador principal",
-  2: "Administrador",
-  3: "Empresa",
-};
 
 export function MainLayout({ children }: { children: ReactNode }) {
   const { sesion, logout } = useAuth();
@@ -52,7 +48,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
           <div className="text-right">
             <div className="text-sm font-medium text-[#e6edf3]">{sesion?.usuario.nombre}</div>
             <div className="text-[11px] text-[#636e7b] uppercase tracking-wide">
-              {sesion ? NOMBRE_ROL[sesion.usuario.rol] : ""}
+              {sesion ? etiquetaRol(sesion.usuario.roles) : ""}
             </div>
           </div>
         </header>

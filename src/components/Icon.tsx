@@ -2,7 +2,7 @@ type IconName =
   | "home" | "wrench" | "building" | "chevronDown" | "chevronUp" | "chevronLeft" | "chevronRight"
   | "dot" | "arrowRight" | "anchor" | "database" | "activity" | "droplet" | "snowflake"
   | "shield" | "fuel" | "wind" | "logout" | "users" | "truck" | "monitor" | "cpu"
-  | "mapPin" | "radio";
+  | "mapPin" | "radio" | "alert-triangle" | "search";
 
 const paths: Record<IconName, React.ReactElement> = {
   home: <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10" />,
@@ -39,6 +39,8 @@ const paths: Record<IconName, React.ReactElement> = {
     </>
   ),
   mapPin: <path strokeLinecap="round" strokeLinejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />,
+  "alert-triangle": <path strokeLinecap="round" strokeLinejoin="round" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01" />,
+  search: <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" />,
   radio: <path strokeLinecap="round" strokeLinejoin="round" d="M4.9 19.1A10 10 0 014 12c0-2.4.9-4.8 2.6-6.6M19.1 4.9A10 10 0 0120 12c0 2.4-.9 4.8-2.6 6.6M7.8 16.2A6 6 0 017 12c0-1.5.6-2.9 1.6-4M16.2 7.8A6 6 0 0117 12c0 1.5-.6 2.9-1.6 4M12 12h.01" />
 };
 

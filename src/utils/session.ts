@@ -7,10 +7,12 @@ export function guardarSesion(sesion: Sesion): void {
 }
 
 export function obtenerSesion(): Sesion | null {
-  const raw = localStorage.getItem(SESSION_KEY);
-  if (!raw) return null;
   try {
-    return JSON.parse(raw) as Sesion;
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw) as Sesion;
+    // Sesiones guardadas con el formato anterior (rol numérico) obligan a volver a entrar
+    return s?.token && Array.isArray(s.usuario?.roles) ? s : null;
   } catch {
     return null;
   }

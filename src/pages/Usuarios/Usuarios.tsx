@@ -1,75 +1,53 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { listarUsuarios } from "@/services/usuarioService";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { listarUsuarios } from "@/features/usuarios/api";
+import { etiquetaRol } from "@/auth/permisos";
+import { Cargando, ErrorCarga } from "@/shared/ui/Estados";
 
-const NOMBRE_ROL: Record<number, string> = {
-  1: "Administrador principal",
-  2: "Administrador",
-  3: "Empresa",
-};
-
-const ROL_STYLES: Record<number, string> = {
-  1: "bg-blue-500/10 text-blue-400",
-  2: "bg-amber-500/10 text-amber-400",
-  3: "bg-slate-500/10 text-slate-400",
-};
+const LIMITE = 10;
 
 export function Usuarios() {
-  const [page, setPage] = useState(1);
-  const limit = 10;
-
-  const { data, isLoading: cargando, isError } = useQuery({
-    queryKey: ["usuarios", page, limit],
-    queryFn: () => listarUsuarios(page, limit),
+  const [pagina, setPagina] = useState(1);
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["usuarios", pagina, LIMITE],
+    queryFn: () => listarUsuarios(pagina, LIMITE),
+    placeholderData: keepPreviousData,
   });
 
-  const usuarios = data?.data || [];
-  const meta = data?.meta || { page, limit, total: 0 };
-  const error = isError ? "Error al cargar la lista de usuarios." : null;
+  const usuarios = data?.data ?? [];
+  const meta = data?.meta ?? { total: 0, page: pagina, lastPage: 1 };
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-white">Usuarios</h1>
-      <p className="mt-1 text-sm text-slate-400">
-        Gestión de usuarios del sistema (solo lectura por ahora)
-      </p>
+      <p className="mt-1 text-sm text-slate-400">Usuarios con acceso a la plataforma (solo lectura)</p>
 
-      {error && (
-        <div className="mt-4 rounded border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
-          {error}
-        </div>
-      )}
+      {error && <div className="mt-4"><ErrorCarga error={error} onReintentar={() => void refetch()} /></div>}
 
       <div className="mt-6 overflow-x-auto rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
-        {cargando ? (
-          <div className="p-8 text-center text-sm text-slate-400">Cargando usuarios...</div>
+        {isLoading ? (
+          <Cargando texto="Cargando usuarios..." />
         ) : (
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-white/10 text-xs uppercase tracking-wide text-slate-400">
-                <th className="px-4 py-3 font-medium">ID</th>
                 <th className="px-4 py-3 font-medium">Correo</th>
                 <th className="px-4 py-3 font-medium">Nombre</th>
                 <th className="px-4 py-3 font-medium">Rol</th>
-                <th className="px-4 py-3 font-medium">Empresa asociada</th>
+                <th className="px-4 py-3 font-medium">Empresa</th>
+                <th className="px-4 py-3 font-medium">Estado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {usuarios.map((u) => (
                 <tr key={u.id} className="transition hover:bg-white/5">
-                  <td className="px-4 py-3 text-slate-400">{u.id}</td>
-                  <td className="px-4 py-3 font-medium text-white">{u.email}</td>
+                  <td className="px-4 py-3 font-medium text-white">{u.email ?? <span className="text-slate-500">Sin acceso</span>}</td>
                   <td className="px-4 py-3 text-slate-300">{u.nombre}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        ROL_STYLES[u.rol] ?? "bg-slate-500/10 text-slate-400"
-                      }`}
-                    >
-                      {NOMBRE_ROL[u.rol]}
-                    </span>
+                    <span className="inline-block rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-medium text-blue-300">{etiquetaRol(u.roles)}</span>
                   </td>
-                  <td className="px-4 py-3 text-slate-400">{u.empresaNombre ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-400">{u.empresa ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-400">{u.estado}</td>
                 </tr>
               ))}
             </tbody>
@@ -77,24 +55,16 @@ export function Usuarios() {
         )}
       </div>
 
-      {!cargando && meta.total > 0 && (
+      {meta.total > 0 && (
         <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
           <div>
-            Mostrando {((meta.page - 1) * meta.limit) + 1} a {Math.min(meta.page * meta.limit, meta.total)} de {meta.total} usuarios
+            Mostrando {(meta.page - 1) * LIMITE + 1} a {Math.min(meta.page * LIMITE, meta.total)} de {meta.total} usuarios
           </div>
           <div className="flex gap-2">
-            <button
-              disabled={meta.page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded bg-white/5 px-3 py-1 hover:bg-white/10 disabled:opacity-50"
-            >
+            <button disabled={meta.page <= 1} onClick={() => setPagina((p) => Math.max(1, p - 1))} className="rounded bg-white/5 px-3 py-1 hover:bg-white/10 disabled:opacity-50">
               Anterior
             </button>
-            <button
-              disabled={meta.page * meta.limit >= meta.total}
-              onClick={() => setPage((p) => p + 1)}
-              className="rounded bg-white/5 px-3 py-1 hover:bg-white/10 disabled:opacity-50"
-            >
+            <button disabled={meta.page >= meta.lastPage} onClick={() => setPagina((p) => p + 1)} className="rounded bg-white/5 px-3 py-1 hover:bg-white/10 disabled:opacity-50">
               Siguiente
             </button>
           </div>

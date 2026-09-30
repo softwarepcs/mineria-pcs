@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { Maquinaria } from "@/types";
+import type { MaquinariaStats as Maquinaria } from "@/features/flota/api";
+import { ESTADO_UNIDAD } from "@/features/flota/estado";
 
 type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto" | "co2Ton">;
 
@@ -14,36 +15,14 @@ const COLUMNAS: { key: Columna; label: string }[] = [
   { key: "co2Ton", label: "CO₂ (T)" },
 ];
 
-function EstadoBadge({ estado }: { estado: string }) {
-  let bg = "rgba(100,116,139,0.12)";
-  let color = "#636e7b";
-  let label = "OFFLINE";
-
-  if (estado === "conduccion" || estado === "en_linea") {
-    bg = "rgba(26,154,122,0.12)";
-    color = "#1a9a7a";
-    label = "EN CONDUCCION";
-  } else if (estado === "ralentí") {
-    bg = "rgba(217,155,66,0.12)";
-    color = "#d99b42";
-    label = "EN RALENTÍ";
-  } else if (estado === "ralenti") {
-    bg = "rgba(217,155,66,0.12)";
-    color = "#d99b42";
-    label = "RALENTÍ";
-  } else if (estado === "sin_datos") {
-    bg = "rgba(100,116,139,0.12)";
-    color = "#636e7b";
-    label = "SIN DATOS";
-  }
-
+function EstadoBadge({ estado }: { estado: Maquinaria["estado"] }) {
+  const { color, etiqueta } = ESTADO_UNIDAD[estado] ?? ESTADO_UNIDAD.offline;
   return (
-    <span style={{
-      display: "inline-block", padding: "3px 10px", borderRadius: "4px",
-      fontSize: "11px", fontWeight: 700, letterSpacing: "0.04em",
-      background: bg, color, border: `1px solid ${color}33`,
-    }}>
-      {label}
+    <span
+      className="inline-block rounded px-2.5 py-0.5 text-[11px] font-bold tracking-wide"
+      style={{ background: `${color}1f`, color, border: `1px solid ${color}33` }}
+    >
+      {etiqueta.toUpperCase()}
     </span>
   );
 }

@@ -17,7 +17,7 @@ export function AdministracionMenu({
   const items: { label: string; path: string; icon: string }[] = [];
   if (permisos?.verTodasLasEmpresas) items.push({ label: "Empresas", path: "/empresas", icon: "building" });
   if (permisos?.gestionarUsuarios) items.push({ label: "Usuarios", path: "/usuarios", icon: "dot" });
-  if (permisos?.gestionarUsuarios) items.push({ label: "Métricas y Metas", path: "/configuracion", icon: "dot" });
+  if (permisos?.configurarMetas) items.push({ label: "Métricas y Metas", path: "/configuracion", icon: "dot" });
 
   if (items.length === 0) return null;
 

@@ -1,169 +1,123 @@
-import { useEffect, useState } from "react";
-import { apiClient } from "@/utils/apiClient";
+import { useEffect, useState, type FormEvent } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useEmpresas } from "@/features/empresas/hooks";
+import { useConfiguracion, useGuardarConfiguracion, useUnidades } from "@/features/camiones/hooks";
+import { Cargando, ErrorCarga, SinDatos } from "@/shared/ui/Estados";
+import { Campo, Input, Select, BotonPrimario, MensajeError } from "@/shared/ui/Formulario";
+import { avisar } from "@/shared/ui/Avisos";
+import { mensajeError } from "@/shared/api/errores";
+
+// Los mismos que usa el backend al crear una configuración sin datos
+const POR_DEFECTO = { objetivoFlotaL100km: 40, precioUsdPorLitro: 1.1, emisionesCo2Factor: 2.68 };
+type Valores = Record<keyof typeof POR_DEFECTO, string>;
 
 export function Configuracion() {
-  const [maquinarias, setMaquinarias] = useState<any[]>([]);
-  const [selectedMaquinariaId, setSelectedMaquinariaId] = useState<number | null>(null);
-  
-  const [formData, setFormData] = useState({
-    objetivoFlotaL100km: 40.0,
-    precioUsdPorLitro: 1.10,
-    emisionesCo2Factor: 2.68
-  });
-  
-  const [cargando, setCargando] = useState(true);
-  const [guardando, setGuardando] = useState(false);
-  const [mensaje, setMensaje] = useState("");
+  const { sesion } = useAuth();
+  const esGlobal = sesion?.permisos.verTodasLasEmpresas ?? false;
+  const { data: empresas = [] } = useEmpresas(esGlobal);
+  const [empresaId, setEmpresaId] = useState<number | undefined>(sesion?.usuario.empresaId ?? undefined);
 
   useEffect(() => {
-    apiClient.get('/maquinarias').then((res) => {
-      setMaquinarias(res.data);
-      if (res.data.length > 0) {
-        setSelectedMaquinariaId(res.data[0].id);
-      }
-      setCargando(false);
-    }).catch(console.error);
-  }, []);
+    if (esGlobal && !empresaId && empresas.length) setEmpresaId(empresas[0].id);
+  }, [esGlobal, empresaId, empresas]);
+
+  const unidades = useUnidades(empresaId);
+  const [maquinariaId, setMaquinariaId] = useState<number | null>(null);
+  useEffect(() => {
+    const lista = unidades.data ?? [];
+    if (lista.length && !lista.some((u) => u.id === maquinariaId)) setMaquinariaId(lista[0].id);
+    if (!lista.length) setMaquinariaId(null);
+  }, [unidades.data, maquinariaId]);
+
+  const configuracion = useConfiguracion(maquinariaId);
+  const guardar = useGuardarConfiguracion();
+  const [valores, setValores] = useState<Valores>({ objetivoFlotaL100km: "", precioUsdPorLitro: "", emisionesCo2Factor: "" });
 
   useEffect(() => {
-    if (selectedMaquinariaId) {
-      cargarConfiguracion(selectedMaquinariaId);
-    }
-  }, [selectedMaquinariaId]);
+    if (configuracion.isFetching) return;
+    const c = configuracion.data ?? POR_DEFECTO;
+    setValores({
+      objetivoFlotaL100km: String(c.objetivoFlotaL100km),
+      precioUsdPorLitro: String(c.precioUsdPorLitro),
+      emisionesCo2Factor: String(c.emisionesCo2Factor),
+    });
+  }, [configuracion.data, configuracion.isFetching]);
 
-  const cargarConfiguracion = async (id: number) => {
-    try {
-      const res = await apiClient.get(`/maquinarias/${id}/configuracion`);
-      if (res.data) {
-        const data = res.data;
-        if (data) {
-          setFormData({
-            objetivoFlotaL100km: data.objetivoFlotaL100km || 40.0,
-            precioUsdPorLitro: data.precioUsdPorLitro || 1.10,
-            emisionesCo2Factor: data.emisionesCo2Factor || 2.68
-          });
-        } else {
-          // Valores por defecto
-          setFormData({ objetivoFlotaL100km: 40.0, precioUsdPorLitro: 1.10, emisionesCo2Factor: 2.68 });
-        }
-      }
-    } catch (e) {
-      console.error("Error cargando configuración", e);
-      setFormData({ objetivoFlotaL100km: 40.0, precioUsdPorLitro: 1.10, emisionesCo2Factor: 2.68 });
-    }
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
+  const onGuardar = (e: FormEvent) => {
     e.preventDefault();
-    if (!selectedMaquinariaId) return;
-    setGuardando(true);
-    setMensaje("");
-
-    try {
-      await apiClient.patch(`/maquinarias/${selectedMaquinariaId}/configuracion`, formData);
-
-      setMensaje("Configuración actualizada con éxito.");
-    } catch (err) {
-      setMensaje("Error de conexión con el servidor.");
-    } finally {
-      setGuardando(false);
-    }
+    if (!maquinariaId) return;
+    guardar.mutate(
+      {
+        id: maquinariaId,
+        dto: {
+          objetivoFlotaL100km: Number(valores.objetivoFlotaL100km),
+          precioUsdPorLitro: Number(valores.precioUsdPorLitro),
+          emisionesCo2Factor: Number(valores.emisionesCo2Factor),
+        },
+      },
+      { onSuccess: () => avisar.exito("Configuración guardada") },
+    );
   };
 
-  if (cargando) {
-    return (
-      <div className="flex items-center gap-3 text-sm text-slate-400">
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-blue-500" />
-        Cargando maquinarias...
-      </div>
-    );
-  }
+  const cambiar = (k: keyof Valores) => (e: React.ChangeEvent<HTMLInputElement>) => setValores((v) => ({ ...v, [k]: e.target.value }));
 
   return (
     <div className="max-w-4xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Métricas y Metas</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Administración centralizada de parámetros de cálculo para los Dashboards de Flota.
-        </p>
+        <p className="mt-1 text-sm text-slate-400">Parámetros de cálculo del dashboard de flota, por unidad.</p>
       </div>
 
       <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-300 mb-2">Seleccionar Maquinaria</label>
-          <select
-            className="w-full sm:w-1/2 rounded-md border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            value={selectedMaquinariaId || ""}
-            onChange={(e) => setSelectedMaquinariaId(Number(e.target.value))}
-          >
-            {maquinarias.map(maq => (
-              <option key={maq.id} value={maq.id}>{maq.identificador} {maq.placa ? `(${maq.placa})` : ''}</option>
-            ))}
-          </select>
+        <div className="mb-6 grid gap-4 sm:grid-cols-2">
+          {esGlobal && (
+            <Campo etiqueta="Empresa">
+              <Select value={empresaId ?? ""} onChange={(e) => setEmpresaId(Number(e.target.value))}>
+                {empresas.map((e) => (
+                  <option key={e.id} value={e.id}>{e.nombre}</option>
+                ))}
+              </Select>
+            </Campo>
+          )}
+          <Campo etiqueta="Unidad">
+            <Select value={maquinariaId ?? ""} onChange={(e) => setMaquinariaId(Number(e.target.value))} disabled={!unidades.data?.length}>
+              {(unidades.data ?? []).map((u) => (
+                <option key={u.id} value={u.id}>{u.identificador} · {u.sede}</option>
+              ))}
+            </Select>
+          </Campo>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-6 border-t border-slate-700/50 pt-6">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Objetivo Flota (L/100km)
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                required
-                className="w-full rounded-md border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={formData.objetivoFlotaL100km}
-                onChange={(e) => setFormData({ ...formData, objetivoFlotaL100km: parseFloat(e.target.value) })}
-              />
-              <p className="mt-1 text-xs text-slate-500">Define el punto de quiebre entre alertas rojas y verdes.</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Precio Diésel (USD por Litro)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                required
-                className="w-full rounded-md border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={formData.precioUsdPorLitro}
-                onChange={(e) => setFormData({ ...formData, precioUsdPorLitro: parseFloat(e.target.value) })}
-              />
-              <p className="mt-1 text-xs text-slate-500">Utilizado para calcular las pérdidas financieras por ralentí y excesos.</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Factor Emisiones CO2 (L/Ton)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                required
-                className="w-full rounded-md border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={formData.emisionesCo2Factor}
-                onChange={(e) => setFormData({ ...formData, emisionesCo2Factor: parseFloat(e.target.value) })}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button
-              type="submit"
-              disabled={guardando}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
-            >
-              {guardando ? "Guardando..." : "Guardar Cambios"}
-            </button>
-            {mensaje && (
-              <span className={`text-sm ${mensaje.includes("éxito") ? "text-green-400" : "text-red-400"}`}>
-                {mensaje}
-              </span>
+        {unidades.isLoading ? (
+          <Cargando texto="Cargando unidades..." />
+        ) : unidades.error ? (
+          <ErrorCarga error={unidades.error} onReintentar={() => void unidades.refetch()} />
+        ) : !maquinariaId ? (
+          <SinDatos titulo="Esta empresa no tiene unidades registradas" />
+        ) : configuracion.isLoading ? (
+          <Cargando texto="Cargando configuración..." />
+        ) : (
+          <form onSubmit={onGuardar} className="space-y-6 border-t border-slate-700/50 pt-6">
+            {!configuracion.data && (
+              <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+                Esta unidad todavía no tiene configuración: se muestran los valores por defecto que usa el backend. Guarda para fijarlos.
+              </p>
             )}
-          </div>
-        </form>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+              <Campo etiqueta="Objetivo (L/100 km)" requerido ayuda="Límite entre rendimiento aceptable y desvío.">
+                <Input type="number" step="0.1" min="0" required value={valores.objetivoFlotaL100km} onChange={cambiar("objetivoFlotaL100km")} />
+              </Campo>
+              <Campo etiqueta="Precio diésel (USD/L)" requerido ayuda="Para costos por consumo y ralentí.">
+                <Input type="number" step="0.01" min="0" required value={valores.precioUsdPorLitro} onChange={cambiar("precioUsdPorLitro")} />
+              </Campo>
+              <Campo etiqueta="Factor CO₂ (kg/L)" requerido ayuda="Diésel: 2,68 kg de CO₂ por litro.">
+                <Input type="number" step="0.01" min="0" required value={valores.emisionesCo2Factor} onChange={cambiar("emisionesCo2Factor")} />
+              </Campo>
+            </div>
+            <MensajeError>{guardar.error ? mensajeError(guardar.error) : null}</MensajeError>
+            <BotonPrimario type="submit" cargando={guardar.isPending}>Guardar cambios</BotonPrimario>
+          </form>
+        )}
       </div>
     </div>
   );

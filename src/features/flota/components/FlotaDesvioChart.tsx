@@ -1,4 +1,4 @@
-import type { Maquinaria } from "@/types";
+import type { MaquinariaStats as Maquinaria } from "@/features/flota/api";
 
 export function FlotaDesvioChart({
   maquinarias,

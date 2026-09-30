@@ -52,13 +52,13 @@ export function Login() {
             INGRESE TUS CREDENCIALES PARA CONTINUAR
           </p>
 
-          {/* Campo: Usuario o Correo */}
+          {/* Campo: Correo */}
           <div className="mb-5">
             <label
               htmlFor="email"
               className="mb-2 block text-sm sm:text-base font-bold text-white tracking-wide"
             >
-              Usuario o Correo:
+              Correo:
             </label>
             <div className="relative">
               <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">

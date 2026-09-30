@@ -1,4 +1,5 @@
-import type { FlotaResumen, Maquinaria } from "@/types";
+import { ESTADO_UNIDAD } from "@/features/flota/estado";
+import type { FlotaResumen, MaquinariaStats as Maquinaria } from "@/features/flota/api";
 
 export function FlotaKpis({
   resumen,
@@ -53,7 +54,7 @@ export function FlotaKpis({
                     : "bg-[#1a9a7a]/15 border border-[#1a9a7a]/30 text-[#1a9a7a]"
                 }`}
               >
-                {selectedMaquinaria.estado === "ralenti" ? "RALENTÍ" : selectedMaquinaria.estado.toUpperCase().replace("_", " ")}
+                {ESTADO_UNIDAD[selectedMaquinaria.estado].etiqueta.toUpperCase()}
               </span>
               <button
                 type="button"
@@ -115,14 +116,14 @@ export function FlotaKpis({
               : resumen.ralentiFlotaPct.toFixed(1),
             unit: "%",
             sub: esIndividual
-              ? `${selectedMaquinaria.horas} horas de motor`
-              : `${resumen.ralentiLitros.toLocaleString("es-PE")} L · ${resumen.ralentiUsd.toLocaleString("es-PE")} USD`,
+              ? `${selectedMaquinaria.horas.toLocaleString("es-PE")} horas de motor`
+              : `≈ ${resumen.ralentiLitros.toLocaleString("es-PE")} L · ${resumen.ralentiUsd.toLocaleString("es-PE")} USD (estimado)`,
             subColor: "#d99b42",
           },
           {
             label: <>EMISIONES DE CO<sub>2</sub></>,
             value: esIndividual
-              ? ((selectedMaquinaria.litros * 2.68) / 1000).toFixed(1)
+              ? selectedMaquinaria.co2Ton.toFixed(1)
               : resumen.emisionesCo2Ton.toFixed(1),
             unit: "t",
             sub: esIndividual

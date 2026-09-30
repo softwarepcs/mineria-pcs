@@ -3,11 +3,8 @@ export type GeocercaTipo = "circle" | "polygon" | "line";
 export interface Geocerca {
   id: string;
   nombre: string;
-  nombreColor: string;
-  fontSize: string;
-  recurso: string;
   descripcion: string;
-  grupo: string;
+  sedeId: number | null;
   tipo: GeocercaTipo;
   lat: number;
   lng: number;
@@ -15,11 +12,9 @@ export interface Geocerca {
   areaHa: number; // en hectáreas
   perimetroKm: number; // en kilómetros
   puntos?: [number, number][]; // para polígonos o líneas
-  icono: string;
   color: string;
-  colorVisible: boolean;
-  visibilidadDe: number;
-  visibilidadA: number;
+  fechaInicio: string;
+  fechaExpiracion: string;
   activa: boolean;
   empresaId?: number | null;
 }

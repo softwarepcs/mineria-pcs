@@ -1,80 +1,67 @@
-import { useEffect } from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useEmpresaStore } from "@/store/empresaStore";
+import { Link } from "react-router-dom";
+import { useEmpresas } from "@/features/empresas/hooks";
 import { IndicatorCard } from "@/components/IndicatorCard";
-import { MapPlaceholder } from "@/components/MapPlaceholder";
+import { Cargando, ErrorCarga, SinDatos } from "@/shared/ui/Estados";
 
+/** Panel del SuperAdmin: indicadores reales por empresa (unidades, alertas abiertas, disponibilidad). */
 export function Dashboard() {
-  const { sesion } = useAuth();
-  const { empresas, cargandoLista: cargando, cargarEmpresas } = useEmpresaStore();
+  const { data: empresas = [], isLoading, error, refetch } = useEmpresas();
 
-  const esGlobal = sesion?.permisos.verTodasLasEmpresas ?? false;
+  if (isLoading) return <Cargando texto="Cargando dashboard..." />;
+  if (error) return <ErrorCarga error={error} onReintentar={() => void refetch()} />;
 
-  useEffect(() => {
-    if (sesion && esGlobal) {
-      cargarEmpresas();
-    }
-  }, [sesion, esGlobal, cargarEmpresas]);
-
-
-  if (!esGlobal) {
-    if (sesion?.usuario.empresaId != null) {
-      return <Navigate to={`/empresa/${sesion.usuario.empresaId}`} replace />;
-    }
-    return <div className="text-sm text-slate-400">No tienes una empresa asignada.</div>;
-  }
-
-  if (cargando) {
-    return (
-      <div className="flex items-center gap-3 text-sm text-slate-400">
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-blue-500" />
-        Cargando dashboard...
-      </div>
-    );
-  }
-
-  const totalUnidades = empresas.reduce((sum, e) => sum + (e.indicadores?.unidades ?? 0), 0);
-  const totalAlertas = empresas.reduce((sum, e) => sum + (e.indicadores?.alertas ?? 0), 0);
-  const activas = empresas.filter((e) => Boolean(e.estado)).length;
+  const totalUnidades = empresas.reduce((s, e) => s + e.indicadores.unidades, 0);
+  const totalAlertas = empresas.reduce((s, e) => s + e.indicadores.alertasAbiertas, 0);
+  const activas = empresas.filter((e) => e.estado).length;
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-white">Dashboard general</h1>
-      <p className="mt-1 text-sm text-slate-400">
-        Información global de todas las empresas
-      </p>
+      <p className="mt-1 text-sm text-slate-400">Información global de todas las empresas</p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <IndicatorCard label="Empresas activas" value={`${activas}/${empresas.length}`} accent="blue" />
-        <IndicatorCard label="Unidades monitoreadas" value={totalUnidades} accent="green" />
-        <IndicatorCard label="Alertas activas" value={totalAlertas} accent="red" />
+        <IndicatorCard label="Unidades registradas" value={totalUnidades} accent="green" />
+        <IndicatorCard label="Alertas sin atender" value={totalAlertas} accent="red" />
       </div>
 
-      <div className="mt-6">
-        <MapPlaceholder titulo="Mapa general (pendiente de integración)" />
-      </div>
-
-      <h2 className="mt-8 mb-3 text-lg font-semibold text-white">Empresas</h2>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {empresas.map((e) => (
-          <div
-            key={e.id}
-            className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition hover:border-white/20 hover:bg-white/[0.07]"
-          >
-            <div className="text-sm font-medium text-white">{e.nombre}</div>
-            <span
-              className={`mt-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                e.estado
-                  ? "bg-green-500/10 text-green-400"
-                  : "bg-red-500/10 text-red-400"
-              }`}
+      <h2 className="mb-3 mt-8 text-lg font-semibold text-white">Empresas</h2>
+      {empresas.length === 0 ? (
+        <SinDatos titulo="No hay empresas registradas" />
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {empresas.map((e) => (
+            <Link
+              key={e.id}
+              to={`/empresa/${e.id}`}
+              className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition hover:border-white/20 hover:bg-white/[0.07]"
             >
-              {e.estado ? "ACTIVA" : "INACTIVA"}
-            </span>
-          </div>
-        ))}
-      </div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="text-sm font-medium text-white">{e.nombre}</div>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${e.estado ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}>
+                  {e.estado ? "Activa" : "Inactiva"}
+                </span>
+              </div>
+              <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                <div>
+                  <dt className="text-slate-500">Unidades</dt>
+                  <dd className="font-mono text-base font-bold text-white">{e.indicadores.unidades}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Alertas</dt>
+                  <dd className={`font-mono text-base font-bold ${e.indicadores.alertasAbiertas > 0 ? "text-red-400" : "text-white"}`}>{e.indicadores.alertasAbiertas}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Operativas</dt>
+                  <dd className="font-mono text-base font-bold text-white">
+                    {e.indicadores.disponibilidadPct === null ? "—" : `${e.indicadores.disponibilidadPct}%`}
+                  </dd>
+                </div>
+              </dl>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

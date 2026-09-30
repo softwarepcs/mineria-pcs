@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import type { Empresa } from "@/types";
+import { menuEmpresa } from "@/features/empresas/menu";
 import { Icon } from "@/components/Icon";
 import { MenuTree } from "@/components/sidebar/MenuTree";
 
 export function EmpresaAccordionItem({
-  empresa,
+  empresaId,
+  nombre,
   collapsed,
   onExpandSidebar,
 }: {
-  empresa: Empresa;
+  empresaId: number;
+  nombre: string;
   collapsed: boolean;
   onExpandSidebar: () => void;
 }) {
+  const empresa = { id: empresaId, nombre, menu: menuEmpresa(empresaId) };
   const location = useLocation();
   const estaEnEmpresa = location.pathname.startsWith(`/empresa/${empresa.id}`);
   const [open, setOpen] = useState(estaEnEmpresa);

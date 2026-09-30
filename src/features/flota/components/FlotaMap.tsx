@@ -1,15 +1,17 @@
-import { useLeafletMap, escapeHtml } from "@/hooks/useLeafletMap";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import type { Maquinaria } from "@/types";
+import type { MaquinariaStats, EstadoFlota } from "@/features/flota/api";
+import { useLeafletMap, ajustarVista } from "@/shared/map/useLeafletMap";
+import { useFullscreen } from "@/shared/map/useFullscreen";
+import { MapaControles } from "@/shared/map/MapaControles";
+import { escapeHtml } from "@/shared/utils/escapeHtml";
+import { num } from "@/shared/utils/formato";
 
-function truckIcon(estado: Maquinaria["estado"], selected: boolean) {
-  let color = "#64748b";
-  if (estado === "conduccion") color = "#22c55e";
-  else if (estado === "ralenti") color = "#f59e0b";
-  
-  const size = selected ? 40 : 32;
+import { ESTADO_UNIDAD } from "@/features/flota/estado";
+
+function iconoCamion(estado: EstadoFlota, seleccionado: boolean) {
+  const color = ESTADO_UNIDAD[estado].color;
+  const size = seleccionado ? 40 : 32;
   return L.divIcon({
     className: "",
     html: `
@@ -27,136 +29,63 @@ function truckIcon(estado: Maquinaria["estado"], selected: boolean) {
   });
 }
 
-export function FlotaMap({
-  maquinarias,
-  selectedId,
-  onSelect,
-}: {
-  maquinarias: Maquinaria[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-}) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+type ConPosicion = MaquinariaStats & { lat: number; lng: number };
+
+export function FlotaMap({ maquinarias, selectedId, onSelect }: { maquinarias: MaquinariaStats[]; selectedId: string | null; onSelect: (id: string) => void }) {
+  const contenedorRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const markersRef = useRef<Record<string, L.Marker>>({});
+  const marcadoresRef = useRef<Record<string, L.Marker>>({});
+  const { mapa, capa, setCapa } = useLeafletMap(contenedorRef);
+  const { pantallaCompleta, alternarPantallaCompleta } = useFullscreen(wrapperRef);
 
-  const { map: mapInstance, capaMapa, setCapaMapa } = useLeafletMap(containerRef);
+  // Solo se dibujan las unidades con posición real
+  const conPosicion = useMemo(() => maquinarias.filter((m): m is ConPosicion => m.lat !== null && m.lng !== null), [maquinarias]);
+  const sinPosicion = maquinarias.length - conPosicion.length;
 
-  // Fullscreen Listener
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-      setTimeout(() => {
-        if (mapInstance) mapInstance.invalidateSize();
-      }, 200);
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, [mapInstance]);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      wrapperRef.current?.requestFullscreen().catch((err) => {
-        console.error(`Error al intentar pantalla completa: ${err.message}`);
-      });
-    } else {
-      document.exitFullscreen();
-    }
-  };
-
-  // Update Markers
-  useEffect(() => {
-    const map = mapInstance;
-    if (!map) return;
-
-    Object.values(markersRef.current).forEach((m) => m.remove());
-    markersRef.current = {};
-
-    maquinarias.forEach((c) => {
-      const estadoLabel = c.estado === "conduccion" ? "Conducción" : c.estado === "ralenti" ? "Ralentí" : "Offline";
-      const marker = L.marker([c.lat, c.lng], { icon: truckIcon(c.estado, c.id === selectedId) })
-        .addTo(map)
-        .bindPopup(
-          `<div style="font-family:sans-serif;font-size:13px;"><strong>${escapeHtml(c.placa)}</strong><br/>${c.l100km.toFixed(1)} L/100km - ${estadoLabel}</div>`
-        )
-        .on("click", () => onSelect(c.id));
-      markersRef.current[c.id] = marker;
+    if (!mapa) return;
+    const grupo = L.layerGroup().addTo(mapa);
+    marcadoresRef.current = {};
+    conPosicion.forEach((c) => {
+      marcadoresRef.current[c.id] = L.marker([c.lat, c.lng], { icon: iconoCamion(c.estado, c.id === selectedId) })
+        .bindPopup(`<div style="font-family:sans-serif;font-size:13px;"><strong>${escapeHtml(c.placa)}</strong><br/>${escapeHtml(num(c.l100km, 1))} L/100km · ${ESTADO_UNIDAD[c.estado].etiqueta}</div>`)
+        .on("click", () => onSelect(c.id))
+        .addTo(grupo);
     });
+    return () => {
+      grupo.remove();
+    };
+  }, [mapa, conPosicion, selectedId, onSelect]);
 
-    // Auto-fit bounds if we have trucks
-    if (maquinarias.length > 0 && !selectedId) {
-      const bounds = L.latLngBounds(maquinarias.map(m => [m.lat, m.lng]));
-      map.fitBounds(bounds, { padding: [50, 50] });
-    }
-  }, [maquinarias, selectedId, onSelect]);
-
-  // Handle selectedId zoom
+  // Centrar solo cuando cambia la selección o al cargar: el refresco periódico no quita el zoom del usuario
+  const centradoParaRef = useRef<string | null>(null);
   useEffect(() => {
-    const map = mapInstance;
-    if (!map) return;
-    if (!selectedId) {
-      if (maquinarias.length > 0) {
-        const bounds = L.latLngBounds(maquinarias.map(m => [m.lat, m.lng]));
-        map.fitBounds(bounds, { padding: [50, 50], duration: 0.8 });
-      }
-      map.closePopup();
-      return;
+    if (!mapa || conPosicion.length === 0) return;
+    const clave = selectedId ?? "todas";
+    if (centradoParaRef.current === clave) return;
+    centradoParaRef.current = clave;
+    const sel = selectedId ? conPosicion.find((c) => c.id === selectedId) : undefined;
+    if (sel) {
+      mapa.flyTo([sel.lat, sel.lng], 15, { duration: 0.8 });
+      marcadoresRef.current[sel.id]?.openPopup();
+    } else {
+      mapa.closePopup();
+      ajustarVista(mapa, conPosicion.map((c) => [c.lat, c.lng]));
     }
-    const maq = maquinarias.find((c) => c.id === selectedId);
-    if (!maq) return;
-    map.flyTo([maq.lat, maq.lng], 16, { duration: 0.8 });
-    markersRef.current[selectedId]?.openPopup();
-  }, [selectedId, maquinarias]);
+  }, [mapa, selectedId, conPosicion]);
 
   return (
     <div
       ref={wrapperRef}
-      className={`mp-map-wrapper !mb-0 w-full rounded-xl overflow-hidden relative border border-white/[0.06] bg-[#161b22] ${
-        isFullscreen ? "mp-map-wrapper-fullscreen" : "h-[320px] sm:h-[380px] lg:h-[450px]"
-      }`}
+      className={`relative w-full overflow-hidden rounded-xl border border-white/[0.06] bg-[#161b22] ${pantallaCompleta ? "h-screen" : "h-[320px] sm:h-[380px] lg:h-[450px]"}`}
     >
-      {/* Layer toggle */}
-      <div className="mp-map-layer-toggle !left-2.5 !top-2.5 sm:!left-3.5 sm:!top-3.5">
-        <button
-          type="button"
-          onClick={() => setCapaMapa("mapa")}
-          className={`mp-map-layer-btn !px-2.5 !py-1 sm:!px-3.5 sm:!py-1.5 text-xs ${
-            capaMapa === "mapa" ? "mp-map-layer-btn-active" : ""
-          }`}
-        >
-          Mapa
-        </button>
-        <button
-          type="button"
-          onClick={() => setCapaMapa("satelite")}
-          className={`mp-map-layer-btn !px-2.5 !py-1 sm:!px-3.5 sm:!py-1.5 text-xs ${
-            capaMapa === "satelite" ? "mp-map-layer-btn-active" : ""
-          }`}
-        >
-          Satélite
-        </button>
-      </div>
-
-      {/* Fullscreen button */}
-      <button
-        type="button"
-        onClick={toggleFullscreen}
-        className="mp-map-fullscreen-btn !right-2.5 !top-2.5 sm:!right-3.5 sm:!top-3.5"
-        title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
-      >
-        {isFullscreen ? (
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M15 9V4.5M15 9h4.5M9 15v4.5M9 15H4.5M15 15v4.5M15 15h4.5" />
-          </svg>
-        ) : (
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-          </svg>
-        )}
-      </button>
-
-      <div ref={containerRef} style={{ height: "100%", width: "100%" }} />
+      <MapaControles capa={capa} onCapa={setCapa} pantallaCompleta={pantallaCompleta} onPantallaCompleta={alternarPantallaCompleta} />
+      {sinPosicion > 0 && (
+        <div className="absolute bottom-3 left-3 z-[1000] rounded-md bg-black/60 px-2.5 py-1 text-[11px] text-slate-300">
+          {sinPosicion} unidad{sinPosicion > 1 ? "es" : ""} sin posición GPS
+        </div>
+      )}
+      <div ref={contenedorRef} className="h-full w-full" />
     </div>
   );
 }
