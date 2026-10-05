@@ -16,7 +16,7 @@ function RootRedirect() {
   const { sesion } = useAuth();
   if (!sesion) return <Navigate to="/login" replace />;
   if (sesion.permisos.verTodasLasEmpresas) return <Navigate to="/dashboard" replace />;
-  if (sesion.usuario.empresaId) return <Navigate to={`/empresa/${sesion.usuario.empresaId}`} replace />;
+  if (sesion.usuario.empresaId) return <Navigate to="/panel" replace />;
   return <Navigate to="/no-autorizado" replace />;
 }
 
@@ -43,12 +43,20 @@ function App() {
           }
         />
         <Route
-          path="/empresa/:id/*"
+          path="/empresa/:token/*"
           element={
             <ProtectedRoute>
               <EmpresaRoute>
                 <MainLayout><EmpresaDetalle /></MainLayout>
               </EmpresaRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/panel/*"
+          element={
+            <ProtectedRoute>
+              <MainLayout><EmpresaDetalle /></MainLayout>
             </ProtectedRoute>
           }
         />

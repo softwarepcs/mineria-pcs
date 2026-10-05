@@ -76,14 +76,14 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
             <div className="sidebar-divider" />
             <div className="space-y-0.5">
               {empresas.map((e) => (
-                <EmpresaAccordionItem key={e.id} empresaId={e.id} nombre={e.nombre} collapsed={collapsed} onExpandSidebar={expandSidebar} />
+                <EmpresaAccordionItem key={e.id} basePath={`/empresa/${e.token}`} nombre={e.nombre} collapsed={collapsed} onExpandSidebar={expandSidebar} />
               ))}
             </div>
           </nav>
         ) : (
           <nav className="space-y-0.5">
             {!collapsed && <div className="sidebar-section-label">{miEmpresa?.nombre ?? "Mi empresa"}</div>}
-            {miEmpresaId && <MenuTree items={menuEmpresa(miEmpresaId)} collapsed={collapsed} onExpandSidebar={expandSidebar} />}
+            {miEmpresaId && <MenuTree items={menuEmpresa("/panel")} collapsed={collapsed} onExpandSidebar={expandSidebar} />}
             <AdministracionMenu collapsed={collapsed} onExpandSidebar={expandSidebar} />
           </nav>
         )}

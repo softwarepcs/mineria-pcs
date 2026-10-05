@@ -34,7 +34,7 @@ export function Dashboard() {
           {empresas.map((e) => (
             <Link
               key={e.id}
-              to={`/empresa/${e.id}`}
+              to={`/empresa/${e.token}`}
               className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition hover:border-white/20 hover:bg-white/[0.07]"
             >
               <div className="flex items-start justify-between gap-2">

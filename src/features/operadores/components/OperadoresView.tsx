@@ -4,6 +4,7 @@ import { Plus, AlertTriangle } from "lucide-react";
 import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useUnidades } from "@/features/camiones/hooks";
 import { useAuth } from "@/hooks/useAuth";
+import { useEmpresaPath } from "@/shared/hooks/useEmpresaPath";
 import { Modal } from "@/shared/ui/Modal";
 import { Cargando, ErrorCarga, SinDatos } from "@/shared/ui/Estados";
 import { avisar } from "@/shared/ui/Avisos";
@@ -20,6 +21,7 @@ import { OperadorFormulario, aDto, valoresDesde, type ValoresOperador } from "./
 
 export function OperadoresView({ empresa }: { empresa: EmpresaDetalle }) {
   const { sesion } = useAuth();
+  const basePath = useEmpresaPath();
   const puedeEditar = sesion?.permisos.editarFlota ?? false;
   const { data: operadores = [], isLoading, error, refetch } = useOperadores(empresa.id);
   const { data: unidades = [] } = useUnidades(empresa.id);
@@ -62,14 +64,14 @@ export function OperadoresView({ empresa }: { empresa: EmpresaDetalle }) {
     {
       key: "operador", encabezado: "Operador", render: (o) => (
         <>
-          <Link to={`/empresa/${empresa.id}/operadores/${o.id}`} className="font-medium text-white hover:text-[#0df5c6]">{o.nombreCompleto}</Link>
+          <Link to={`${basePath}/operadores/${o.id}`} className="font-medium text-white hover:text-[#0df5c6]">{o.nombreCompleto}</Link>
           <div className="font-mono text-xs text-slate-500">{o.legajo ?? "Sin legajo"}</div>
         </>
       ),
     },
     {
       key: "unidad", encabezado: "Unidad asignada", render: (o) => o.asignacion
-        ? <Link to={`/empresa/${empresa.id}/camiones/${o.asignacion.maquinariaId}`} className="font-mono text-cyan-300 hover:underline">{o.asignacion.maquinaria}</Link>
+        ? <Link to={`${basePath}/camiones/${o.asignacion.maquinariaId}`} className="font-mono text-cyan-300 hover:underline">{o.asignacion.maquinaria}</Link>
         : <span className="text-slate-500">Sin asignar</span>,
     },
     { key: "sede", encabezado: "Sede", render: (o) => o.sede?.nombre ?? "—" },

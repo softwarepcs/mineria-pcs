@@ -3,6 +3,7 @@ import L from "leaflet";
 import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useUnidades } from "@/features/camiones/hooks";
 import { useLecturas } from "@/features/telemetria/hooks";
+import type { Lectura } from "@/features/telemetria/api";
 import { Icon } from "@/components/Icon";
 import { useLeafletMap, ajustarVista } from "@/shared/map/useLeafletMap";
 import { useFullscreen } from "@/shared/map/useFullscreen";
@@ -10,6 +11,8 @@ import { MapaControles } from "@/shared/map/MapaControles";
 import { escapeHtml } from "@/shared/utils/escapeHtml";
 import { descargarCsv } from "@/shared/utils/csv";
 import { fechaHora, hoyISO, num } from "@/shared/utils/formato";
+import { DataTable, type Columna } from "@/shared/ui/DataTable";
+import { Paginacion } from "@/shared/ui/Paginacion";
 import { mensajeError } from "@/shared/api/errores";
 
 const MAX_DIAS = 90;
@@ -112,6 +115,23 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
     );
   };
 
+  const columnasLecturas: Columna<Lectura>[] = [
+    { key: "item", encabezado: "Ítem", render: (_, i) => <span className="text-slate-500">{inicio + i + 1}</span> },
+    { key: "fecha", encabezado: "Fecha y hora", render: (l) => fechaHora(l.timestamp) },
+    { key: "operador", encabezado: "Operador", render: (l) => <span className="whitespace-nowrap font-medium text-slate-300">{l.operador ?? "—"}</span> },
+    { key: "lat", encabezado: "Latitud", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{l.lat?.toFixed(6) ?? "—"}</span> },
+    { key: "lng", encabezado: "Longitud", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{l.lng?.toFixed(6) ?? "—"}</span> },
+    { key: "vel", encabezado: "Velocidad", render: (l) => num(l.velocidad, 1) },
+    { key: "rumbo", encabezado: "Rumbo", render: (l) => num(l.rumbo) },
+    { key: "temin", encabezado: "Temp. in", render: (l) => num(l.temIngreso, 1) },
+    { key: "rpm", encabezado: "RPM", render: (l) => <span className="font-bold text-white">{num(l.rpm)}</span> },
+    { key: "flujoin", encabezado: "Flujo IN", render: (l) => num(l.flujoIn, 1) },
+    { key: "flujoret", encabezado: "Flujo RET", render: (l) => num(l.flujoRet, 1) },
+    { key: "consumo", encabezado: "Consumo gal/h", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{num(l.consumoGh, 1)}</span> },
+    { key: "totalgal", encabezado: "Total gal", render: (l) => num(l.totalGal) },
+    { key: "odo", encabezado: "Odómetro", render: (l) => num(l.odometro) },
+  ];
+
   return (
     <div>
       <div className="mp-header">
@@ -153,65 +173,36 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
         <div ref={contenedorRef} style={{ height: "100%", width: "100%" }} />
       </div>
 
-      <div className="mp-table-container">
-        <div className="mp-table-toolbar">
-          <div className="mp-table-toolbar-left">
+      <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#0c1421] p-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-sm text-slate-300">
             <span>Mostrar</span>
-            <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))}>
+            <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))} className="rounded border border-white/10 bg-[#121926] px-2 py-1 text-white">
               <option value={10}>10</option><option value={25}>25</option><option value={50}>50</option>
             </select>
             <span>registros</span>
           </div>
-          <input type="text" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar en tabla..." className="mp-table-search" />
+          <input type="text" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar en tabla..." className="rounded border border-white/10 bg-[#121926] px-3 py-1.5 text-sm text-white focus:border-[#0df5c6] focus:outline-none focus:ring-1 focus:ring-[#0df5c6]" />
         </div>
-        <div className="mp-table-wrapper">
-          <table className="mp-table">
-            <thead>
-              <tr>
-                <th>Ítem</th><th>Fecha y hora</th><th>Operador</th><th>Latitud</th><th>Longitud</th><th>Velocidad</th><th>Rumbo</th>
-                <th>Temp. in</th><th>RPM</th><th>Flujo IN</th><th>Flujo RET</th><th>Consumo gal/h</th><th>Total gal</th><th>Odómetro</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibles.length ? (
-                visibles.map((l, i) => (
-                  <tr key={l.id}>
-                    <td className="mp-cell-muted">{inicio + i + 1}</td>
-                    <td>{fechaHora(l.timestamp)}</td>
-                    <td className="whitespace-nowrap font-medium text-slate-300">{l.operador ?? "—"}</td>
-                    <td style={{ color: "#00ebb0", fontWeight: 600 }}>{l.lat?.toFixed(6) ?? "—"}</td>
-                    <td style={{ color: "#00ebb0", fontWeight: 600 }}>{l.lng?.toFixed(6) ?? "—"}</td>
-                    <td>{num(l.velocidad, 1)}</td>
-                    <td>{num(l.rumbo)}</td>
-                    <td>{num(l.temIngreso, 1)}</td>
-                    <td className="mp-cell-bold">{num(l.rpm)}</td>
-                    <td>{num(l.flujoIn, 1)}</td>
-                    <td>{num(l.flujoRet, 1)}</td>
-                    <td style={{ color: "#00ebb0", fontWeight: 600 }}>{num(l.consumoGh, 1)}</td>
-                    <td>{num(l.totalGal)}</td>
-                    <td>{num(l.odometro)}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={14} className="mp-table-empty">
-                    {!consulta ? "Elige una unidad y un rango de fechas y presiona Buscar." : isFetching ? "Cargando..." : lecturas.length ? "Ningún registro coincide con la búsqueda." : "No hay lecturas en ese rango."}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className="mp-pagination">
-          <span className="mp-pagination-info">
-            Mostrando {filtradas.length ? inicio + 1 : 0} a {Math.min(inicio + porPagina, filtradas.length)} de {filtradas.length.toLocaleString("es-PE")} registros
-          </span>
-          <div className="mp-pagination-buttons">
-            <button type="button" className="mp-page-btn" disabled={pagina === 1} onClick={() => setPagina((p) => p - 1)}>‹</button>
-            <span className="mp-page-btn mp-page-btn-active">{pagina} / {totalPaginas}</span>
-            <button type="button" className="mp-page-btn" disabled={pagina >= totalPaginas} onClick={() => setPagina((p) => p + 1)}>›</button>
-          </div>
-        </div>
+        
+        <DataTable
+          columnas={columnasLecturas}
+          datos={visibles}
+          keyExtractor={(l) => String(l.id)}
+          vacio={
+            <div className="py-8 text-center text-sm text-slate-500">
+              {!consulta ? "Elige una unidad y un rango de fechas y presiona Buscar." : isFetching ? "Cargando..." : lecturas.length ? "Ningún registro coincide con la búsqueda." : "No hay lecturas en ese rango."}
+            </div>
+          }
+        />
+
+        <Paginacion
+          pagina={pagina}
+          ultimaPagina={totalPaginas}
+          total={filtradas.length}
+          porPagina={porPagina}
+          onCambiar={setPagina}
+        />
       </div>
     </div>
   );

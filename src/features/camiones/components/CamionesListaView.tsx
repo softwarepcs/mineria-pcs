@@ -159,7 +159,6 @@ export function CamionesListaView({ empresa }: { empresa: EmpresaDetalle }) {
         {seleccionada ? (
           <UnidadPanel
             unidad={seleccionada}
-            empresaId={empresa.id}
             visible={vista === "detalle"}
             onVolver={() => setVista("mapa")}
             recorridoActivo={recorridoDe === seleccionada.id}

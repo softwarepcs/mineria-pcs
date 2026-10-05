@@ -5,16 +5,18 @@ import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useUnidades } from "@/features/camiones/hooks";
 import { useAlertasOperador } from "@/features/alertas/hooks";
 import { useAuth } from "@/hooks/useAuth";
+import { useEmpresaPath } from "@/shared/hooks/useEmpresaPath";
 import { Modal } from "@/shared/ui/Modal";
 import { Cargando, ErrorCarga, SinDatos } from "@/shared/ui/Estados";
+import { DataTable, type Columna } from "@/shared/ui/DataTable";
 import { PeriodoSelector } from "@/shared/ui/PeriodoSelector";
 import { GraficoLinea } from "@/shared/ui/GraficoLinea";
-import { Campo, Input, Select, BotonPrimario, BotonSecundario, MensajeError } from "@/shared/ui/Formulario";
+import { Campo, Select, BotonPrimario, BotonSecundario, MensajeError } from "@/shared/ui/Formulario";
 import { avisar, useConfirmar } from "@/shared/ui/Avisos";
 import { mensajeError } from "@/shared/api/errores";
 import { diasHasta, fecha, fechaHora, num } from "@/shared/utils/formato";
 import { useActualizarOperador, useAsignarUnidad, useDarDeBajaOperador, useLiberarUnidad, useOperador, useRendimiento } from "../hooks";
-import { limpiar, type CambiosOperador } from "../api";
+import { limpiar, type CambiosOperador, type Rendimiento } from "../api";
 import { ESTADO_LICENCIA, ESTADO_OPERADOR } from "../estado";
 import { OperadorFormulario, aDto, valoresDesde, type ValoresOperador } from "./OperadorFormulario";
 
@@ -42,6 +44,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   const { operadorId } = useParams();
   const id = Number(operadorId) || null;
   const navigate = useNavigate();
+  const basePath = useEmpresaPath();
   const { sesion } = useAuth();
   const puedeEditar = sesion?.permisos.editarFlota ?? false;
 
@@ -91,7 +94,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   const onBaja = async () => {
     if (!(await confirmar(`¿Dar de baja a ${op.nombreCompleto}?`, "Queda como inactivo y se libera su unidad. El historial se conserva."))) return;
     darDeBaja.mutate(op.id, {
-      onSuccess: () => { avisar.exito("Operador dado de baja"); navigate(`/empresa/${empresa.id}/operadores`); },
+      onSuccess: () => { avisar.exito("Operador dado de baja"); navigate(`${basePath}/operadores`); },
       onError: (e) => avisar.error(mensajeError(e)),
     });
   };
@@ -101,9 +104,16 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   const r = rendimientoQ.data;
   const diasLic = diasHasta(op.licencia?.vencimiento);
 
+  const columnasAsignaciones: Columna<Rendimiento["asignaciones"][number]>[] = [
+    { key: "unidad", encabezado: "Unidad", render: (a) => <span className="font-mono text-white">{a.maquinaria}</span> },
+    { key: "desde", encabezado: "Desde", render: (a) => fecha(a.fechaInicio) },
+    { key: "hasta", encabezado: "Hasta", render: (a) => a.fechaFin ? fecha(a.fechaFin) : <span className="text-emerald-400">Actual</span> },
+    { key: "km", encabezado: "km período", alinear: "right", render: (a) => num(a.km) },
+  ];
+
   return (
     <div className="space-y-5 font-sans text-slate-300">
-      <Link to={`/empresa/${empresa.id}/operadores`} className="inline-flex items-center gap-1 text-xs font-medium text-[#0df5c6] hover:underline">
+      <Link to={`${basePath}/operadores`} className="inline-flex items-center gap-1 text-xs font-medium text-[#0df5c6] hover:underline">
         <ArrowLeft className="h-3 w-3" /> Volver a Operadores
       </Link>
 
@@ -169,7 +179,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
             <div className="flex items-center gap-3">
               <Truck className="h-5 w-5 text-cyan-400" />
               <div>
-                <Link to={`/empresa/${empresa.id}/camiones/${op.asignacion.maquinariaId}`} className="font-mono text-sm text-white hover:text-[#0df5c6]">{op.asignacion.maquinaria}</Link>
+                <Link to={`${basePath}/camiones/${op.asignacion.maquinariaId}`} className="font-mono text-sm text-white hover:text-[#0df5c6]">{op.asignacion.maquinaria}</Link>
                 <div className="text-xs text-slate-400">Desde {fecha(op.asignacion.desde)} · {op.asignacion.atribucion ?? "Sin atribución"}</div>
               </div>
             </div>
@@ -218,21 +228,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
           {!r?.asignaciones.length ? (
             <p className="text-sm text-slate-500">Nunca tuvo unidades asignadas.</p>
           ) : (
-            <table className="w-full text-left text-xs">
-              <thead className="text-[10px] uppercase tracking-wider text-slate-500">
-                <tr><th className="py-1.5">Unidad</th><th>Desde</th><th>Hasta</th><th className="text-right">km período</th></tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {r.asignaciones.map((a) => (
-                  <tr key={a.id}>
-                    <td className="py-1.5 font-mono text-white">{a.maquinaria}</td>
-                    <td>{fecha(a.fechaInicio)}</td>
-                    <td>{a.fechaFin ? fecha(a.fechaFin) : <span className="text-emerald-400">Actual</span>}</td>
-                    <td className="text-right">{num(a.km)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DataTable columnas={columnasAsignaciones} datos={r.asignaciones} keyExtractor={(a) => String(a.id)} />
           )}
         </Tarjeta>
 
@@ -291,7 +287,11 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
             </Select>
           </Campo>
           <Campo etiqueta="Atribución">
-            <Input maxLength={150} value={asignacion.atribucion} onChange={(e) => setAsignacion((a) => ({ ...a, atribucion: e.target.value }))} placeholder="Ej. Nacional" />
+            <Select value={asignacion.atribucion} onChange={(e) => setAsignacion((a) => ({ ...a, atribucion: e.target.value }))}>
+              <option value="">Selecciona...</option>
+              <option value="Nacional">Nacional</option>
+              <option value="Internacional">Internacional</option>
+            </Select>
           </Campo>
           <MensajeError>{asignar.error ? mensajeError(asignar.error) : null}</MensajeError>
           <div className="flex justify-end gap-2 border-t border-white/10 pt-4">

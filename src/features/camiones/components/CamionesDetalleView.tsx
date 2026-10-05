@@ -7,12 +7,15 @@ import { useFlotaDashboard } from "@/features/flota/hooks";
 import { useLecturasRecientes } from "@/features/telemetria/hooks";
 import { InstalarDispositivoModal } from "@/features/dispositivos/components/InstalarDispositivoModal";
 import { useAuth } from "@/hooks/useAuth";
+import { useEmpresaPath } from "@/shared/hooks/useEmpresaPath";
 import { Cargando, ErrorCarga, SinDatos } from "@/shared/ui/Estados";
+import { DataTable, type Columna } from "@/shared/ui/DataTable";
 import { PeriodoSelector } from "@/shared/ui/PeriodoSelector";
 import { GraficoLinea } from "@/shared/ui/GraficoLinea";
 import { avisar } from "@/shared/ui/Avisos";
 import { fecha, fechaHora, haceCuanto, hora, num } from "@/shared/utils/formato";
 import { useHistorialOperadores, useUnidades } from "../hooks";
+import type { AsignacionHistorial } from "../api";
 import { ESTADO_UNIDAD } from "../estado";
 import { EditarUnidadModal } from "./EditarUnidadModal";
 
@@ -39,6 +42,7 @@ function Kpi({ titulo, valor, unidad, detalle, color }: { titulo: string; valor:
 export function CamionesDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   const { unidadId } = useParams();
   const id = Number(unidadId);
+  const basePath = useEmpresaPath();
   const { sesion } = useAuth();
   const puedeEditar = sesion?.permisos.editarFlota ?? false;
   const [dias, setDias] = useState<Periodo>(30);
@@ -55,7 +59,7 @@ export function CamionesDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
 
   if (unidadesQ.isLoading) return <Cargando texto="Cargando unidad..." />;
   if (unidadesQ.error) return <ErrorCarga error={unidadesQ.error} onReintentar={() => void unidadesQ.refetch()} />;
-  if (!unidad) return <SinDatos titulo="Unidad no encontrada"><Link to={`/empresa/${empresa.id}/camiones`} className="underline">Volver a Unidades</Link></SinDatos>;
+  if (!unidad) return <SinDatos titulo="Unidad no encontrada"><Link to={`${basePath}/camiones`} className="underline">Volver a Unidades</Link></SinDatos>;
 
   const estado = ESTADO_UNIDAD[unidad.estado];
   const t = unidad.telemetria;
@@ -63,9 +67,27 @@ export function CamionesDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   const ticks = lecturas.map((l) => hora(l.timestamp));
   const hayActividad = stats && stats.km > 0;
 
+  const columnasOperadores: Columna<AsignacionHistorial>[] = [
+    {
+      key: "operador",
+      encabezado: "Operador",
+      render: (a) => (
+        <>
+          <Link to={`${basePath}/operadores/${a.usuario.id}`} className="text-white hover:text-[#0df5c6]">
+            {`${a.usuario.nombres} ${a.usuario.apellidos}`.trim()}
+          </Link>
+          {a.usuario.legajo && <span className="ml-1.5 font-mono text-[10px] text-slate-500">{a.usuario.legajo}</span>}
+        </>
+      ),
+    },
+    { key: "desde", encabezado: "Desde", render: (a) => fecha(a.fechaInicio) },
+    { key: "hasta", encabezado: "Hasta", render: (a) => a.fechaFin ? fecha(a.fechaFin) : <span className="text-emerald-400">Actual</span> },
+    { key: "atribucion", encabezado: "Atribución", render: (a) => a.atribucion ?? "—" },
+  ];
+
   return (
     <div className="flex w-full flex-col gap-3 pb-2 font-sans text-slate-200">
-      <Link to={`/empresa/${empresa.id}/camiones`} className="inline-flex w-fit items-center gap-1 text-[11px] font-medium text-[#0df5c6] hover:underline">
+      <Link to={`${basePath}/camiones`} className="inline-flex w-fit items-center gap-1 text-[11px] font-medium text-[#0df5c6] hover:underline">
         <ArrowLeft className="h-3 w-3" /> Volver a Unidades
       </Link>
 
@@ -165,26 +187,7 @@ export function CamionesDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
           ) : !historial.data?.length ? (
             <p className="text-xs text-slate-500">Nunca tuvo un operador asignado.</p>
           ) : (
-            <table className="w-full text-left text-xs">
-              <thead className="text-[10px] uppercase tracking-wider text-slate-500">
-                <tr><th className="py-1.5">Operador</th><th>Desde</th><th>Hasta</th><th>Atribución</th></tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {historial.data.map((a) => (
-                  <tr key={a.id}>
-                    <td className="py-1.5">
-                      <Link to={`/empresa/${empresa.id}/operadores/${a.usuario.id}`} className="text-white hover:text-[#0df5c6]">
-                        {`${a.usuario.nombres} ${a.usuario.apellidos}`.trim()}
-                      </Link>
-                      {a.usuario.legajo && <span className="ml-1.5 font-mono text-[10px] text-slate-500">{a.usuario.legajo}</span>}
-                    </td>
-                    <td>{fecha(a.fechaInicio)}</td>
-                    <td>{a.fechaFin ? fecha(a.fechaFin) : <span className="text-emerald-400">Actual</span>}</td>
-                    <td>{a.atribucion ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DataTable columnas={columnasOperadores} datos={historial.data} keyExtractor={(a) => String(a.id)} />
           )}
         </div>
       </div>

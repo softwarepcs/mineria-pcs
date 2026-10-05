@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 /**
@@ -8,9 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
  */
 export function EmpresaRoute({ children }: { children: ReactNode }) {
   const { sesion } = useAuth();
-  const { id } = useParams();
   if (!sesion) return <Navigate to="/login" replace />;
-  if (!sesion.permisos.verTodasLasEmpresas && Number(id) !== sesion.usuario.empresaId) {
+  if (!sesion.permisos.verTodasLasEmpresas) {
     return <Navigate to="/no-autorizado" replace />;
   }
   return <>{children}</>;

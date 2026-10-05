@@ -33,3 +33,17 @@ export async function listarUsuarios(page: number, limit: number) {
     })),
   };
 }
+
+export async function crearUsuario(data: any) {
+  const res = await apiClient.post("/usuarios", data);
+  return res.data;
+}
+
+export async function actualizarUsuario(id: number, data: any) {
+  const res = await apiClient.patch(`/usuarios/${id}`, data);
+  return res.data;
+}
+
+export async function eliminarUsuario(id: number) {
+  await apiClient.delete(`/usuarios/${id}`);
+}

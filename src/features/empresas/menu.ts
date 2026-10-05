@@ -1,14 +1,15 @@
 import type { MenuItem } from "@/types";
 
 /** Menú de cada empresa: una sola definición para el sidebar del SuperAdmin y el del usuario de empresa. */
-export function menuEmpresa(id: number): MenuItem[] {
+export function menuEmpresa(basePath: string): MenuItem[] {
   return [
-    { id: `home-${id}`, label: "Inicio", path: `/empresa/${id}`, icon: "home" },
-    { id: `camiones-${id}`, label: "Unidades", path: `/empresa/${id}/camiones`, icon: "truck" },
-    { id: `operadores-${id}`, label: "Operadores", path: `/empresa/${id}/operadores`, icon: "users" },
-    { id: `geocercas-${id}`, label: "Geocercas", path: `/empresa/${id}/geocercas`, icon: "mapPin" },
-    { id: `alertas-${id}`, label: "Alertas", path: `/empresa/${id}/alertas`, icon: "alert-triangle" },
-    { id: `dispositivos-${id}`, label: "Dispositivos", path: `/empresa/${id}/dispositivos`, icon: "monitor" },
-    { id: `database-${id}`, label: "Telemetría", path: `/empresa/${id}/database`, icon: "database" },
+    { id: `home-${basePath}`, label: "Inicio", path: basePath, icon: "home" },
+    { id: `camiones-${basePath}`, label: "Unidades", path: `${basePath}/camiones`, icon: "truck" },
+    { id: `operadores-${basePath}`, label: "Operadores", path: `${basePath}/operadores`, icon: "users" },
+    { id: `geocercas-${basePath}`, label: "Geocercas", path: `${basePath}/geocercas`, icon: "mapPin" },
+    { id: `alertas-${basePath}`, label: "Alertas", path: `${basePath}/alertas`, icon: "alert-triangle" },
+    { id: `dispositivos-${basePath}`, label: "Dispositivos", path: `${basePath}/dispositivos`, icon: "monitor" },
+    { id: `database-${basePath}`, label: "Telemetría", path: `${basePath}/database`, icon: "database" },
+    { id: `sedes-${basePath}`, label: "Sedes", path: `${basePath}/sedes`, icon: "building" },
   ];
 }

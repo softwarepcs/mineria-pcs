@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ChevronLeft, User, Clock, Cpu, Route } from "lucide-react";
 import { ESTADO_UNIDAD, type UnidadConHoy } from "../estado";
 import { useLecturasRecientes } from "@/features/telemetria/hooks";
+import { useEmpresaPath } from "@/shared/hooks/useEmpresaPath";
 import { GraficoLinea } from "@/shared/ui/GraficoLinea";
 import { haceCuanto, hora, num } from "@/shared/utils/formato";
 
@@ -19,14 +20,12 @@ function Dato({ titulo, valor, unidad }: { titulo: string; valor: string; unidad
 
 export function UnidadPanel({
   unidad,
-  empresaId,
   visible,
   onVolver,
   recorridoActivo,
   onRecorrido,
 }: {
   unidad: UnidadConHoy;
-  empresaId: number;
   visible: boolean;
   onVolver: () => void;
   recorridoActivo: boolean;
@@ -35,6 +34,7 @@ export function UnidadPanel({
   const estado = ESTADO_UNIDAD[unidad.estado];
   const t = unidad.telemetria;
   const hoy = unidad.hoy;
+  const basePath = useEmpresaPath();
   const { data: lecturas = [], isLoading } = useLecturasRecientes(unidad.dispositivo ? unidad.id : null, 4);
 
   return (
@@ -64,7 +64,7 @@ export function UnidadPanel({
           </div>
           <div className="min-w-0">
             {unidad.operadorActual ? (
-              <Link to={`/empresa/${empresaId}/operadores/${unidad.operadorActual.id}`} className="block truncate text-sm font-semibold text-white hover:text-[#0df5c6]">
+              <Link to={`${basePath}/operadores/${unidad.operadorActual.id}`} className="block truncate text-sm font-semibold text-white hover:text-[#0df5c6]">
                 {unidad.operadorActual.nombre}
               </Link>
             ) : (
@@ -110,7 +110,7 @@ export function UnidadPanel({
 
       <div className="mt-auto space-y-2 p-4">
         <Link
-          to={`/empresa/${empresaId}/camiones/${unidad.id}`}
+          to={`${basePath}/camiones/${unidad.id}`}
           className="flex w-full items-center justify-center rounded-lg bg-[#0df5c6] py-2.5 text-xs font-bold text-[#07131b] transition hover:bg-[#0bdba0]"
         >
           Ver ficha completa

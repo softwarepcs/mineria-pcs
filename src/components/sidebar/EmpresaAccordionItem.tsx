@@ -5,19 +5,19 @@ import { Icon } from "@/components/Icon";
 import { MenuTree } from "@/components/sidebar/MenuTree";
 
 export function EmpresaAccordionItem({
-  empresaId,
+  basePath,
   nombre,
   collapsed,
   onExpandSidebar,
 }: {
-  empresaId: number;
+  basePath: string;
   nombre: string;
   collapsed: boolean;
   onExpandSidebar: () => void;
 }) {
-  const empresa = { id: empresaId, nombre, menu: menuEmpresa(empresaId) };
+  const empresa = { basePath, nombre, menu: menuEmpresa(basePath) };
   const location = useLocation();
-  const estaEnEmpresa = location.pathname.startsWith(`/empresa/${empresa.id}`);
+  const estaEnEmpresa = location.pathname.startsWith(basePath);
   const [open, setOpen] = useState(estaEnEmpresa);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function EmpresaAccordionItem({
 
     return (
       <NavLink
-        to={`/empresa/${empresa.id}`}
+        to={empresa.basePath}
         title={empresa.nombre}
         className={({ isActive }) =>
           `sidebar-nav-link-collapsed ${isActive ? "sidebar-nav-active-collapsed" : ""}`
@@ -61,7 +61,7 @@ export function EmpresaAccordionItem({
   if (!tieneMenu) {
     return (
       <NavLink
-        to={`/empresa/${empresa.id}`}
+        to={empresa.basePath}
         className={({ isActive }) =>
           `sidebar-nav-link ${isActive ? "sidebar-nav-link-active" : ""}`
         }

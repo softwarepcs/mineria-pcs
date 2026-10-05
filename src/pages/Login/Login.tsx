@@ -14,8 +14,10 @@ export function Login() {
   if (sesion) {
     if (sesion.permisos.verTodasLasEmpresas) {
       return <Navigate to="/dashboard" replace />;
+    } else if (sesion.usuario.empresaId) {
+      return <Navigate to="/panel" replace />;
     } else {
-      return <Navigate to={`/empresa/${sesion.usuario.empresaId}`} replace />;
+      return <Navigate to="/no-autorizado" replace />;
     }
   }
 

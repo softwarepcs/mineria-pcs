@@ -1,6 +1,6 @@
 import { Link, useParams, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useEmpresa } from "@/features/empresas/hooks";
+import { useEmpresa, useEmpresaPorToken } from "@/features/empresas/hooks";
 import { Cargando, ErrorCarga } from "@/shared/ui/Estados";
 import { FlotaHome } from "@/features/flota/components/FlotaHome";
 import { MotorPrincipal } from "@/features/motor/components/MotorPrincipal";
@@ -11,12 +11,22 @@ import { CamionesListaView } from "@/features/camiones/components/CamionesListaV
 import { CamionesDetalleView } from "@/features/camiones/components/CamionesDetalleView";
 import { GeocercasView } from "@/features/geocercas/components/GeocercasView";
 import { DispositivosView } from "@/features/dispositivos/components/DispositivosView";
+import { SedesView } from "@/features/sedes/components/SedesView";
 
 export function EmpresaDetalle() {
-  const { id } = useParams();
+  const { token } = useParams();
   const { sesion } = useAuth();
-  const empresaId = Number(id);
-  const { data: empresa, isLoading, error, refetch } = useEmpresa(empresaId);
+  
+  const isPanel = !token;
+  const empresaId = isPanel ? sesion?.usuario.empresaId : null;
+
+  const queryToken = useEmpresaPorToken(token);
+  const queryId = useEmpresa(empresaId);
+
+  const isLoading = isPanel ? queryId.isLoading : queryToken.isLoading;
+  const error = isPanel ? queryId.error : queryToken.error;
+  const empresa = isPanel ? queryId.data : queryToken.data;
+  const refetch = isPanel ? queryId.refetch : queryToken.refetch;
 
   if (isLoading) return <Cargando texto="Cargando empresa..." />;
   if (error || !empresa) return <ErrorCarga error={error ?? new Error("Empresa no encontrada")} onReintentar={() => void refetch()} />;
@@ -40,7 +50,8 @@ export function EmpresaDetalle() {
         <Route path="alertas" element={<AlertasView empresa={empresa} />} />
         <Route path="dispositivos" element={<DispositivosView empresa={empresa} />} />
         <Route path="database" element={<MotorPrincipal empresa={empresa} />} />
-        <Route path="*" element={<Navigate to={`/empresa/${empresaId}`} replace />} />
+        <Route path="sedes" element={<SedesView empresa={empresa} />} />
+        <Route path="*" element={<Navigate to={isPanel ? "/panel" : `/empresa/${token}`} replace />} />
       </Routes>
     </div>
   );

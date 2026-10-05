@@ -6,7 +6,7 @@ import { SinDatos } from "./Estados";
 export interface Columna<T> {
   key: string;
   encabezado: string;
-  render: (fila: T) => ReactNode;
+  render: (fila: T, index: number) => ReactNode;
   /** Por defecto `"left"`. */
   alinear?: "left" | "center" | "right";
   /** Si `true`, la columna es ordenable haciendo clic en el encabezado. Requiere `valorOrden`. */
@@ -113,8 +113,8 @@ export function DataTable<T>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
-          {datosOrdenados.map((fila) => {
+        <tbody className="divide-y divide-white/5 text-slate-300">
+          {datosOrdenados.map((fila, index) => {
             const k = keyExtractor(fila);
             const activa = filaActiva !== undefined && filaActiva !== null && k === filaActiva;
             return (
@@ -125,7 +125,7 @@ export function DataTable<T>({
               >
                 {columnas.map((col) => (
                   <td key={col.key} className={`px-4 py-3 ${ALIGN[col.alinear ?? "left"]}`}>
-                    {col.render(fila)}
+                    {col.render(fila, index)}
                   </td>
                 ))}
               </tr>

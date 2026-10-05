@@ -10,6 +10,8 @@ export interface Permisos {
   verTodasLasEmpresas: boolean;
   /** /usuarios — backend: SuperAdmin, Administrador. */
   gestionarUsuarios: boolean;
+  /** Crear/editar sedes — backend: SuperAdmin, Administrador, Gerente. */
+  gestionarSedes: boolean;
   /** Métricas y metas (configuración por máquina) — backend: SuperAdmin, Administrador. */
   configurarMetas: boolean;
   /** Crear/editar unidades, operadores, geocercas y dispositivos — backend: SuperAdmin, Administrador. */
@@ -26,6 +28,7 @@ export function calcularPermisos(roles: string[]): Permisos {
   return {
     verTodasLasEmpresas: superAdmin,
     gestionarUsuarios: admin,
+    gestionarSedes: admin || tiene(roles, "Gerente"),
     configurarMetas: admin,
     editarFlota: admin,
     atenderAlertas: admin || tiene(roles, "Gerente"),

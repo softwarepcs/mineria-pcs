@@ -125,7 +125,13 @@ export function OperadorFormulario({
                 ))}
               </Select>
             </Campo>
-            <Campo etiqueta="Atribución"><Input maxLength={150} value={v.atribucion} onChange={set("atribucion")} placeholder="Ej. Nacional" disabled={!v.maquinariaId} /></Campo>
+            <Campo etiqueta="Atribución">
+              <Select value={v.atribucion} onChange={set("atribucion")} disabled={!v.maquinariaId}>
+                <option value="">Selecciona...</option>
+                <option value="Nacional">Nacional</option>
+                <option value="Internacional">Internacional</option>
+              </Select>
+            </Campo>
           </div>
         </fieldset>
       )}

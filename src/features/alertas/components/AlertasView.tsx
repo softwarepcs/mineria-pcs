@@ -9,6 +9,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { DataTable, type Columna } from "@/shared/ui/DataTable";
 import { avisar } from "@/shared/ui/Avisos";
 import { mensajeError } from "@/shared/api/errores";
+import { useEmpresaPath } from "@/shared/hooks/useEmpresaPath";
 import { fechaHora, hora, num } from "@/shared/utils/formato";
 import { useAlertaDetalle, useAlertasEventos, useAlertasGeocerca, useCambiarEstadoAlerta } from "../hooks";
 import type { EstadoAlerta, Severidad } from "../api";
@@ -40,6 +41,7 @@ function Metrica({ titulo, valor, unidad }: { titulo: string; valor: string; uni
 
 function DetalleEvento({ id, empresaId, puedeAtender, onVolver }: { id: string; empresaId: number; puedeAtender: boolean; onVolver: () => void }) {
   const { data: a, isLoading, error } = useAlertaDetalle(id);
+  const basePath = useEmpresaPath();
   const cambiar = useCambiarEstadoAlerta(empresaId);
 
   if (isLoading) return <Cargando texto="Cargando alerta..." />;
@@ -65,19 +67,23 @@ function DetalleEvento({ id, empresaId, puedeAtender, onVolver }: { id: string; 
       </button>
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div className="flex flex-wrap items-center gap-2.5">
-          <h3 className="text-xl font-bold tracking-tight" style={{ color: s.strip }}>{a.regla.toUpperCase()}</h3>
+          <h3 className="text-xl font-bold tracking-tight" style={{ color: s.strip }}>
+            {a.regla.replace(/_/g, " ").toUpperCase()}
+          </h3>
           <span className={`rounded border px-2 py-0.5 text-[10px] font-bold tracking-wider ${s.clase}`}>{s.etiqueta}</span>
           <span className={`rounded border px-2 py-0.5 text-[10px] font-bold tracking-wider ${e.clase}`}>{e.etiqueta}</span>
         </div>
         <div className="sm:text-right">
-          <Link to={`/empresa/${empresaId}/camiones/${a.maquinariaId}`} className="font-mono text-sm font-bold text-white hover:text-[#0df5c6]">{a.maquinaria}</Link>
+          <Link to={`${basePath}/camiones/${a.maquinariaId}`} className="font-mono text-sm font-bold text-white hover:text-[#0df5c6]">{a.maquinaria}</Link>
           <div className="mt-0.5 font-mono text-[11px] text-slate-400">{fechaHora(a.fechaHora)}</div>
         </div>
       </div>
 
-      <p className="text-sm text-slate-300">
-        Valor registrado <strong className="text-white">{num(a.valorRegistrado, 2)}</strong> {a.condicion} umbral <strong className="text-white">{num(a.valorUmbral, 2)}</strong>.
-      </p>
+      <div className="rounded-lg border border-white/5 bg-white/5 p-4 text-sm leading-relaxed text-slate-300">
+        <span className="mb-1 block font-semibold text-[#0df5c6]">Motivo de la alerta:</span>
+        Se ha detectado un comportamiento anómalo en la relación de <strong>velocidad frente al consumo de combustible</strong>. 
+        El indicador actual registró un valor de <strong className="text-white">{num(a.valorRegistrado, 2)}</strong>, lo cual {a.condicion === ">" ? "supera" : a.condicion === "<" ? "es menor al" : "no cumple el"} umbral establecido de <strong className="text-white">{num(a.valorUmbral, 2)}</strong>.
+      </div>
 
       <div className="grid grid-cols-2 divide-y divide-white/8 border-y border-white/8 sm:grid-cols-3 sm:divide-y-0">
         <Metrica titulo="Duración de la ventana" valor={num(m.duracionMin)} unidad="min" />
@@ -125,13 +131,14 @@ function DetalleEvento({ id, empresaId, puedeAtender, onVolver }: { id: string; 
 
 function CrucesGeocerca({ empresaId }: { empresaId: number }) {
   const { data = [], isLoading, error } = useAlertasGeocerca(empresaId);
+  const basePath = useEmpresaPath();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- tipo inferido del hook
   const columnas: Columna<any>[] = [
     { key: "fecha", encabezado: "Fecha", render: (c) => <span className="font-mono text-xs">{fechaHora(c.fechaHora)}</span> },
     { key: "evento", encabezado: "Evento", render: (c) => <span className={`text-xs font-bold ${c.tipoEvento === "ENTRADA" ? "text-emerald-400" : "text-amber-400"}`}>{c.tipoEvento}</span> },
     { key: "geocerca", encabezado: "Geocerca", render: (c) => c.geocerca },
-    { key: "unidad", encabezado: "Unidad", render: (c) => <Link to={`/empresa/${empresaId}/camiones/${c.maquinariaId}`} className="font-mono text-cyan-300 hover:underline">{c.maquinaria}</Link> },
+    { key: "unidad", encabezado: "Unidad", render: (c) => <Link to={`${basePath}/camiones/${c.maquinariaId}`} className="font-mono text-cyan-300 hover:underline">{c.maquinaria}</Link> },
   ];
 
   if (isLoading) return <Cargando />;
@@ -221,7 +228,7 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
                   <div className="w-1 shrink-0" style={{ background: s.strip }} />
                   <div className="min-w-0 flex-1 p-3">
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="truncate text-[13px] font-bold text-white">{a.regla.toUpperCase()}</span>
+                      <span className="truncate text-[13px] font-bold text-white">{a.regla.replace(/_/g, " ").toUpperCase()}</span>
                       <span className={`shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-bold ${e.clase}`}>{e.etiqueta}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
