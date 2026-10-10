@@ -2,6 +2,8 @@ import { Circle, Pentagon, Undo2 } from "lucide-react";
 import type { Sede } from "@/features/empresas/api";
 import type { GeocercaValores } from "../api";
 import { num } from "@/shared/utils/formato";
+import type { LatLng } from "@/shared/utils/geometria";
+import { CoordenadasCirculo, CoordenadasPoligono } from "./CoordenadasEditor";
 
 const claseInput = "flex-1 min-w-0 rounded border border-white/15 bg-[#161b22] px-2 py-1 text-xs text-white outline-none placeholder:text-slate-500 focus:border-cyan-400";
 
@@ -22,6 +24,8 @@ export function GeocercaForm({
   editando,
   error,
   guardando,
+  coordenadas,
+  advertencia,
   onGuardar,
   onCancelar,
 }: {
@@ -32,6 +36,16 @@ export function GeocercaForm({
   editando: boolean;
   error: string | null;
   guardando: boolean;
+  /** Edición de coordenadas escritas (ya validadas por el editor). */
+  coordenadas: {
+    fijarCentro: (p: LatLng) => void;
+    fijarPunto: (i: number, p: LatLng) => void;
+    agregarPunto: (p: LatLng) => void;
+    quitarPunto: (i: number) => void;
+    fijarPuntos: (puntos: LatLng[], anadir: boolean) => void;
+  };
+  /** Aviso no bloqueante sobre la ubicación escrita. */
+  advertencia: string | null;
   onGuardar: () => void;
   onCancelar: () => void;
 }) {
@@ -45,7 +59,7 @@ export function GeocercaForm({
     >
       <div className="flex items-center justify-between rounded-md border border-white/5 bg-[#21262d] px-3 py-1.5 text-xs font-medium text-slate-200">
         <span>{editando ? "Editar geocerca" : "Nueva geocerca"}</span>
-        <span className="text-[10px] text-slate-400">Haz clic en el mapa para ubicarla</span>
+        <span className="text-[10px] text-slate-400">Dibújala en el mapa o escribe las coordenadas</span>
       </div>
 
       <Fila etiqueta="Nombre" requerido>
@@ -81,25 +95,24 @@ export function GeocercaForm({
 
       {valores.tipo === "CIRCULO" ? (
         <>
-          <Fila etiqueta="Centro">
-            <span className="font-mono text-xs text-cyan-300">
-              {valores.centro ? `${valores.centro[0].toFixed(6)}, ${valores.centro[1].toFixed(6)}` : "Clic en el mapa"}
-            </span>
-          </Fila>
+          <CoordenadasCirculo centro={valores.centro} onCentro={coordenadas.fijarCentro} />
           <Fila etiqueta="Radio (m)" requerido>
             <input type="number" min={1} step={1} required value={valores.radio ?? ""} onChange={(e) => cambiar("radio", e.target.value ? Number(e.target.value) : null)} className={claseInput} />
           </Fila>
         </>
       ) : (
-        <Fila etiqueta="Vértices">
-          <span className="text-xs text-slate-200">{valores.puntos.length}</span>
-          <button type="button" disabled={!valores.puntos.length} onClick={() => cambiar("puntos", valores.puntos.slice(0, -1))} className="ml-auto flex items-center gap-1 text-[11px] text-slate-400 hover:text-white disabled:opacity-40">
-            <Undo2 className="h-3 w-3" /> Deshacer
-          </button>
-          <button type="button" disabled={!valores.puntos.length} onClick={() => cambiar("puntos", [])} className="text-[11px] text-slate-400 hover:text-white disabled:opacity-40">
-            Borrar
-          </button>
-        </Fila>
+        <>
+          <div className="flex items-center gap-2 text-xs text-slate-300">
+            <span>Vértices: <span className="font-mono text-slate-200">{valores.puntos.length}</span></span>
+            <button type="button" disabled={!valores.puntos.length} onClick={() => cambiar("puntos", valores.puntos.slice(0, -1))} className="ml-auto flex items-center gap-1 text-[11px] text-slate-400 hover:text-white disabled:opacity-40">
+              <Undo2 className="h-3 w-3" /> Deshacer último
+            </button>
+            <button type="button" disabled={!valores.puntos.length} onClick={() => cambiar("puntos", [])} className="text-[11px] text-slate-400 hover:text-white disabled:opacity-40">
+              Borrar todos
+            </button>
+          </div>
+          <CoordenadasPoligono puntos={valores.puntos} onPunto={coordenadas.fijarPunto} onQuitar={coordenadas.quitarPunto} onAgregar={coordenadas.agregarPunto} onReemplazar={coordenadas.fijarPuntos} />
+        </>
       )}
 
       <div className="flex gap-4 text-xs text-slate-400">
@@ -118,6 +131,7 @@ export function GeocercaForm({
         <input type="datetime-local" value={valores.fechaExpiracion ?? ""} onChange={(e) => cambiar("fechaExpiracion", e.target.value || null)} className={claseInput} />
       </Fila>
 
+      {advertencia && <p role="status" className="rounded border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-300">{advertencia}</p>}
       {error && <p className="text-[11px] text-amber-400">{error}</p>}
 
       <div className="flex items-center justify-end gap-2 border-t border-white/10 pt-2">

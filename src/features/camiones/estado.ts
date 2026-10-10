@@ -13,5 +13,8 @@ export function unirConHoy(unidades: Unidad[], stats: MaquinariaStats[] | undefi
 
 export function posicion(u: Unidad): [number, number] | null {
   const t = u.telemetria;
-  return t && t.lat !== null && t.lng !== null ? [t.lat, t.lng] : null;
+  if (!t) return null;
+  const lat = Number(t.lat);
+  const lng = Number(t.lng);
+  return !isNaN(lat) && !isNaN(lng) && t.lat !== null && t.lng !== null ? [lat, lng] : null;
 }

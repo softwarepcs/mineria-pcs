@@ -5,6 +5,8 @@ import type { Unidad } from "@/features/camiones/api";
 import { ESTADOS_OPERADOR, type Operador, type NuevoOperador } from "../api";
 import { ESTADO_OPERADOR } from "../estado";
 
+const CATEGORIAS_LICENCIA = ["A-I", "A-IIa", "A-IIb", "A-IIIa", "A-IIIb", "A-IIIc"];
+
 export interface ValoresOperador {
   nombres: string;
   apellidos: string;
@@ -108,7 +110,15 @@ export function OperadorFormulario({
         <legend className="px-1 text-xs font-semibold text-slate-400">Licencia de conducir</legend>
         <div className="grid gap-4 sm:grid-cols-3">
           <Campo etiqueta="Número" requerido={licenciaIniciada}><Input required={licenciaIniciada} maxLength={100} value={v.licenciaNumero} onChange={set("licenciaNumero")} /></Campo>
-          <Campo etiqueta="Categoría"><Input maxLength={50} value={v.licenciaCategoria} onChange={set("licenciaCategoria")} placeholder="Ej. A-IIIb" /></Campo>
+          <Campo etiqueta="Categoría">
+            <Select value={v.licenciaCategoria} onChange={set("licenciaCategoria")}>
+              <option value="">Selecciona...</option>
+              {CATEGORIAS_LICENCIA.map(c => <option key={c} value={c}>{c}</option>)}
+              {v.licenciaCategoria && !CATEGORIAS_LICENCIA.includes(v.licenciaCategoria) && (
+                <option value={v.licenciaCategoria}>{v.licenciaCategoria}</option>
+              )}
+            </Select>
+          </Campo>
           <Campo etiqueta="Vence" requerido={licenciaIniciada}><Input type="date" required={licenciaIniciada} value={v.licenciaVencimiento} onChange={set("licenciaVencimiento")} /></Campo>
         </div>
       </fieldset>

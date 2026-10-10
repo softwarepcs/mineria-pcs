@@ -28,3 +28,28 @@ export async function getLecturas(maquinariaId: number, desde: string, hasta: st
   });
   return [...data].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 }
+
+export interface CampoSistema {
+  clave: string;
+  etiqueta: string;
+  unidad: string;
+  tipo: "number" | "boolean" | "string";
+  decimales: number;
+  /** Se dibuja como serie en el detalle de la unidad. */
+  grafico: boolean;
+}
+
+export type ValorCampo = number | boolean | string | null;
+
+/** Lecturas de UN sistema de la unidad, con los campos que ese sistema declara. */
+export interface LecturasSistema {
+  sistema: { id: number; nombre: string };
+  campos: CampoSistema[];
+  ultima: { timestamp: string; valores: Record<string, ValorCampo> } | null;
+  serie: { timestamp: string; valores: Record<string, ValorCampo> }[];
+}
+
+export async function getLecturasSistema(maquinariaId: number, sistemaId: number, horas: number): Promise<LecturasSistema> {
+  const { data } = await apiClient.get<LecturasSistema>(`/telemetria/maquinaria/${maquinariaId}/sistemas/${sistemaId}`, { params: { horas } });
+  return data;
+}

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getLecturas } from "./api";
+import { getLecturas, getLecturasSistema } from "./api";
 
 export const telemetriaKeys = {
   rango: (id: number, desde: string, hasta: string) => ["telemetria", id, desde, hasta] as const,
@@ -25,6 +25,16 @@ export function useLecturasRecientes(maquinariaId: number | null, horas: number)
       return getLecturas(maquinariaId!, desde.toISOString(), hasta.toISOString(), 2000);
     },
     enabled: !!maquinariaId,
+    refetchInterval: 60_000,
+  });
+}
+
+/** Lecturas de un sistema de la unidad (motor, frío, fluidos…), refrescadas cada minuto. */
+export function useLecturasSistema(maquinariaId: number | null, sistemaId: number | null, horas: number) {
+  return useQuery({
+    queryKey: ["telemetria", maquinariaId, "sistema", sistemaId, horas] as const,
+    queryFn: () => getLecturasSistema(maquinariaId!, sistemaId!, horas),
+    enabled: !!maquinariaId && !!sistemaId,
     refetchInterval: 60_000,
   });
 }

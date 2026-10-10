@@ -16,7 +16,7 @@ import { avisar, useConfirmar } from "@/shared/ui/Avisos";
 import { mensajeError } from "@/shared/api/errores";
 import { diasHasta, fecha, fechaHora, num } from "@/shared/utils/formato";
 import { useActualizarOperador, useAsignarUnidad, useDarDeBajaOperador, useLiberarUnidad, useOperador, useRendimiento } from "../hooks";
-import { limpiar, type CambiosOperador, type Rendimiento } from "../api";
+import { limpiar, type CambiosOperador } from "../api";
 import { ESTADO_LICENCIA, ESTADO_OPERADOR } from "../estado";
 import { OperadorFormulario, aDto, valoresDesde, type ValoresOperador } from "./OperadorFormulario";
 
@@ -30,7 +30,7 @@ const PERIODOS: { valor: Dias; etiqueta: string }[] = [
 
 function Tarjeta({ titulo, children, accion }: { titulo: string; children: React.ReactNode; accion?: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-[#0c1421] p-5">
+    <div className="rounded-xl border border-white/[0.08] bg-[#0c1421] p-5 min-w-0 flex flex-col">
       <div className="mb-3 flex items-center justify-between border-b border-white/[0.05] pb-3">
         <span className="text-xs font-bold uppercase tracking-wider text-white">{titulo}</span>
         {accion}
@@ -104,7 +104,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   const r = rendimientoQ.data;
   const diasLic = diasHasta(op.licencia?.vencimiento);
 
-  const columnasAsignaciones: Columna<Rendimiento["asignaciones"][number]>[] = [
+  const columnasAsignaciones: Columna<any>[] = [
     { key: "unidad", encabezado: "Unidad", render: (a) => <span className="font-mono text-white">{a.maquinaria}</span> },
     { key: "desde", encabezado: "Desde", render: (a) => fecha(a.fechaInicio) },
     { key: "hasta", encabezado: "Hasta", render: (a) => a.fechaFin ? fecha(a.fechaFin) : <span className="text-emerald-400">Actual</span> },
@@ -142,7 +142,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2 min-w-0">
         <Tarjeta titulo="Licencia de conducir">
           {op.licencia ? (
             <div className="flex items-center justify-between">
@@ -223,7 +223,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
         )}
       </Tarjeta>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2 min-w-0">
         <Tarjeta titulo="Historial de asignaciones">
           {!r?.asignaciones.length ? (
             <p className="text-sm text-slate-500">Nunca tuvo unidades asignadas.</p>

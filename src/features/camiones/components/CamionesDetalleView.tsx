@@ -4,20 +4,18 @@ import { ArrowLeft, Edit3, Cpu } from "lucide-react";
 import type { EmpresaDetalle } from "@/features/empresas/api";
 import type { Periodo } from "@/features/flota/api";
 import { useFlotaDashboard } from "@/features/flota/hooks";
-import { useLecturasRecientes } from "@/features/telemetria/hooks";
 import { InstalarDispositivoModal } from "@/features/dispositivos/components/InstalarDispositivoModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresaPath } from "@/shared/hooks/useEmpresaPath";
 import { Cargando, ErrorCarga, SinDatos } from "@/shared/ui/Estados";
 import { DataTable, type Columna } from "@/shared/ui/DataTable";
 import { PeriodoSelector } from "@/shared/ui/PeriodoSelector";
-import { GraficoLinea } from "@/shared/ui/GraficoLinea";
 import { avisar } from "@/shared/ui/Avisos";
-import { fecha, fechaHora, haceCuanto, hora, num } from "@/shared/utils/formato";
+import { fecha, haceCuanto, num } from "@/shared/utils/formato";
 import { useHistorialOperadores, useUnidades } from "../hooks";
-import type { AsignacionHistorial } from "../api";
 import { ESTADO_UNIDAD } from "../estado";
 import { EditarUnidadModal } from "./EditarUnidadModal";
+import { SistemasUnidad } from "./SistemasUnidad";
 
 const PERIODOS: { valor: Periodo; etiqueta: string }[] = [
   { valor: 1, etiqueta: "Hoy" },
@@ -54,7 +52,6 @@ export function CamionesDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   const unidad = unidadesQ.data?.find((u) => u.id === id);
   const stats = statsQ.data?.maquinarias.find((m) => Number(m.id) === id) ?? null;
   const objetivo = statsQ.data?.resumen.objetivoL100km;
-  const lecturas24 = useLecturasRecientes(unidad?.dispositivo ? id : null, 24);
   const historial = useHistorialOperadores(unidad ? id : null);
 
   if (unidadesQ.isLoading) return <Cargando texto="Cargando unidad..." />;
@@ -63,11 +60,9 @@ export function CamionesDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
 
   const estado = ESTADO_UNIDAD[unidad.estado];
   const t = unidad.telemetria;
-  const lecturas = lecturas24.data ?? [];
-  const ticks = lecturas.map((l) => hora(l.timestamp));
   const hayActividad = stats && stats.km > 0;
 
-  const columnasOperadores: Columna<AsignacionHistorial>[] = [
+  const columnasOperadores: Columna<any>[] = [
     {
       key: "operador",
       encabezado: "Operador",
@@ -130,39 +125,15 @@ export function CamionesDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
         </div>
       )}
 
-      <div className="grid gap-3 rounded-xl border border-white/[0.06] bg-[#0d1117] p-4 sm:grid-cols-5">
-        <Kpi titulo="Velocidad" valor={num(t?.velocidad)} unidad="km/h" />
-        <Kpi titulo="Caudal" valor={num(t?.flujoIn, 1)} unidad="L/h" />
-        <Kpi titulo="RPM" valor={num(t?.rpm)} />
-        <Kpi titulo="Ignición" valor={t?.ignicion === null || t?.ignicion === undefined ? "—" : t.ignicion ? "Encendido" : "Apagado"} />
-        <Kpi titulo="Último dato" valor={haceCuanto(unidad.ultimaConexion)} detalle={t ? fechaHora(t.timestamp) : undefined} />
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-white/[0.06] bg-[#0d1117] px-4 py-2.5 text-xs">
+        <span className="text-slate-400">Última conexión: <span className="font-semibold text-white">{haceCuanto(unidad.ultimaConexion)}</span></span>
+        {t && <span className="text-slate-400">Ignición: <span className="font-semibold text-white">{t.ignicion === null ? "—" : t.ignicion ? "Encendido" : "Apagado"}</span></span>}
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2">
-        <div className="rounded-xl border border-white/[0.06] bg-[#0d1117] p-4">
-          <h3 className="mb-2 text-xs font-bold text-white">Caudal de combustible · últimas 24 h</h3>
-          {!unidad.dispositivo ? (
-            <p className="text-xs text-slate-500">Sin dispositivo instalado.</p>
-          ) : lecturas24.isLoading ? (
-            <Cargando />
-          ) : (
-            <GraficoLinea alto={130} unidad="L/h" etiquetasX={ticks} series={[{ nombre: "Caudal", color: "#0df5c6", valores: lecturas.map((l) => l.flujoIn) }]} />
-          )}
-        </div>
-        <div className="rounded-xl border border-white/[0.06] bg-[#0d1117] p-4">
-          <h3 className="mb-2 text-xs font-bold text-white">Velocidad · últimas 24 h</h3>
-          {!unidad.dispositivo ? (
-            <p className="text-xs text-slate-500">Sin dispositivo instalado.</p>
-          ) : lecturas24.isLoading ? (
-            <Cargando />
-          ) : (
-            <GraficoLinea alto={130} unidad="km/h" etiquetasX={ticks} series={[{ nombre: "Velocidad", color: "#58a6ff", valores: lecturas.map((l) => l.velocidad) }]} />
-          )}
-        </div>
-      </div>
+      <SistemasUnidad maquinariaId={id} />
 
-      <div className="grid gap-3 lg:grid-cols-[1fr_2fr]">
-        <div className="rounded-xl border border-white/[0.06] bg-[#0d1117] p-4">
+      <div className="grid gap-3 lg:grid-cols-[1fr_2fr] min-w-0">
+        <div className="rounded-xl border border-white/[0.06] bg-[#0d1117] p-4 min-w-0 flex flex-col">
           <h3 className="mb-3 flex items-center gap-2 text-xs font-bold text-white"><Cpu className="h-4 w-4 text-cyan-400" /> Dispositivo</h3>
           {unidad.dispositivo ? (
             <dl className="space-y-1.5 text-xs">
@@ -180,7 +151,7 @@ export function CamionesDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
           )}
         </div>
 
-        <div className="rounded-xl border border-white/[0.06] bg-[#0d1117] p-4">
+        <div className="rounded-xl border border-white/[0.06] bg-[#0d1117] p-4 min-w-0 flex flex-col">
           <h3 className="mb-2 text-xs font-bold text-white">Historial de operadores</h3>
           {historial.isLoading ? (
             <Cargando />

@@ -21,7 +21,7 @@ export interface NuevaInstalacion {
   imei: string;
   modelo?: string;
   maquinariaId: number;
-  sistemaId: number;
+  sistemaIds: number[];
 }
 
 export async function getSistemas(): Promise<Sistema[]> {
@@ -34,12 +34,17 @@ export async function getInstalaciones(empresaId: number, soloActivas: boolean):
   return data;
 }
 
-export async function instalarDispositivo(dto: NuevaInstalacion): Promise<Instalacion> {
-  const { data } = await apiClient.post<Instalacion>("/dispositivos/instalar", dto);
+export async function instalarDispositivo(dto: NuevaInstalacion): Promise<Instalacion[]> {
+  const { data } = await apiClient.post<Instalacion[]>("/dispositivos/instalar", dto);
   return data;
 }
 
 export async function retirarDispositivo(instalacionId: number): Promise<Instalacion> {
   const { data } = await apiClient.patch<Instalacion>(`/dispositivos/instalaciones/${instalacionId}/retirar`);
+  return data;
+}
+
+export async function actualizarSistemasDispositivo(imei: string, sistemaIds: number[]): Promise<Instalacion[]> {
+  const { data } = await apiClient.put<Instalacion[]>(`/dispositivos/${imei}/sistemas`, { sistemaIds });
   return data;
 }

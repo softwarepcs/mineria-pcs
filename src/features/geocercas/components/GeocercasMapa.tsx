@@ -32,6 +32,8 @@ export function GeocercasMapa({
   unidades,
   modoEdicion,
   onClic,
+  enfoque,
+  irA,
   visible,
 }: {
   geocercas: Geocerca[];
@@ -40,6 +42,10 @@ export function GeocercasMapa({
   unidades: UnidadEnMapa[];
   modoEdicion: boolean;
   onClic: (p: LatLng) => void;
+  /** Se encuadra cuando cambia `n`: coordenadas escritas a mano (no los clics, que ya están a la vista). */
+  enfoque: { puntos: LatLng[]; n: number } | null;
+  /** Geocerca elegida en la lista: el mapa se desplaza hasta ella cada vez que cambia `n`. */
+  irA: { geocerca: Geocerca; n: number } | null;
   visible: boolean;
 }) {
   const contenedorRef = useRef<HTMLDivElement>(null);
@@ -62,6 +68,27 @@ export function GeocercasMapa({
       mapa.getContainer().style.cursor = "";
     };
   }, [mapa, modoEdicion]);
+
+  // Coordenadas escritas: llevar el mapa hasta allí para ver el resultado
+  useEffect(() => {
+    if (!mapa || !enfoque || !modoEdicion) return;
+    const { puntos } = enfoque;
+    if (puntos.length === 1) mapa.setView(puntos[0], Math.max(mapa.getZoom(), 16));
+    else ajustarVista(mapa, puntos, 17);
+    // solo cuando cambia el contador: cambios de valores o de modo no deben mover el mapa
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapa, enfoque?.n]);
+
+  // Geocerca elegida en la lista: panear y encuadrarla entera
+  useEffect(() => {
+    if (!mapa || !irA) return;
+    const g = irA.geocerca;
+    const opciones = { padding: [60, 60] as [number, number], maxZoom: 17, animate: true, duration: 0.8 };
+    if (g.tipo === "CIRCULO" && g.centro && g.radio) mapa.flyToBounds(L.latLng(g.centro).toBounds(g.radio * 2), opciones);
+    else if (g.puntos.length > 1) mapa.flyToBounds(L.latLngBounds(g.puntos), opciones);
+    // solo cuando se elige otra vez (n): no al refrescar datos
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapa, irA?.n]);
 
   // Geocercas guardadas (la que se edita se dibuja aparte, con los valores del formulario)
   useEffect(() => {

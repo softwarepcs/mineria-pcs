@@ -32,6 +32,7 @@ export function GeocercasView({ empresa }: { empresa: EmpresaDetalle }) {
 
   const form = useGeocercaForm(empresa.sedes.length === 1 ? empresa.sedes[0].id : null);
   const [pestana, setPestana] = useState<"lista" | "formulario">("lista");
+  const [irA, setIrA] = useState<{ geocerca: Geocerca; n: number } | null>(null);
   const [vistaMovil, setVistaMovil] = useState<"panel" | "mapa">("panel");
   const geocercas = geocercasQ.data ?? [];
   const modoEdicion = pestana === "formulario";
@@ -44,6 +45,16 @@ export function GeocercasView({ empresa }: { empresa: EmpresaDetalle }) {
       }),
     [unidadesApi, form.valores],
   );
+  // Aviso (no bloqueante) si lo escrito queda muy lejos de todo lo conocido: típico de latitud y longitud invertidas,
+  // que están dentro de rango y por eso ninguna validación de límites las detecta.
+  const advertenciaUbicacion = useMemo(() => {
+    const referencias: LatLng[] = [...unidades.map((u) => u.posicion), ...geocercas.filter((g) => g.id !== form.editando?.id).flatMap((g) => (g.centro ? [g.centro] : g.puntos.slice(0, 1)))];
+    const v = form.valores;
+    const propios = v.tipo === "CIRCULO" ? (v.centro ? [v.centro] : []) : v.puntos;
+    if (referencias.length === 0 || propios.length === 0) return null;
+    const lejos = propios.some((p) => Math.min(...referencias.map((r) => distanciaMetros(p, r))) > 300_000);
+    return lejos ? "Esta ubicación queda a más de 300 km de tus unidades y geocercas. ¿Invertiste latitud y longitud? (la latitud va primero)" : null;
+  }, [unidades, geocercas, form.editando?.id, form.valores]);
   const unidadesDentro = (g: Geocerca) => unidades.filter((u) => contiene(g, u.posicion)).length;
 
   const abrirNueva = () => {
@@ -53,6 +64,10 @@ export function GeocercasView({ empresa }: { empresa: EmpresaDetalle }) {
   const abrirEdicion = (g: Geocerca) => {
     form.editar(g);
     setPestana("formulario");
+  };
+  const seleccionar = (g: Geocerca) => {
+    setIrA((a) => ({ geocerca: g, n: (a?.n ?? 0) + 1 }));
+    if (puedeEditar) abrirEdicion(g);
   };
 
   const guardar = () => {
@@ -125,7 +140,7 @@ export function GeocercasView({ empresa }: { empresa: EmpresaDetalle }) {
               unidadesDentro={unidadesDentro}
               puedeEditar={puedeEditar}
               onNueva={abrirNueva}
-              onSeleccionar={(g) => (puedeEditar ? abrirEdicion(g) : undefined)}
+              onSeleccionar={seleccionar}
               onAlternarActiva={alternarActiva}
               onEliminar={onEliminar}
             />
@@ -138,6 +153,8 @@ export function GeocercasView({ empresa }: { empresa: EmpresaDetalle }) {
               editando={!!form.editando}
               error={form.error}
               guardando={crear.isPending || actualizar.isPending}
+              coordenadas={form}
+              advertencia={advertenciaUbicacion}
               onGuardar={guardar}
               onCancelar={() => { form.nueva(); setPestana("lista"); }}
             />
@@ -151,6 +168,8 @@ export function GeocercasView({ empresa }: { empresa: EmpresaDetalle }) {
           unidades={unidades}
           modoEdicion={modoEdicion}
           onClic={form.clicMapa}
+          enfoque={form.enfoque}
+          irA={irA}
           visible={vistaMovil === "mapa"}
         />
       </div>

@@ -70,7 +70,9 @@ export function UnidadesMapa({
   // Recorrido de la unidad seleccionada
   useEffect(() => {
     if (!mapa || !recorrido) return;
-    const puntos = recorrido.filter((l) => l.lat !== null && l.lng !== null).map((l) => [l.lat!, l.lng!] as [number, number]);
+    const puntos = recorrido
+      .filter((l) => l.lat !== null && l.lng !== null && !isNaN(Number(l.lat)) && !isNaN(Number(l.lng)))
+      .map((l) => [Number(l.lat), Number(l.lng)] as [number, number]);
     if (puntos.length < 2) return;
     const linea = L.polyline(puntos, { color: "#3fb68b", weight: 3, opacity: 0.9 }).addTo(mapa);
     ajustarVista(mapa, puntos);
@@ -89,8 +91,13 @@ export function UnidadesMapa({
     if (centradoParaRef.current === clave) return;
     centradoParaRef.current = clave;
     const sel = conPosicion.find((u) => u.id === seleccionadaId);
-    if (sel) mapa.flyTo(posicion(sel)!, 13, { duration: 0.8 });
-    else ajustarVista(mapa, conPosicion.map((u) => posicion(u)!));
+    const posSel = sel ? posicion(sel) : null;
+    if (posSel) {
+      if (mapa.getSize().x === 0) mapa.setView(posSel, 13);
+      else mapa.flyTo(posSel, 13, { duration: 0.8 });
+    } else {
+      ajustarVista(mapa, conPosicion.map((u) => posicion(u)).filter(Boolean) as [number, number][]);
+    }
   }, [mapa, seleccionadaId, conPosicion, hayPosiciones, recorrido]);
   // Al cerrar el recorrido se vuelve a centrar en la selección
   useEffect(() => {

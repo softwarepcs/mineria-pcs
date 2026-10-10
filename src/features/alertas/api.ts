@@ -62,8 +62,53 @@ export interface AlertasOperador {
   crucesGeocerca: { id: string; geocerca: string; evento: string; fechaHora: string }[];
 }
 
-export async function getAlertasEventos(empresaId: number): Promise<AlertaEvento[]> {
-  const { data } = await apiClient.get<AlertaEvento[]>("/alertas/eventos", { params: { empresaId } });
+export type RangoAlertas = "todo" | "24h" | "7d" | "30d";
+
+export interface FiltrosAlertas {
+  estado: "" | EstadoAlerta;
+  severidad: "" | Severidad;
+  maquinariaId: number | null;
+  rango: RangoAlertas;
+}
+
+export interface ResumenAlertas {
+  porEstado: Record<EstadoAlerta, number>;
+  /** Alertas por severidad dentro del estado filtrado (respeta unidad y periodo). */
+  porSeveridad: Record<Severidad, number>;
+}
+
+export interface PaginaAlertas {
+  items: AlertaEvento[];
+  total: number;
+  page: number;
+  limit: number;
+  hayMas: boolean;
+  resumen: ResumenAlertas;
+}
+
+export const ALERTAS_POR_PAGINA = 50;
+
+const HORAS_RANGO: Record<Exclude<RangoAlertas, "todo">, number> = { "24h": 24, "7d": 24 * 7, "30d": 24 * 30 };
+
+export async function getAlertasEventos(empresaId: number, f: FiltrosAlertas, page: number): Promise<PaginaAlertas> {
+  // `desde` se calcula al pedir, no al renderizar: así la clave de caché no cambia cada segundo
+  const desde = f.rango === "todo" ? undefined : new Date(Date.now() - HORAS_RANGO[f.rango] * 3_600_000).toISOString();
+  const { data } = await apiClient.get<PaginaAlertas>("/alertas/eventos", {
+    params: {
+      empresaId,
+      estado: f.estado || undefined,
+      severidad: f.severidad || undefined,
+      maquinariaId: f.maquinariaId ?? undefined,
+      desde,
+      page,
+      limit: ALERTAS_POR_PAGINA,
+    },
+  });
+  return data;
+}
+
+export async function cambiarEstadoMasivo(ids: string[], estado: EstadoAlerta) {
+  const { data } = await apiClient.patch<{ solicitadas: number; actualizadas: number; estado: EstadoAlerta }>("/alertas/eventos/estado", { ids, estado });
   return data;
 }
 

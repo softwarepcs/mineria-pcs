@@ -48,3 +48,65 @@ export function dentroDePoligono([lat, lng]: LatLng, puntos: LatLng[]): boolean 
   }
   return dentro;
 }
+
+/* ───────────── Coordenadas escritas a mano ───────────── */
+
+export const latValida = (n: number) => Number.isFinite(n) && n >= -90 && n <= 90;
+export const lngValida = (n: number) => Number.isFinite(n) && n >= -180 && n <= 180;
+
+/** "-12.0464", "−12.0464" (signo unicode) o " 12.5 " → número; null si no es un número. */
+export function parsearNumero(texto: string): number | null {
+  const t = texto.trim().replace(/[−–]/g, "-");
+  if (t === "" || !/^[-+]?\d+(\.\d+)?$|^[-+]?\.\d+$|^[-+]?\d+\.$/.test(t)) return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
+}
+
+export interface ResultadoCoordenadas {
+  puntos: LatLng[];
+  errores: string[];
+}
+
+/**
+ * Lee una lista de coordenadas, una por línea, en orden «latitud, longitud»
+ * (el formato que copia Google Maps). Acepta coma, punto y coma, tabulador o espacio,
+ * paréntesis/corchetes y el signo menos unicode. Si el último punto repite el primero
+ * (polígono «cerrado») lo descarta.
+ */
+export function parsearCoordenadas(texto: string): ResultadoCoordenadas {
+  const puntos: LatLng[] = [];
+  const errores: string[] = [];
+  texto.split(/\r?\n/).forEach((linea, i) => {
+    if (!linea.trim()) return;
+    const nums = linea.replace(/[−–]/g, "-").match(/[-+]?\d+(?:\.\d+)?|[-+]?\.\d+/g)?.map(Number) ?? [];
+    if (nums.length !== 2) {
+      errores.push(`Línea ${i + 1}: se esperaban 2 números (latitud, longitud) y hay ${nums.length}.`);
+      return;
+    }
+    const [a, b] = nums;
+    if (latValida(a) && lngValida(b)) puntos.push([a, b]);
+    else if (latValida(b) && lngValida(a)) errores.push(`Línea ${i + 1}: parece «longitud, latitud». Escribe primero la latitud (entre −90 y 90).`);
+    else errores.push(`Línea ${i + 1}: coordenada fuera de rango (latitud −90 a 90, longitud −180 a 180).`);
+  });
+  if (puntos.length > 3 && puntos[0][0] === puntos[puntos.length - 1][0] && puntos[0][1] === puntos[puntos.length - 1][1]) puntos.pop();
+  return { puntos, errores };
+}
+
+const orientacion = (a: LatLng, b: LatLng, c: LatLng) => Math.sign((b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1]));
+
+function ladosSeCruzan(p1: LatLng, p2: LatLng, p3: LatLng, p4: LatLng): boolean {
+  return orientacion(p1, p2, p3) !== orientacion(p1, p2, p4) && orientacion(p3, p4, p1) !== orientacion(p3, p4, p2);
+}
+
+/** true si dos lados no contiguos del polígono se cruzan (forma de «moño»): la geocerca detectaría mal. */
+export function poligonoSeCruza(puntos: LatLng[]): boolean {
+  const n = puntos.length;
+  if (n < 4) return false;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      if (j === i + 1 || (i === 0 && j === n - 1)) continue; // lados contiguos
+      if (ladosSeCruzan(puntos[i], puntos[(i + 1) % n], puntos[j], puntos[(j + 1) % n])) return true;
+    }
+  }
+  return false;
+}

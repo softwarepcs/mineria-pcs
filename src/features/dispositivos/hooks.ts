@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getInstalaciones, getSistemas, instalarDispositivo, retirarDispositivo, type NuevaInstalacion } from "./api";
+import { actualizarSistemasDispositivo, getInstalaciones, getSistemas, instalarDispositivo, retirarDispositivo, type NuevaInstalacion } from "./api";
 import { unidadesKeys } from "@/features/camiones/hooks";
 
 export const dispositivosKeys = {
@@ -32,4 +32,9 @@ export function useInstalarDispositivo() {
 export function useRetirarDispositivo() {
   const invalidar = useInvalidar();
   return useMutation({ mutationFn: (id: number) => retirarDispositivo(id), onSuccess: invalidar });
+}
+
+export function useActualizarSistemas() {
+  const invalidar = useInvalidar();
+  return useMutation({ mutationFn: (p: { imei: string; sistemaIds: number[] }) => actualizarSistemasDispositivo(p.imei, p.sistemaIds), onSuccess: invalidar });
 }

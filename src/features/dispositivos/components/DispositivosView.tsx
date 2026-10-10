@@ -11,6 +11,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { DataTable, type Columna } from "@/shared/ui/DataTable";
 import { useInstalaciones, useRetirarDispositivo } from "../hooks";
 import { InstalarDispositivoModal } from "./InstalarDispositivoModal";
+import { EditarSistemasModal } from "./EditarSistemasModal";
 
 export function DispositivosView({ empresa }: { empresa: EmpresaDetalle }) {
   const { sesion } = useAuth();
@@ -19,6 +20,7 @@ export function DispositivosView({ empresa }: { empresa: EmpresaDetalle }) {
   const [modalAbierto, setModalAbierto] = useState(false);
   const instalaciones = useInstalaciones(empresa.id, soloActivas);
   const { data: unidades = [] } = useUnidades(empresa.id);
+  const [editando, setEditando] = useState<{ imei: string; unidad: string } | null>(null);
   const retirar = useRetirarDispositivo();
   const [confirmar, dialogo] = useConfirmar();
 
@@ -50,9 +52,14 @@ export function DispositivosView({ empresa }: { empresa: EmpresaDetalle }) {
           encabezado: "",
           alinear: "right" as const,
           render: (i: any) => i.activa ? (
-            <button type="button" onClick={() => onRetirar(i.id, i.dispositivo.imei, i.maquinaria.identificador)} className="text-xs font-semibold text-red-400 hover:text-red-300">
-              Retirar
-            </button>
+            <span className="flex justify-end gap-3">
+              <button type="button" onClick={() => setEditando({ imei: i.dispositivo.imei, unidad: i.maquinaria.identificador })} className="text-xs font-semibold text-cyan-300 hover:text-cyan-200">
+                Editar sistemas
+              </button>
+              <button type="button" onClick={() => onRetirar(i.id, i.dispositivo.imei, i.maquinaria.identificador)} className="text-xs font-semibold text-red-400 hover:text-red-300">
+                Retirar
+              </button>
+            </span>
           ) : null,
         }]
       : []),
@@ -94,6 +101,15 @@ export function DispositivosView({ empresa }: { empresa: EmpresaDetalle }) {
         onInstalado={() => {
           setModalAbierto(false);
           avisar.exito("Dispositivo instalado. Sus lecturas se guardarán desde ahora.");
+        }}
+      />
+      <EditarSistemasModal
+        equipo={editando}
+        actuales={(instalaciones.data ?? []).filter((i) => i.activa && i.dispositivo.imei === editando?.imei).map((i) => i.sistema.id)}
+        onCerrar={() => setEditando(null)}
+        onGuardado={() => {
+          setEditando(null);
+          avisar.exito("Sistemas del dispositivo actualizados");
         }}
       />
       {dialogo}

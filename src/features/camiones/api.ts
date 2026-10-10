@@ -1,6 +1,7 @@
 import { apiClient } from "@/shared/api/client";
 
 import type { EstadoFlota } from "@/features/flota/api";
+import type { CampoSistema } from "@/features/telemetria/api";
 
 export type EstadoUnidad = EstadoFlota;
 export const ESTADOS_OPERATIVOS = ["Activo", "Mantenimiento", "Fuera de servicio"] as const;
@@ -97,5 +98,17 @@ export async function getConfiguracion(maquinariaId: number): Promise<Configurac
 
 export async function guardarConfiguracion(maquinariaId: number, dto: Omit<Configuracion, "maquinariaId">): Promise<Configuracion> {
   const { data } = await apiClient.patch<Configuracion>(`/maquinarias/${maquinariaId}/configuracion`, dto);
+  return data;
+}
+
+export interface SistemaDeUnidad {
+  id: number;
+  sistemaId: number;
+  estado: boolean;
+  sistema: { id: number; nombre: string; campos: CampoSistema[] };
+}
+
+export async function getSistemasUnidad(maquinariaId: number): Promise<SistemaDeUnidad[]> {
+  const { data } = await apiClient.get<SistemaDeUnidad[]>(`/maquinarias/${maquinariaId}/sistemas`);
   return data;
 }

@@ -29,7 +29,14 @@ export function MainLayout({ children }: { children: ReactNode }) {
             >
               <X className="h-5 w-5" />
             </button>
-            <div className="h-full overflow-y-auto" onClick={() => setMenuAbierto(false)}>
+            <div 
+              className="h-full overflow-y-auto" 
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest('a')) {
+                  setMenuAbierto(false);
+                }
+              }}
+            >
               <Sidebar onLogout={logout} />
             </div>
           </div>

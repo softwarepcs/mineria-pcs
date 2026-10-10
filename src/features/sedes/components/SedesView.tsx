@@ -8,9 +8,10 @@ import { Modal } from "@/shared/ui/Modal";
 import { SedeForm } from "./SedeForm";
 import type { Sede } from "../api";
 import { useAuth } from "@/hooks/useAuth";
+import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useConfirmar } from "@/shared/ui/Avisos";
 
-export function SedesView({ empresa }: { empresa: any }) {
+export function SedesView({ empresa }: { empresa: EmpresaDetalle }) {
   const { data: sedesAll = [], isLoading, error, refetch } = useSedes();
   const { mutateAsync: eliminar } = useEliminarSede();
   const { sesion } = useAuth();
