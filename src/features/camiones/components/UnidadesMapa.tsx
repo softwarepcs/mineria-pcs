@@ -112,7 +112,7 @@ export function UnidadesMapa({
       className={`relative h-full w-full flex-1 overflow-hidden bg-[#050911] xl:flex ${visible ? "flex" : "hidden"}`}
     >
       <MapaControles capa={capa} onCapa={setCapa} pantallaCompleta={pantallaCompleta} onPantallaCompleta={alternarPantallaCompleta} className="top-3 right-14" />
-      <div className="absolute bottom-4 left-4 z-[1000] hidden items-center gap-4 rounded-full border border-white/10 bg-[#0d1422]/90 px-3.5 py-1.5 text-[11px] font-medium text-slate-300 shadow-2xl backdrop-blur-md xl:flex">
+      <div className="absolute bottom-4 left-4 z-1000 hidden items-center gap-4 rounded-full border border-white/10 bg-[#0d1422]/90 px-3.5 py-1.5 text-[11px] font-medium text-slate-300 shadow-2xl backdrop-blur-md xl:flex">
         {Object.values(ESTADO_UNIDAD).map((e) => (
           <span key={e.etiqueta} className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ background: e.color }} />

@@ -18,11 +18,11 @@ export function MainLayout({ children }: { children: ReactNode }) {
 
       {/* Menú móvil tipo cajón (drawer) */}
       {menuAbierto && (
-        <div className="fixed inset-0 z-[9999] flex md:hidden">
+        <div className="fixed inset-0 z-9999 flex md:hidden">
           {/* Fondo oscuro */}
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMenuAbierto(false)}></div>
           {/* Contenedor del Sidebar */}
-          <div className="relative flex w-[260px] flex-col bg-[#0d1117] shadow-2xl transition-transform" onClick={(e) => e.stopPropagation()}>
+          <div className="relative flex w-65 flex-col bg-[#0d1117] shadow-2xl transition-transform" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setMenuAbierto(false)}
               className="absolute -right-12 top-3 rounded-full bg-white/10 p-2 text-white hover:bg-red-500/80"
@@ -44,9 +44,9 @@ export function MainLayout({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex flex-1 flex-col h-screen min-w-0 overflow-hidden relative">
-        <header className="shrink-0 flex items-center justify-between md:justify-end border-b border-white/[0.06] px-4 md:px-6 py-3 bg-[#0d1117]/90 backdrop-blur-sm z-10">
+        <header className="shrink-0 flex items-center justify-between md:justify-end border-b border-white/6 px-4 md:px-6 py-3 bg-[#0d1117]/90 backdrop-blur-sm z-10">
           <button 
-            className="md:hidden rounded-md p-1.5 text-[#8b949e] hover:bg-white/[0.06] hover:text-[#e6edf3] ring-1 ring-white/[0.08]"
+            className="md:hidden rounded-md p-1.5 text-[#8b949e] hover:bg-white/6 hover:text-[#e6edf3] ring-1 ring-white/8"
             onClick={() => setMenuAbierto(true)}
           >
             <Menu className="h-5 w-5" />

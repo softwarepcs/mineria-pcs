@@ -1,7 +1,7 @@
 /**
- * Matriz única de permisos del frontend. Replica lo que exige el backend con
- * @Roles(...) para que menú, rutas y botones muestren lo mismo que la API permite.
- * La seguridad real la sigue aplicando el backend.
+ * Matriz de permisos del frontend conectada a los permisos granulares del backend.
+ * Soporta la función `puede(modulo, accion)` para permisos directos y mantiene
+ * retrocompatibilidad con las propiedades booleanas existentes.
  */
 export type RolBackend = "SuperAdmin" | "Administrador" | "Gerente" | "Operador" | "Trabajador";
 
@@ -18,20 +18,46 @@ export interface Permisos {
   editarFlota: boolean;
   /** Cambiar el estado de una alerta — backend: SuperAdmin, Administrador, Gerente. */
   atenderAlertas: boolean;
+  /** Función dinámica para verificar cualquier tupla (modulo, accion). */
+  puede: (modulo: string, accion: string) => boolean;
 }
 
 const tiene = (roles: string[], ...buscados: RolBackend[]) => buscados.some((r) => roles.includes(r));
 
-export function calcularPermisos(roles: string[]): Permisos {
+/** Comprueba si el usuario tiene permiso para ejecutar una acción sobre un módulo. */
+export function tienePermiso(permisos: string[] = [], roles: string[] = [], modulo: string, accion: string): boolean {
+  if (roles.includes("SuperAdmin")) return true;
+  return permisos.includes(`${modulo.toUpperCase()}:${accion.toUpperCase()}`);
+}
+
+export function calcularPermisos(roles: string[] = [], permisosBackend: string[] = []): Permisos {
   const superAdmin = tiene(roles, "SuperAdmin");
-  const admin = superAdmin || tiene(roles, "Administrador");
+  
+  const puedeFn = (modulo: string, accion: string) => tienePermiso(permisosBackend, roles, modulo, accion);
+
+  // Si el backend envió la lista de permisos granulares, se evalúan directamente desde esa lista
+  if (permisosBackend.length > 0) {
+    return {
+      verTodasLasEmpresas: superAdmin,
+      gestionarUsuarios: puedeFn("USUARIOS", "GESTIONAR") || puedeFn("USUARIOS", "VER"),
+      gestionarSedes: puedeFn("SEDES", "GESTIONAR"),
+      configurarMetas: puedeFn("ALERTAS", "CONFIGURAR"),
+      editarFlota: puedeFn("FLOTA", "EDITAR") || puedeFn("FLOTA", "CREAR"),
+      atenderAlertas: puedeFn("ALERTAS", "ATENDER"),
+      puede: puedeFn,
+    };
+  }
+
+  // Fallback si no vinieran permisos del backend:
+  // SuperAdmin gestiona todo. Administrador (cliente) solo atiende alertas y monitorea.
   return {
     verTodasLasEmpresas: superAdmin,
-    gestionarUsuarios: admin,
-    gestionarSedes: admin || tiene(roles, "Gerente"),
-    configurarMetas: admin,
-    editarFlota: admin,
-    atenderAlertas: admin || tiene(roles, "Gerente"),
+    gestionarUsuarios: superAdmin,
+    gestionarSedes: superAdmin,
+    configurarMetas: superAdmin,
+    editarFlota: superAdmin,
+    atenderAlertas: superAdmin || tiene(roles, "Administrador"),
+    puede: puedeFn,
   };
 }
 

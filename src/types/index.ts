@@ -6,6 +6,7 @@ export interface UsuarioSesion {
   nombre: string;
   /** Roles tal como los devuelve el backend ("SuperAdmin", "Administrador", …). */
   roles: string[];
+  permisos: string[];
   empresaId: number | null;
   empresaNombre?: string;
 }
@@ -14,7 +15,7 @@ export interface Sesion {
   usuario: UsuarioSesion;
   permisos: Permisos;
   fechaInicio: string;
-  token: string;
+  // Los tokens no forman parte de la sesión guardada: el access token vive en memoria y el refresh token en una cookie HttpOnly.
 }
 
 export interface MenuItem {

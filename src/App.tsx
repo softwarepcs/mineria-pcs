@@ -13,7 +13,8 @@ import { Avisos } from "@/shared/ui/Avisos";
 import { useAuth } from "@/hooks/useAuth";
 
 function RootRedirect() {
-  const { sesion } = useAuth();
+  const { sesion, listo } = useAuth();
+  if (!listo) return null;
   if (!sesion) return <Navigate to="/login" replace />;
   if (sesion.permisos.verTodasLasEmpresas) return <Navigate to="/dashboard" replace />;
   if (sesion.usuario.empresaId) return <Navigate to="/panel" replace />;

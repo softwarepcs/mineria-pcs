@@ -38,7 +38,7 @@ export function UnidadPanel({
   const { data: lecturas = [], isLoading } = useLecturasRecientes(unidad.dispositivo ? unidad.id : null, 4);
 
   return (
-    <aside className={`sidebar-scroll h-full w-full shrink-0 flex-col overflow-y-auto border-l border-white/10 bg-[#090e18] xl:flex xl:w-[340px] ${visible ? "flex" : "hidden"}`}>
+    <aside className={`sidebar-scroll h-full w-full shrink-0 flex-col overflow-y-auto border-l border-white/10 bg-[#090e18] xl:flex xl:w-85 ${visible ? "flex" : "hidden"}`}>
       <div className="flex items-center border-b border-white/10 bg-[#0e1624] p-3 xl:hidden">
         <button type="button" onClick={onVolver} className="inline-flex items-center gap-1 text-xs font-semibold text-[#0df5c6] hover:underline">
           <ChevronLeft className="h-4 w-4" /> Volver al mapa

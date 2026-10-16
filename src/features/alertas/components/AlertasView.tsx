@@ -37,7 +37,7 @@ function Seleccion({ valor, onCambiar, etiqueta, children }: { valor: string; on
         aria-label={etiqueta}
         value={valor}
         onChange={(e) => onCambiar(e.target.value)}
-        className="cursor-pointer appearance-none rounded-md border border-white/10 bg-[#0e1420] py-1.5 pl-2.5 pr-7 text-xs text-slate-300 outline-none focus:border-[#0df5c6]"
+        className="cursor-pointer appearance-none rounded-md border border-white/10 bg-[#0e1420] py-1.5 pl-2.5 pr-7 text-xs text-slate-300 outline-none focus:ring-1 focus:ring-[#0df5c6]"
       >
         {children}
       </select>
@@ -183,7 +183,7 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
   const drawerVisible = pestana === "motor" && detalleAbierto && seleccionadaId !== null;
 
   return (
-    <div className={`mx-auto w-full max-w-7xl px-2 pb-6 font-sans transition-[padding] sm:px-4 ${drawerVisible ? "lg:pr-[540px]" : ""}`}>
+    <div className={`mx-auto w-full max-w-7xl px-2 pb-6 font-sans transition-[padding] sm:px-4 ${drawerVisible ? "lg:pr-135" : ""}`}>
       <PageHeader
         titulo="Alertas"
         className="mb-4"
@@ -261,7 +261,7 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
                   Restablecer
                 </button>
               )}
-              <button type="button" onClick={exportarCsv} disabled={items.length === 0} className="rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white disabled:opacity-50">
+              <button type="button" onClick={exportarCsv} disabled={items.length === 0} title={q.hasNextPage ? "Exporta las alertas cargadas; usa «Cargar más» para incluir más" : "Exporta las alertas del filtro actual"} className="rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white disabled:opacity-50">
                 Exportar CSV
               </button>
             </div>
@@ -287,7 +287,7 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
           )}
 
           <div className="overflow-hidden rounded-lg border border-white/8 bg-[#0d1117]">
-            <div ref={contenedorTabla} className="max-h-[calc(100vh-290px)] min-h-[260px] overflow-auto">
+            <div ref={contenedorTabla} className="max-h-[calc(100vh-290px)] min-h-65 overflow-auto">
               <AlertasTabla
                 items={items}
                 agrupar={agrupar}
@@ -316,7 +316,7 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
 
       {/* Panel lateral de detalle (sin fondo bloqueante: la tabla sigue usable) */}
       {drawerVisible && seleccionadaId && (
-        <aside role="dialog" aria-label="Detalle de la alerta" className="fixed inset-y-0 right-0 z-40 w-full overflow-y-auto border-l border-white/10 bg-[#0d1117] shadow-2xl sm:w-[520px]">
+        <aside role="dialog" aria-label="Detalle de la alerta" className="fixed inset-y-0 right-0 z-40 w-full overflow-y-auto border-l border-white/10 bg-[#0d1117] shadow-2xl sm:w-130">
           <DetalleEvento key={seleccionadaId} id={seleccionadaId} empresaId={empresa.id} puedeAtender={puedeAtender} onCerrar={() => setDetalleAbierto(false)} />
         </aside>
       )}

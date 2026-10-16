@@ -41,11 +41,11 @@ export function FlotaTable({
       .slice(0, 5);
 
     return (
-      <div className="h-full flex flex-col justify-start p-3.5 sm:p-4 md:p-5 rounded-xl border border-white/[0.06] bg-[#0d1117] overflow-hidden">
+      <div className="h-full flex flex-col justify-start p-3.5 sm:p-4 md:p-5 rounded-xl border border-white/6 bg-[#0d1117] overflow-hidden">
         <h3 className="text-xs sm:text-sm font-bold text-[#e6edf3] m-0 mb-3 sm:mb-4">
           Requieren atención
         </h3>
-        <div className="flex flex-col gap-2 sm:gap-2.5 flex-1 overflow-y-auto max-h-[380px] lg:max-h-none">
+        <div className="flex flex-col gap-2 sm:gap-2.5 flex-1 overflow-y-auto max-h-95 lg:max-h-none">
           {alertas.map((c) => {
             const razon = c.desvioPct > 100
               ? "Consumo fuera de objetivo"
@@ -64,7 +64,7 @@ export function FlotaTable({
                 className={`flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-lg cursor-pointer transition ${
                   selectedId === c.id
                     ? "bg-[#1a9a7a]/15 border border-[#1a9a7a]/30"
-                    : "bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08]"
+                    : "bg-white/2 border border-white/4 hover:bg-white/4 hover:border-white/8"
                 }`}
               >
                 <div className="min-w-0 flex-1">
@@ -117,8 +117,8 @@ export function FlotaTable({
   ];
 
   return (
-    <div className="mp-table-container flex flex-col w-full rounded-xl border border-white/[0.06] bg-[#0d1117] overflow-hidden">
-      <div className="mp-table-toolbar flex flex-wrap items-center justify-between gap-2.5 px-3.5 sm:px-5 py-3 border-b border-white/[0.06]">
+    <div className="mp-table-container flex flex-col w-full rounded-xl border border-white/6 bg-[#0d1117] overflow-hidden">
+      <div className="mp-table-toolbar flex flex-wrap items-center justify-between gap-2.5 px-3.5 sm:px-5 py-3 border-b border-white/6">
         <div className="flex items-center gap-2.5 flex-wrap">
           <h3 className="text-xs sm:text-sm font-semibold text-[#e6edf3] m-0">
             Comparativa por camión
