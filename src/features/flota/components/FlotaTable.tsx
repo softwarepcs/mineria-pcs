@@ -3,17 +3,17 @@ import { ESTADO_UNIDAD } from "@/features/flota/estado";
 import { DataTable, type Columna as ColumnaTabla } from "@/shared/ui/DataTable";
 import { Badge } from "@/shared/ui/Badge";
 
-type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiPct" | "horas" | "pctGasto" | "co2Ton">;
+type Columna = keyof Pick<Maquinaria, "km" | "litros" | "l100km" | "desvioPct" | "ralentiLitros" | "sobrecargaLitros" | "horas" | "co2Ton">;
 
 const COLUMNAS: { key: Columna; label: string }[] = [
   { key: "km", label: "KM" },
-  { key: "litros", label: "Litros" },
-  { key: "l100km", label: "L/100 km" },
+  { key: "litros", label: "Consumo (L)" },
+  { key: "l100km", label: "Consumo Medio" },
   { key: "desvioPct", label: "Desvío" },
-  { key: "ralentiPct", label: "Ralentí" },
-  { key: "horas", label: "Horas" },
-  { key: "pctGasto", label: "% del gasto" },
-  { key: "co2Ton", label: "CO₂ (T)" },
+  { key: "ralentiLitros", label: "Ralentí" },
+  { key: "sobrecargaLitros", label: "Sobrecarga" },
+  { key: "horas", label: "Horas Motor" },
+  { key: "co2Ton", label: "CO₂ (t)" },
 ];
 
 function EstadoBadge({ estado }: { estado: Maquinaria["estado"] }) {
@@ -37,7 +37,7 @@ export function FlotaTable({
   if (mode === "alerts") {
     const alertas = [...maquinarias]
       .sort((a, b) => b.desvioPct - a.desvioPct)
-      .filter((c) => c.desvioPct > 0 || (c.estado as string) === "revisar" || (c.estado as string) === "sin_datos")
+      .filter((c) => c.desvioPct > 0 || (c.sobrecargaLitros ?? 0) > 0 || (c.estado as string) === "revisar" || (c.estado as string) === "sin_datos")
       .slice(0, 5);
 
     return (
@@ -47,15 +47,19 @@ export function FlotaTable({
         </h3>
         <div className="flex flex-col gap-2 sm:gap-2.5 flex-1 overflow-y-auto max-h-95 lg:max-h-none">
           {alertas.map((c) => {
-            const razon = c.desvioPct > 100
+            const razon = (c.sobrecargaLitros ?? 0) > 0
+              ? `Sobrecarga detectada · ${c.sobrecargaLitros} L`
+              : c.desvioPct > 100
               ? "Consumo fuera de objetivo"
-              : c.ralentiPct > 40
-              ? `Ralentí alto · ${c.horas} h`
+              : (c.ralentiHoras ?? 0) > 4
+              ? `Ralentí alto · ${c.ralentiHoras} h`
               : (c.estado as string) === "sin_datos"
               ? "Sin transmisión reciente"
               : c.desvioPct > 50
               ? "Paradas extensas no planificadas"
-              : "Desvío de ruta detectado";
+              : "Desvío de consumo detectado";
+
+            const esSobrecarga = (c.sobrecargaLitros ?? 0) > 0;
 
             return (
               <div
@@ -71,7 +75,7 @@ export function FlotaTable({
                   <div className="flex items-center gap-2 mb-0.5">
                     <span
                       className="w-2 h-2 rounded-full inline-block shrink-0"
-                      style={{ background: c.desvioPct > 100 ? "#d99b42" : "#d99b42" }}
+                      style={{ background: esSobrecarga ? "#f87171" : "#d99b42" }}
                     />
                     <span className="text-xs sm:text-[13px] font-semibold text-[#e6edf3] truncate">
                       {c.placa}
@@ -83,9 +87,9 @@ export function FlotaTable({
                 </div>
                 <span
                   className="text-xs sm:text-[13px] font-bold whitespace-nowrap shrink-0"
-                  style={{ color: c.desvioPct > 0 ? "#d99b42" : "#1a9a7a" }}
+                  style={{ color: esSobrecarga ? "#f87171" : c.desvioPct > 0 ? "#d99b42" : "#1a9a7a" }}
                 >
-                  +{c.desvioPct.toFixed(1)} %
+                  {esSobrecarga ? `${c.sobrecargaLitros} L` : `+${c.desvioPct.toFixed(1)} %`}
                 </span>
               </div>
             );
@@ -106,10 +110,15 @@ export function FlotaTable({
       alinear: "right" as const,
       render: (fila: Maquinaria) => {
         if (c.key === "km" || c.key === "litros") return fila[c.key].toLocaleString("es-PE");
-        if (c.key === "l100km") return fila[c.key].toFixed(1);
+        if (c.key === "l100km") return `${fila[c.key].toFixed(1)} L/100km`;
         if (c.key === "desvioPct") return <span style={{ color: fila.desvioPct > 0 ? "#d99b42" : "#1a9a7a" }} className="font-semibold">{fila.desvioPct > 0 ? "+" : ""}{fila.desvioPct.toFixed(1)} %</span>;
-        if (c.key === "ralentiPct" || c.key === "pctGasto") return `${fila[c.key].toFixed(c.key === "pctGasto" ? 1 : 0)} %`;
-        if (c.key === "co2Ton") return fila[c.key].toFixed(2);
+        if (c.key === "ralentiLitros") return `${(fila.ralentiLitros ?? 0).toLocaleString("es-PE")} L (${(fila.ralentiHoras ?? 0).toFixed(1)} h)`;
+        if (c.key === "sobrecargaLitros") {
+          const val = fila.sobrecargaLitros ?? 0;
+          return val > 0 ? <span className="font-semibold text-red-400">{val.toLocaleString("es-PE")} L</span> : <span className="text-slate-500">0 L</span>;
+        }
+        if (c.key === "horas") return `${fila.horas.toLocaleString("es-PE")} h`;
+        if (c.key === "co2Ton") return `${fila.co2Ton.toFixed(2)} t`;
         return fila[c.key];
       }
     })),

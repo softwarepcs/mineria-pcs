@@ -12,9 +12,10 @@ export interface Lectura {
   rumbo: number | null;
   temIngreso: number | null;
   temRetorno: number | null;
-  rpm: number | null;
-  flujoIn: number | null;
-  flujoRet: number | null;
+  caudalIngreso: number | null;
+  caudalRetorno: number | null;
+  consumoInstantaneo?: number | null;
+  temperaturaCombustible?: number | null;
   consumoGh: number | null;
   totalGal: number | null;
   odometro: number | null;

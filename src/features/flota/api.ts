@@ -1,6 +1,6 @@
 import { apiClient } from "@/shared/api/client";
 
-export type Periodo = 1 | 7 | 30 | 90;
+export type Periodo = 1 | 7;
 
 export interface FlotaResumen {
   equipos: number;
@@ -9,18 +9,17 @@ export interface FlotaResumen {
   periodoDias: number;
   desde: string;
   configurado: boolean;
-  ralentiEstimado: boolean;
   objetivoL100km: number;
-  precioUsdPorL: number;
   kmTotal: number;
   consumoTotalL: number;
-  costoUsd: number;
-  rendimientoMedioL100km: number;
+  consumoMedioL100km: number;
   desvioVsObjetivoPct: number;
-  ralentiFlotaPct: number;
   ralentiLitros: number;
-  ralentiUsd: number;
+  ralentiHoras: number;
+  sobrecargaLitros: number;
+  sobrecargaHoras: number;
   emisionesCo2Ton: number;
+  emisionesCo2Kg: number;
   horasMotor: number;
 }
 
@@ -33,11 +32,15 @@ export interface MaquinariaStats {
   km: number;
   litros: number;
   l100km: number;
+  consumoMedioL100km: number;
   desvioPct: number;
-  ralentiPct: number;
+  ralentiLitros: number;
+  ralentiHoras: number;
+  sobrecargaLitros: number;
+  sobrecargaHoras: number;
   horas: number;
-  pctGasto: number;
   co2Ton: number;
+  co2Kg: number;
   estado: EstadoFlota;
   /** null si la unidad nunca envió posición. */
   lat: number | null;

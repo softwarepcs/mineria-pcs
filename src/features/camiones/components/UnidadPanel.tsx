@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
-import { ChevronLeft, User, Clock, Cpu, Route } from "lucide-react";
+import { ChevronLeft, User, Route } from "lucide-react";
 import { ESTADO_UNIDAD, type UnidadConHoy } from "../estado";
 import { useLecturasRecientes } from "@/features/telemetria/hooks";
 import { useEmpresaPath } from "@/shared/hooks/useEmpresaPath";
 import { GraficoLinea } from "@/shared/ui/GraficoLinea";
-import { haceCuanto, hora, num } from "@/shared/utils/formato";
+import { hora, num } from "@/shared/utils/formato";
 
 function Dato({ titulo, valor, unidad }: { titulo: string; valor: string; unidad: string }) {
   return (
@@ -77,35 +77,40 @@ export function UnidadPanel({
 
       <div className="grid grid-cols-3 gap-3 border-b border-white/10 p-4">
         <Dato titulo="Velocidad" valor={num(t?.velocidad)} unidad="km/h" />
-        <Dato titulo="Caudal" valor={num(t?.flujoIn, 1)} unidad="L/h" />
-        <Dato titulo="RPM" valor={num(t?.rpm)} unidad="rpm" />
+        <Dato titulo="Caudal ingreso" valor={num(t?.caudalIngreso, 1)} unidad="L/h" />
+        <Dato titulo="Caudal retorno" valor={num(t?.caudalRetorno, 1)} unidad="L/h" />
         <Dato titulo="Consumo hoy" valor={num(hoy?.litros, 1)} unidad="L" />
-        <Dato titulo="Rendimiento hoy" valor={hoy && hoy.km > 0 ? num(hoy.l100km, 1) : "—"} unidad="L/100 km" />
-        <Dato titulo="Ralentí hoy" valor={hoy && hoy.litros > 0 ? num(hoy.ralentiPct, 1) : "—"} unidad="%" />
+        <Dato titulo="Consumo medio hoy" valor={hoy && hoy.km > 0 ? num(hoy.l100km, 1) : "—"} unidad="L/100 km" />
+        <Dato titulo="Ralentí hoy" valor={hoy ? num(hoy.ralentiLitros, 1) : "—"} unidad="L" />
       </div>
 
       <div className="border-b border-white/10 p-4">
-        <h3 className="mb-2 text-xs font-semibold text-slate-300">Caudal de combustible (últimas 4 horas)</h3>
+        <h3 className="mb-2 text-xs font-semibold text-slate-300">Consumo instantáneo (últimas 4 horas)</h3>
         {!unidad.dispositivo ? (
-          <p className="text-xs text-slate-500">La unidad no tiene dispositivo instalado.</p>
+          <p className="text-xs text-slate-500">La unidad no tiene lecturas disponibles.</p>
         ) : isLoading ? (
           <p className="text-xs text-slate-500">Cargando…</p>
         ) : (
-          <GraficoLinea alto={110} unidad="L/h" etiquetasX={lecturas.map((l) => hora(l.timestamp))} series={[{ nombre: "Caudal", color: "#0df5c6", valores: lecturas.map((l) => l.flujoIn) }]} />
+          <GraficoLinea
+            alto={110}
+            unidad="L/h"
+            etiquetasX={lecturas.map((l) => hora(l.timestamp))}
+            series={[
+              {
+                nombre: "Consumo instantáneo",
+                color: "#0df5c6",
+                valores: lecturas.map((l) => {
+                  if (l.consumoInstantaneo !== undefined && l.consumoInstantaneo !== null) {
+                    return l.consumoInstantaneo;
+                  }
+                  const cin = l.caudalIngreso ?? 0;
+                  const cret = l.caudalRetorno ?? 0;
+                  return Math.max(0, cin - cret);
+                }),
+              },
+            ]}
+          />
         )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 border-b border-white/10 p-4 text-center">
-        <div className="rounded-lg border border-white/5 bg-[#111827] p-2">
-          <Cpu className="mx-auto mb-1 h-4 w-4 text-cyan-400" />
-          <span className="block text-[9px] uppercase tracking-wider text-slate-400">Dispositivo</span>
-          <span className="mt-0.5 block font-mono text-xs font-bold text-white">{unidad.dispositivo?.imei ?? "Sin instalar"}</span>
-        </div>
-        <div className="rounded-lg border border-white/5 bg-[#111827] p-2">
-          <Clock className="mx-auto mb-1 h-4 w-4 text-slate-400" />
-          <span className="block text-[9px] uppercase tracking-wider text-slate-400">Último dato</span>
-          <span className="mt-0.5 block text-xs font-bold text-white">{haceCuanto(unidad.ultimaConexion)}</span>
-        </div>
       </div>
 
       <div className="mt-auto space-y-2 p-4">

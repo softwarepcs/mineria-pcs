@@ -103,7 +103,7 @@ export function Configuracion() {
               </p>
             )}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-              <Campo etiqueta="Objetivo (L/100 km)" requerido ayuda="Límite entre rendimiento aceptable y desvío.">
+              <Campo etiqueta="Objetivo (L/100 km)" requerido ayuda="Límite entre consumo aceptable y desvío.">
                 <Input type="number" step="0.1" min="0" required value={valores.objetivoFlotaL100km} onChange={cambiar("objetivoFlotaL100km")} />
               </Campo>
               <Campo etiqueta="Precio diésel (USD/L)" requerido ayuda="Para costos por consumo y ralentí.">

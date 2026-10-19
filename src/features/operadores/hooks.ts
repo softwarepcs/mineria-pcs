@@ -59,7 +59,7 @@ export function useDarDeBajaOperador() {
 export function useAsignarUnidad() {
   const invalidar = useInvalidar();
   return useMutation({
-    mutationFn: ({ id, maquinariaId, atribucion }: { id: number; maquinariaId: number; atribucion?: string }) => asignarUnidad(id, maquinariaId, atribucion),
+    mutationFn: ({ id, maquinariaId }: { id: number; maquinariaId: number }) => asignarUnidad(id, maquinariaId),
     onSuccess: invalidar,
   });
 }

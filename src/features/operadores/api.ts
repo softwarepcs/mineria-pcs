@@ -2,7 +2,6 @@ import { apiClient } from "@/shared/api/client";
 
 export const ESTADOS_OPERADOR = ["ACTIVO", "DE_LICENCIA", "INACTIVO"] as const;
 export type EstadoOperador = (typeof ESTADOS_OPERADOR)[number];
-export type EstadoLicencia = "SIN_LICENCIA" | "VENCIDA" | "POR_VENCER" | "VIGENTE";
 
 /** Igual a la respuesta de GET /operadores y GET /operadores/:id. */
 export interface Operador {
@@ -16,8 +15,7 @@ export interface Operador {
   estado: EstadoOperador;
   creadoEn: string;
   sede: { id: number; nombre: string } | null;
-  licencia: { numero: string; categoria: string | null; vencimiento: string; estado: EstadoLicencia } | null;
-  asignacion: { id: number; maquinariaId: number; maquinaria: string; atribucion: string | null; desde: string } | null;
+  asignacion: { id: number; maquinariaId: number; maquinaria: string; desde: string } | null;
 }
 
 /** Igual a CreateOperadoreDto del backend. */
@@ -29,14 +27,10 @@ export interface NuevoOperador {
   numeroDocumento?: string;
   estado?: EstadoOperador;
   sedeId?: number;
-  licenciaNumero?: string;
-  licenciaCategoria?: string;
-  licenciaVencimiento?: string;
   maquinariaId?: number;
-  atribucion?: string;
 }
 
-export type CambiosOperador = Omit<Partial<NuevoOperador>, "empresaId" | "maquinariaId" | "atribucion">;
+export type CambiosOperador = Omit<Partial<NuevoOperador>, "empresaId" | "maquinariaId">;
 
 export interface Rendimiento {
   periodoDias: number;
@@ -48,7 +42,6 @@ export interface Rendimiento {
     maquinariaId: number;
     maquinaria: string;
     estado: string;
-    atribucion: string | null;
     fechaInicio: string;
     fechaFin: string | null;
     km: number;
@@ -86,8 +79,8 @@ export async function darDeBajaOperador(id: number): Promise<void> {
   await apiClient.delete(`/operadores/${id}`);
 }
 
-export async function asignarUnidad(id: number, maquinariaId: number, atribucion?: string): Promise<Operador> {
-  const { data } = await apiClient.post<Operador>(`/operadores/${id}/asignar-maquinaria`, limpiar({ maquinariaId, atribucion }));
+export async function asignarUnidad(id: number, maquinariaId: number): Promise<Operador> {
+  const { data } = await apiClient.post<Operador>(`/operadores/${id}/asignar-maquinaria`, { maquinariaId });
   return data;
 }
 

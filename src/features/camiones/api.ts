@@ -28,9 +28,10 @@ export interface Unidad {
     lng: number | null;
     velocidad: number | null;
     ignicion: boolean | null;
-    rpm: number | null;
-    flujoIn: number | null;
-    flujoRet: number | null;
+    caudalIngreso: number | null;
+    caudalRetorno: number | null;
+    consumoInstantaneo?: number | null;
+    temperaturaCombustible?: number | null;
     consumoGh: number | null;
   } | null;
   operadorActual: { id: number; nombre: string } | null;

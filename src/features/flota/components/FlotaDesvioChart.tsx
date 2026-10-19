@@ -37,12 +37,12 @@ export function FlotaDesvioChart({
   const topOffenders = positivos.slice(0, 2);
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0d1117] p-3.5 sm:p-5 md:p-6 w-full overflow-hidden">
+    <div className="rounded-xl border border-white/6 bg-[#0d1117] p-3.5 sm:p-5 md:p-6 w-full overflow-hidden">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4 sm:mb-6">
         <div className="flex items-center gap-2.5 flex-wrap">
           <h3 className="text-xs sm:text-sm font-semibold text-[#e6edf3] m-0">
-            Desvío del rendimiento contra el objetivo
+            Desvío del consumo medio contra el objetivo
           </h3>
           {selectedId && onSelect && (
             <button
@@ -78,7 +78,7 @@ export function FlotaDesvioChart({
                   key={c.id}
                   onClick={() => onSelect && onSelect(isSelected ? null : c.id)}
                   className={`flex items-center justify-between gap-2.5 py-1 px-2 rounded cursor-pointer transition ${
-                    isSelected ? "bg-[#d99b42]/15 ring-1 ring-[#d99b42]/40" : "hover:bg-white/[0.02]"
+                    isSelected ? "bg-[#d99b42]/15 ring-1 ring-[#d99b42]/40" : "hover:bg-white/2"
                   }`}
                   style={{ opacity: selectedId && !isSelected ? 0.4 : 1 }}
                 >
@@ -86,13 +86,13 @@ export function FlotaDesvioChart({
                     {c.placa}
                   </span>
                   <div className="flex-1 flex items-center gap-2 min-w-0">
-                    <div className="flex-1 bg-white/[0.04] rounded h-3 overflow-hidden">
+                    <div className="flex-1 bg-white/4 rounded h-3 overflow-hidden">
                       <div
                         style={{ width: `${Math.max(barPct, 4)}%` }}
                         className="h-full bg-[#d99b42] rounded transition-all duration-300"
                       />
                     </div>
-                    <span className="text-xs font-bold text-[#d99b42] min-w-[55px] text-right shrink-0">
+                    <span className="text-xs font-bold text-[#d99b42] min-w-13.75 text-right shrink-0">
                       +{c.desvioPct.toFixed(1)} %
                     </span>
                   </div>
@@ -123,7 +123,7 @@ export function FlotaDesvioChart({
                   key={c.id}
                   onClick={() => onSelect && onSelect(isSelected ? null : c.id)}
                   className={`flex items-center justify-between gap-2.5 py-1 px-2 rounded cursor-pointer transition ${
-                    isSelected ? "bg-[#1a9a7a]/15 ring-1 ring-[#1a9a7a]/40" : "hover:bg-white/[0.02]"
+                    isSelected ? "bg-[#1a9a7a]/15 ring-1 ring-[#1a9a7a]/40" : "hover:bg-white/2"
                   }`}
                   style={{ opacity: selectedId && !isSelected ? 0.4 : 1 }}
                 >
@@ -131,13 +131,13 @@ export function FlotaDesvioChart({
                     {c.placa}
                   </span>
                   <div className="flex-1 flex items-center gap-2 min-w-0">
-                    <div className="flex-1 bg-white/[0.04] rounded h-3 overflow-hidden">
+                    <div className="flex-1 bg-white/4 rounded h-3 overflow-hidden">
                       <div
                         style={{ width: `${Math.max(barPct, 4)}%` }}
                         className="h-full bg-[#1a9a7a] rounded transition-all duration-300"
                       />
                     </div>
-                    <span className="text-xs font-bold text-[#1a9a7a] min-w-[55px] text-right shrink-0">
+                    <span className="text-xs font-bold text-[#1a9a7a] min-w-13.75 text-right shrink-0">
                       -{absVal.toFixed(1)} %
                     </span>
                   </div>
@@ -150,7 +150,7 @@ export function FlotaDesvioChart({
 
       {/* ─── DESKTOP / TABLET VIEW (>= md): Butterfly / Tornado comparison chart ─── */}
       <div className="hidden md:block overflow-x-auto scrollbar-thin">
-        <div className="min-w-[600px] grid grid-cols-2 gap-0">
+        <div className="min-w-150 grid grid-cols-2 gap-0">
           {/* ═══════ LEFT PANEL: Negative desvío (below objective) ═══════ */}
           <div style={{ borderRight: "2px solid rgba(255,255,255,0.15)", paddingRight: "16px" }}>
             {/* Axis ticks */}
@@ -276,7 +276,7 @@ export function FlotaDesvioChart({
       </div>
 
       {/* ─── Legend ─── */}
-      <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-3 sm:pt-3.5 border-t border-white/[0.06] text-[11px] text-[#636e7b]">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-3 sm:pt-3.5 border-t border-white/6 text-[11px] text-[#636e7b]">
         <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-xs bg-[#d99b42] inline-block shrink-0" />
           <span>Por encima del objetivo · consume de más</span>
@@ -290,14 +290,12 @@ export function FlotaDesvioChart({
       {/* Dynamic bottom note */}
       {topOffenders.length === 2 ? (
         <p className="mt-3 text-xs leading-relaxed text-slate-400 font-sans">
-          Dos maquinarias concentran el problema: <strong className="text-slate-200">{topOffenders[0].placa}</strong> y{" "}
-          <strong className="text-slate-200">{topOffenders[1].placa}</strong> están con los mayores desvíos y entre las{" "}
-          dos explican el {(topOffenders[0].pctGasto + topOffenders[1].pctGasto).toFixed(1).replace(".", ",")} % del gasto de combustible de la flota. Ahí es donde hay que mirar primero, y revisar también su uso en ralentí.
+          Dos maquinarias concentran los mayores excesos: <strong className="text-slate-200">{topOffenders[0].placa}</strong> y{" "}
+          <strong className="text-slate-200">{topOffenders[1].placa}</strong> registran los mayores desvíos de consumo respecto al objetivo de la flota. Ahí es donde hay que enfocar la atención, revisando sus tiempos de ralentí y alertas de sobrecarga.
         </p>
       ) : topOffenders.length === 1 ? (
         <p className="mt-3 text-xs leading-relaxed text-slate-400 font-sans">
-          Una maquinaria concentra el problema: <strong className="text-slate-200">{topOffenders[0].placa}</strong> {" "}
-          explica el {topOffenders[0].pctGasto.toFixed(1).replace(".", ",")} % del gasto de combustible de la flota con el mayor desvío. Ahí es donde hay que mirar primero, y revisar también su uso en ralentí.
+          La maquinaria <strong className="text-slate-200">{topOffenders[0].placa}</strong> concentra el mayor desvío de consumo respecto al objetivo de la flota. Se recomienda revisar su comportamiento en ralentí y operación en sobrecarga.
         </p>
       ) : (
         <p className="mt-3 text-xs leading-relaxed text-slate-400 font-sans">

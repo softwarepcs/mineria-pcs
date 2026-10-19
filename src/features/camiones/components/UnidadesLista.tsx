@@ -13,9 +13,9 @@ export function UnidadesLista({
   visible: boolean;
 }) {
   return (
-    <aside className={`h-full w-full shrink-0 flex-col overflow-hidden border-r border-white/10 bg-[#090e18] xl:flex xl:w-[280px] ${visible ? "flex" : "hidden"}`}>
+    <aside className={`h-full w-full shrink-0 flex-col overflow-hidden border-r border-white/10 bg-[#090e18] xl:flex xl:w-70 ${visible ? "flex" : "hidden"}`}>
       <div className="shrink-0 border-b border-white/10 px-3 py-2.5 text-xs font-semibold text-slate-400">Unidades ({unidades.length})</div>
-      <div className="sidebar-scroll flex-1 divide-y divide-white/[0.04] overflow-y-auto">
+      <div className="sidebar-scroll flex-1 divide-y divide-white/4 .overflow-y-auto">
         {unidades.length === 0 && <p className="p-4 text-center text-xs text-slate-500">Ninguna unidad coincide con los filtros.</p>}
         {unidades.map((u) => {
           const estado = ESTADO_UNIDAD[u.estado];
@@ -26,7 +26,7 @@ export function UnidadesLista({
               key={u.id}
               type="button"
               onClick={() => onSeleccionar(u.id)}
-              className={`relative block w-full p-3 text-left transition ${u.id === seleccionadaId ? "border-l-4 border-[#0df5c6] bg-[#111c2e]" : "hover:bg-white/[0.03]"}`}
+              className={`relative block w-full p-3 text-left transition ${u.id === seleccionadaId ? "border-l-4 border-[#0df5c6] bg-[#111c2e]" : "hover:bg-white/3"}`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -42,7 +42,7 @@ export function UnidadesLista({
               <div className="mt-0.5 text-[11px] font-medium" style={{ color: estado.color }}>{estado.etiqueta}</div>
               <div className="truncate text-[11px] text-slate-300">{u.operadorActual?.nombre ?? "Sin operador asignado"}</div>
               <div className="mt-0.5 font-mono text-[10px] text-slate-500">
-                {t ? `${num(t.velocidad)} km/h • ${num(t.flujoIn, 1)} L/h • ${haceCuanto(t.timestamp)}` : "Sin lecturas"}
+                {t ? `${num(t.velocidad)} km/h • ${num(t.caudalIngreso, 1)} L/h • ${haceCuanto(t.timestamp)}` : "Sin lecturas"}
               </div>
             </button>
           );

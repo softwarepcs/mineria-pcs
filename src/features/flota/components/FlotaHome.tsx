@@ -12,12 +12,10 @@ import { FlotaDesvioChart } from "./FlotaDesvioChart";
 const PERIODOS: { valor: Periodo; etiqueta: string }[] = [
   { valor: 1, etiqueta: "Hoy" },
   { valor: 7, etiqueta: "7 días" },
-  { valor: 30, etiqueta: "30 días" },
-  { valor: 90, etiqueta: "90 días" },
 ];
 
 export function FlotaHome({ empresa }: { empresa: EmpresaDetalle }) {
-  const [dias, setDias] = useState<Periodo>(30);
+  const [dias, setDias] = useState<Periodo>(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { data, isLoading, error, refetch } = useFlotaDashboard(empresa.id, dias);
 
@@ -40,7 +38,7 @@ export function FlotaHome({ empresa }: { empresa: EmpresaDetalle }) {
         <>
           {!data.resumen.configurado && (
             <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
-              Ninguna unidad tiene metas configuradas: el objetivo y el precio son los valores por defecto. Ajústalos en Métricas y Metas.
+              Ninguna unidad tiene metas configuradas: el objetivo de consumo medio es el valor por defecto.
             </p>
           )}
           <FlotaKpis resumen={data.resumen} maquinarias={data.maquinarias} selectedId={selectedId} onReset={() => setSelectedId(null)} />

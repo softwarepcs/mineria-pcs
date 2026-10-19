@@ -14,10 +14,10 @@ import { GraficoLinea } from "@/shared/ui/GraficoLinea";
 import { Campo, Select, BotonPrimario, BotonSecundario, MensajeError } from "@/shared/ui/Formulario";
 import { avisar, useConfirmar } from "@/shared/ui/Avisos";
 import { mensajeError } from "@/shared/api/errores";
-import { diasHasta, fecha, fechaHora, num } from "@/shared/utils/formato";
+import { fecha, fechaHora, num } from "@/shared/utils/formato";
 import { useActualizarOperador, useAsignarUnidad, useDarDeBajaOperador, useLiberarUnidad, useOperador, useRendimiento } from "../hooks";
 import { limpiar, type CambiosOperador } from "../api";
-import { ESTADO_LICENCIA, ESTADO_OPERADOR } from "../estado";
+import { ESTADO_OPERADOR } from "../estado";
 import { OperadorFormulario, aDto, valoresDesde, type ValoresOperador } from "./OperadorFormulario";
 
 type Dias = 7 | 30 | 90 | 365;
@@ -30,8 +30,8 @@ const PERIODOS: { valor: Dias; etiqueta: string }[] = [
 
 function Tarjeta({ titulo, children, accion }: { titulo: string; children: React.ReactNode; accion?: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-[#0c1421] p-5 min-w-0 flex flex-col">
-      <div className="mb-3 flex items-center justify-between border-b border-white/[0.05] pb-3">
+    <div className="rounded-xl border border-white/8 bg-[#0c1421] p-5 min-w-0 flex flex-col">
+      <div className="mb-3 flex items-center justify-between border-b border-white/5 pb-3">
         <span className="text-xs font-bold uppercase tracking-wider text-white">{titulo}</span>
         {accion}
       </div>
@@ -51,7 +51,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   const [dias, setDias] = useState<Dias>(30);
   const [editando, setEditando] = useState(false);
   const [asignando, setAsignando] = useState(false);
-  const [asignacion, setAsignacion] = useState({ maquinariaId: "", atribucion: "" });
+  const [asignacion, setAsignacion] = useState({ maquinariaId: "" });
 
   const operadorQ = useOperador(id);
   const rendimientoQ = useRendimiento(id, dias);
@@ -70,7 +70,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   if (operadorQ.error || !op) return <ErrorCarga error={operadorQ.error ?? new Error("Operador no encontrado")} />;
 
   const onGuardar = (v: ValoresOperador) => {
-    const { empresaId: _e, maquinariaId: _m, atribucion: _a, ...dto } = aDto(v);
+    const { empresaId: _e, maquinariaId: _m, ...dto } = aDto(v);
     // En la edición, un campo vaciado se envía vacío solo si el backend lo acepta; se omiten los vacíos
     actualizar.mutate(
       { id: op.id, dto: limpiar(dto) as CambiosOperador },
@@ -81,7 +81,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   const onAsignar = (e: React.FormEvent) => {
     e.preventDefault();
     asignar.mutate(
-      { id: op.id, maquinariaId: Number(asignacion.maquinariaId), atribucion: asignacion.atribucion.trim() || undefined },
+      { id: op.id, maquinariaId: Number(asignacion.maquinariaId) },
       { onSuccess: () => { setAsignando(false); avisar.exito("Unidad asignada"); } },
     );
   };
@@ -100,9 +100,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
   };
 
   const est = ESTADO_OPERADOR[op.estado];
-  const lic = ESTADO_LICENCIA[op.licencia?.estado ?? "SIN_LICENCIA"];
   const r = rendimientoQ.data;
-  const diasLic = diasHasta(op.licencia?.vencimiento);
 
   const columnasAsignaciones: Columna<any>[] = [
     { key: "unidad", encabezado: "Unidad", render: (a) => <span className="font-mono text-white">{a.maquinaria}</span> },
@@ -142,54 +140,50 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2 min-w-0">
-        <Tarjeta titulo="Licencia de conducir">
-          {op.licencia ? (
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-mono text-sm text-white">{op.licencia.numero}</div>
-                <div className="text-xs text-slate-400">Categoría {op.licencia.categoria ?? "—"}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-white">Vence el {fecha(op.licencia.vencimiento)}</div>
-                <div className={`text-xs font-semibold ${lic.texto}`}>
-                  {lic.etiqueta}{diasLic !== null && diasLic >= 0 ? ` · faltan ${diasLic} días` : diasLic !== null ? ` hace ${-diasLic} días` : ""}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-slate-500">Sin licencia registrada.</p>
-          )}
-        </Tarjeta>
-
-        <Tarjeta
-          titulo="Unidad asignada"
-          accion={
-            puedeEditar && op.estado !== "INACTIVO" ? (
-              <div className="flex gap-3 text-xs">
-                <button type="button" onClick={() => { asignar.reset(); setAsignacion({ maquinariaId: "", atribucion: op.asignacion?.atribucion ?? "" }); setAsignando(true); }} className="font-semibold text-[#0df5c6] hover:underline">
-                  {op.asignacion ? "Cambiar" : "Asignar"}
+      <Tarjeta
+        titulo="Unidad asignada"
+        accion={
+          puedeEditar && op.estado !== "INACTIVO" ? (
+            <div className="flex gap-3 text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  asignar.reset();
+                  setAsignacion({ maquinariaId: "" });
+                  setAsignando(true);
+                }}
+                className="font-semibold text-[#0df5c6] hover:underline"
+              >
+                {op.asignacion ? "Cambiar" : "Asignar"}
+              </button>
+              {op.asignacion && (
+                <button type="button" onClick={onLiberar} className="font-semibold text-red-400 hover:underline">
+                  Quitar
                 </button>
-                {op.asignacion && <button type="button" onClick={onLiberar} className="font-semibold text-red-400 hover:underline">Quitar</button>}
-              </div>
-            ) : undefined
-          }
-        >
-          {op.asignacion ? (
-            <div className="flex items-center gap-3">
-              <Truck className="h-5 w-5 text-cyan-400" />
-              <div>
-                <Link to={`${basePath}/camiones/${op.asignacion.maquinariaId}`} className="font-mono text-sm text-white hover:text-[#0df5c6]">{op.asignacion.maquinaria}</Link>
-                <div className="text-xs text-slate-400">Desde {fecha(op.asignacion.desde)} · {op.asignacion.atribucion ?? "Sin atribución"}</div>
-              </div>
+              )}
             </div>
-          ) : (
-            <p className="text-sm text-slate-500">Sin unidad asignada.</p>
-          )}
-        </Tarjeta>
-      </div>
+          ) : undefined
+        }
+      >
+        {op.asignacion ? (
+          <div className="flex items-center gap-3">
+            <Truck className="h-5 w-5 text-cyan-400" />
+            <div>
+              <Link
+                to={`${basePath}/camiones/${op.asignacion.maquinariaId}`}
+                className="font-mono text-sm text-white hover:text-[#0df5c6]"
+              >
+                {op.asignacion.maquinaria}
+              </Link>
+              <div className="text-xs text-slate-400">Desde {fecha(op.asignacion.desde)}</div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">Sin unidad asignada.</p>
+        )}
+      </Tarjeta>
 
-      <Tarjeta titulo={`Rendimiento · ${PERIODOS.find((p) => p.valor === dias)?.etiqueta}`}>
+      <Tarjeta titulo={`Consumo medio · ${PERIODOS.find((p) => p.valor === dias)?.etiqueta}`}>
         {rendimientoQ.isLoading ? (
           <Cargando />
         ) : rendimientoQ.error ? (
@@ -200,7 +194,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
               {[
                 ["Recorrido", num(r.totales.km), "km"],
                 ["Consumo", num(r.totales.litros, 1), "L"],
-                ["Rendimiento", num(r.totales.l100km, 1), "L/100 km"],
+                ["Consumo medio", num(r.totales.l100km, 1), "L/100 km"],
                 ["Horas de motor", num(r.totales.horasMotor, 1), "h"],
                 ["Días con actividad", String(r.totales.diasConActividad), ""],
               ].map(([t, v, u]) => (
@@ -214,7 +208,7 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
               alto={150}
               unidad="L/100 km por día"
               etiquetasX={r.serieDiaria.map((d) => fecha(d.fecha).slice(0, 5))}
-              series={[{ nombre: "Rendimiento diario", color: "#0df5c6", valores: r.serieDiaria.map((d) => d.l100km) }]}
+              series={[{ nombre: "Consumo medio diario", color: "#0df5c6", valores: r.serieDiaria.map((d) => d.l100km) }]}
             />
             <p className="mt-2 text-[11px] text-slate-500">Suma de los KPI diarios de las unidades en los días en que el operador las tuvo asignadas.</p>
           </>
@@ -241,13 +235,13 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
             <ul className="max-h-72 space-y-2 overflow-y-auto text-xs">
               {alertasQ.data.flatMap((g) => [
                 ...g.eventosMotor.map((e) => (
-                  <li key={`m${e.id}`} className="flex justify-between gap-2 rounded bg-white/[0.02] px-2 py-1.5">
+                  <li key={`m${e.id}`} className="flex justify-between gap-2 rounded bg-white/2 px-2 py-1.5">
                     <span><strong className="text-white">{e.regla.toUpperCase()}</strong> · {g.maquinaria} · {e.severidad}</span>
                     <span className="text-slate-500">{fechaHora(e.fechaHora)}</span>
                   </li>
                 )),
                 ...g.crucesGeocerca.map((c) => (
-                  <li key={`g${c.id}`} className="flex justify-between gap-2 rounded bg-white/[0.02] px-2 py-1.5">
+                  <li key={`g${c.id}`} className="flex justify-between gap-2 rounded bg-white/2 px-2 py-1.5">
                     <span><strong className="text-white">{c.evento}</strong> {c.geocerca} · {g.maquinaria}</span>
                     <span className="text-slate-500">{fechaHora(c.fechaHora)}</span>
                   </li>
@@ -279,18 +273,11 @@ export function OperadorDetalleView({ empresa }: { empresa: EmpresaDetalle }) {
       <Modal abierto={asignando} titulo="Asignar unidad" onCerrar={() => setAsignando(false)}>
         <form onSubmit={onAsignar} className="space-y-4">
           <Campo etiqueta="Unidad" requerido ayuda="Si la unidad ya tiene operador, se le reemplaza.">
-            <Select required value={asignacion.maquinariaId} onChange={(e) => setAsignacion((a) => ({ ...a, maquinariaId: e.target.value }))}>
+            <Select required value={asignacion.maquinariaId} onChange={(e) => setAsignacion({ maquinariaId: e.target.value })}>
               <option value="">Selecciona…</option>
               {unidades.filter((u) => u.id !== op.asignacion?.maquinariaId).map((u) => (
                 <option key={u.id} value={u.id}>{u.identificador}{u.operadorActual ? ` (ahora: ${u.operadorActual.nombre})` : ""}</option>
               ))}
-            </Select>
-          </Campo>
-          <Campo etiqueta="Atribución">
-            <Select value={asignacion.atribucion} onChange={(e) => setAsignacion((a) => ({ ...a, atribucion: e.target.value }))}>
-              <option value="">Selecciona...</option>
-              <option value="Nacional">Nacional</option>
-              <option value="Internacional">Internacional</option>
             </Select>
           </Campo>
           <MensajeError>{asignar.error ? mensajeError(asignar.error) : null}</MensajeError>

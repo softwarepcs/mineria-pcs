@@ -82,8 +82,8 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
       const popup = `<div style="font-family:sans-serif;font-size:12px;color:#0b1220;">
         <strong>${esInicio ? "Inicio" : esFin ? "Fin" : `Punto ${i + 1}`} · ${escapeHtml(unidad?.identificador)}</strong><br/>
         <strong>Fecha:</strong> ${escapeHtml(fechaHora(l.timestamp))}<br/>
-        <strong>Velocidad:</strong> ${escapeHtml(num(l.velocidad, 1))} km/h · <strong>RPM:</strong> ${escapeHtml(num(l.rpm))}<br/>
-        <strong>Flujo in/ret:</strong> ${escapeHtml(num(l.flujoIn, 1))} / ${escapeHtml(num(l.flujoRet, 1))}<br/>
+        <strong>Velocidad:</strong> ${escapeHtml(num(l.velocidad, 1))} km/h<br/>
+        <strong>Caudal in/ret:</strong> ${escapeHtml(num(l.caudalIngreso, 1))} / ${escapeHtml(num(l.caudalRetorno, 1))} L/h<br/>
         <strong>Operador:</strong> ${escapeHtml(l.operador ?? "—")}</div>`;
       const m =
         esInicio || esFin
@@ -100,7 +100,7 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
   const filtradas = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     if (!q) return lecturas;
-    return lecturas.filter((l) => [fechaHora(l.timestamp), l.operador, l.rpm, l.lat, l.lng].some((c) => String(c ?? "").toLowerCase().includes(q)));
+    return lecturas.filter((l) => [fechaHora(l.timestamp), l.operador, l.lat, l.lng].some((c) => String(c ?? "").toLowerCase().includes(q)));
   }, [lecturas, busqueda]);
   const totalPaginas = Math.max(1, Math.ceil(filtradas.length / porPagina));
   const inicio = (pagina - 1) * porPagina;
@@ -110,8 +110,8 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
   const exportar = () => {
     descargarCsv(
       `telemetria_${unidad?.identificador ?? "unidad"}_${desde}_${hasta}.csv`,
-      ["Ítem", "Fecha y hora", "Operador", "Latitud", "Longitud", "Velocidad (km/h)", "Rumbo", "Temp. ingreso", "Temp. retorno", "RPM", "Flujo IN", "Flujo RET", "Consumo (gal/h)", "Total (gal)", "Odómetro", "% paso"],
-      filtradas.map((l, i) => [i + 1, fechaHora(l.timestamp), l.operador, l.lat, l.lng, l.velocidad, l.rumbo, l.temIngreso, l.temRetorno, l.rpm, l.flujoIn, l.flujoRet, l.consumoGh, l.totalGal, l.odometro, l.porcPaso]),
+      ["Ítem", "Fecha y hora", "Operador", "Latitud", "Longitud", "Velocidad (km/h)", "Rumbo", "Temp. ingreso", "Temp. retorno", "Caudal ingreso (L/h)", "Caudal retorno (L/h)", "Consumo (gal/h)", "Total (gal)", "Odómetro", "% paso"],
+      filtradas.map((l, i) => [i + 1, fechaHora(l.timestamp), l.operador, l.lat, l.lng, l.velocidad, l.rumbo, l.temIngreso, l.temRetorno, l.caudalIngreso, l.caudalRetorno, l.consumoGh, l.totalGal, l.odometro, l.porcPaso]),
     );
   };
 
@@ -124,9 +124,8 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
     { key: "vel", encabezado: "Velocidad", render: (l) => num(l.velocidad, 1) },
     { key: "rumbo", encabezado: "Rumbo", render: (l) => num(l.rumbo) },
     { key: "temin", encabezado: "Temp. in", render: (l) => num(l.temIngreso, 1) },
-    { key: "rpm", encabezado: "RPM", render: (l) => <span className="font-bold text-white">{num(l.rpm)}</span> },
-    { key: "flujoin", encabezado: "Flujo IN", render: (l) => num(l.flujoIn, 1) },
-    { key: "flujoret", encabezado: "Flujo RET", render: (l) => num(l.flujoRet, 1) },
+    { key: "caudalingreso", encabezado: "Caudal ingreso", render: (l) => num(l.caudalIngreso, 1) },
+    { key: "caudalretorno", encabezado: "Caudal retorno", render: (l) => num(l.caudalRetorno, 1) },
     { key: "consumo", encabezado: "Consumo gal/h", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{num(l.consumoGh, 1)}</span> },
     { key: "totalgal", encabezado: "Total gal", render: (l) => num(l.totalGal) },
     { key: "odo", encabezado: "Odómetro", render: (l) => num(l.odometro) },
@@ -138,7 +137,7 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
         <span className="mp-header-icon"><Icon name="database" className="h-5 w-5" /></span>
         <div>
           <h1 className="mp-header-title">Registros de telemetría</h1>
-          <p className="mp-header-subtitle">Flujo, temperatura, RPM y trazado de ruta</p>
+          <p className="mp-header-subtitle">Caudal, temperatura y trazado de ruta</p>
         </div>
       </div>
 
@@ -173,7 +172,7 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
         <div ref={contenedorRef} style={{ height: "100%", width: "100%" }} />
       </div>
 
-      <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#0c1421] p-4">
+      <div className="mt-4 rounded-xl border border-white/8 bg-[#0c1421] p-4">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-sm text-slate-300">
             <span>Mostrar</span>
