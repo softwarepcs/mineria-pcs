@@ -24,7 +24,7 @@ function textoValor(c: CampoSistema, v: ValorCampo | undefined): string {
 function Dato({ campo, valor }: { campo: CampoSistema; valor: ValorCampo | undefined }) {
   const activo = valor === true;
   return (
-    <div className="flex flex-col justify-between rounded-xl border border-white/[0.06] bg-[#0d1117] p-3">
+    <div className="flex flex-col justify-between rounded-xl border border-white/6 bg-[#0d1117] p-3">
       <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{campo.etiqueta}</span>
       <div className="mt-1 flex items-baseline gap-1">
         <span className={`text-xl font-bold ${activo ? "text-[#0df5c6]" : "text-white"}`}>{textoValor(campo, valor)}</span>
@@ -58,7 +58,7 @@ function Graficos({ datos }: { datos: LecturasSistema }) {
           valores: datos.serie.map((l) => (typeof l.valores[c.clave] === "number" ? (l.valores[c.clave] as number) : null)),
         }));
         return (
-          <div key={g[0].clave} className="rounded-xl border border-white/[0.06] bg-[#0d1117] p-4">
+          <div key={g[0].clave} className="rounded-xl border border-white/6 bg-[#0d1117] p-4">
             <h3 className="mb-2 text-xs font-bold text-white">{g.map((c) => c.etiqueta).join(" · ")}{g[0].unidad ? ` (${g[0].unidad})` : ""}</h3>
             <GraficoLinea alto={130} unidad={g[0].unidad} etiquetasX={ticks} series={series} />
           </div>
@@ -85,7 +85,7 @@ export function SistemasUnidad({ maquinariaId }: { maquinariaId: number }) {
   if (sistemas.isLoading) return <Cargando />;
   if (sistemas.error) return <ErrorCarga error={sistemas.error} onReintentar={() => void sistemas.refetch()} />;
   if (!activos.length) {
-    return <div className="rounded-xl border border-white/[0.06] bg-[#0d1117] p-4 text-xs text-slate-500">Esta unidad no tiene sistemas ni dispositivo instalado: no recibe telemetría.</div>;
+    return <div className="rounded-xl border border-white/6 bg-[#0d1117] p-4 text-xs text-slate-500">Esta unidad no tiene sistemas ni dispositivo instalado: no recibe telemetría.</div>;
   }
 
   const d = lecturas.data;

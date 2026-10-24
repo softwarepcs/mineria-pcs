@@ -8,10 +8,10 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { avisar, useConfirmar } from "@/shared/ui/Avisos";
 import { mensajeError } from "@/shared/api/errores";
 import { useAlertasEventos, useCambiarEstadoMasivo } from "../hooks";
-import { descargarCsv } from "@/shared/utils/csv";
+import { descargarExcel } from "@/shared/utils/excel";
 import { fechaHora } from "@/shared/utils/formato";
 import type { EstadoAlerta, FiltrosAlertas, RangoAlertas, Severidad } from "../api";
-import { EST, SEV, SEVERIDADES_ORDEN } from "../estilos";
+import { CONSUMO_ALERTA_LH, EST, SEV, SEVERIDADES_ORDEN, nombreRegla } from "../estilos";
 import { AlertasTabla } from "./AlertasTabla";
 import { CrucesGeocerca } from "./CrucesGeocerca";
 import { DetalleEvento } from "./DetalleEvento";
@@ -160,9 +160,9 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
     }
   };
 
-  const exportarCsv = () => {
+  const exportarExcel = () => {
     if (items.length === 0) return;
-    const columnas = ["ID", "Sede", "Unidad", "Fecha y Hora", "Severidad", "Estado", "Regla/Métrica", "Umbral", "Registrado"];
+    const columnas = ["ID", "Sede", "Unidad", "Fecha y Hora", "Severidad", "Estado", "Regla", "Velocidad (km/h)", "Consumo (L/h)"];
     const filas = items.map(a => [
       a.id,
       a.sede,
@@ -170,11 +170,11 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
       fechaHora(a.fechaHora),
       a.severidad,
       a.estado,
-      a.regla,
-      a.valorUmbral,
-      a.valorRegistrado
+      nombreRegla(a.regla),
+      a.velocidad,
+      CONSUMO_ALERTA_LH
     ]);
-    descargarCsv(`alertas_${filtros.estado || "todas"}_${filtros.rango}.csv`, columnas, filas);
+    descargarExcel(`alertas_${filtros.estado || "todas"}_${filtros.rango}.xlsx`, columnas, filas, "Alertas");
   };
 
   const filtrosActivos = filtros.severidad !== "" || filtros.maquinariaId !== null || filtros.rango !== "todo" || filtros.estado !== "GENERADO";
@@ -261,8 +261,8 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
                   Restablecer
                 </button>
               )}
-              <button type="button" onClick={exportarCsv} disabled={items.length === 0} title={q.hasNextPage ? "Exporta las alertas cargadas; usa «Cargar más» para incluir más" : "Exporta las alertas del filtro actual"} className="rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white disabled:opacity-50">
-                Exportar CSV
+              <button type="button" onClick={exportarExcel} disabled={items.length === 0} title={q.hasNextPage ? "Exporta las alertas cargadas; usa «Cargar más» para incluir más" : "Exporta las alertas del filtro actual"} className="rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white disabled:opacity-50">
+                Exportar Excel
               </button>
             </div>
           </div>

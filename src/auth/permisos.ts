@@ -6,6 +6,8 @@
 export type RolBackend = "SuperAdmin" | "Administrador" | "Gerente" | "Operador" | "Trabajador";
 
 export interface Permisos {
+  /** Usuario con rol SuperAdmin. */
+  esSuperAdmin: boolean;
   /** Ve y navega todas las empresas (solo SuperAdmin). */
   verTodasLasEmpresas: boolean;
   /** /usuarios — backend: SuperAdmin, Administrador. */
@@ -38,9 +40,10 @@ export function calcularPermisos(roles: string[] = [], permisosBackend: string[]
   // Si el backend envió la lista de permisos granulares, se evalúan directamente desde esa lista
   if (permisosBackend.length > 0) {
     return {
+      esSuperAdmin: superAdmin,
       verTodasLasEmpresas: superAdmin,
       gestionarUsuarios: puedeFn("USUARIOS", "GESTIONAR") || puedeFn("USUARIOS", "VER"),
-      gestionarSedes: puedeFn("SEDES", "GESTIONAR"),
+      gestionarSedes: superAdmin && puedeFn("SEDES", "GESTIONAR"),
       configurarMetas: puedeFn("ALERTAS", "CONFIGURAR"),
       editarFlota: puedeFn("FLOTA", "EDITAR") || puedeFn("FLOTA", "CREAR"),
       atenderAlertas: puedeFn("ALERTAS", "ATENDER"),
@@ -51,6 +54,7 @@ export function calcularPermisos(roles: string[] = [], permisosBackend: string[]
   // Fallback si no vinieran permisos del backend:
   // SuperAdmin gestiona todo. Administrador (cliente) solo atiende alertas y monitorea.
   return {
+    esSuperAdmin: superAdmin,
     verTodasLasEmpresas: superAdmin,
     gestionarUsuarios: superAdmin,
     gestionarSedes: superAdmin,

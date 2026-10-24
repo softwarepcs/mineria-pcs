@@ -12,10 +12,13 @@ import { CamionesDetalleView } from "@/features/camiones/components/CamionesDeta
 import { GeocercasView } from "@/features/geocercas/components/GeocercasView";
 import { DispositivosView } from "@/features/dispositivos/components/DispositivosView";
 import { SedesView } from "@/features/sedes/components/SedesView";
+import { ReporteEventosView } from "@/features/reportes/components/ReporteEventosView";
 
 export function EmpresaDetalle() {
   const { token } = useParams();
   const { sesion } = useAuth();
+  const esSuperAdmin = sesion?.permisos.esSuperAdmin ?? false;
+  const puedeVerReportes = sesion?.permisos.puede("REPORTES", "VER") ?? false;
   
   const isPanel = !token;
   const empresaId = isPanel ? sesion?.usuario.empresaId : null;
@@ -48,9 +51,10 @@ export function EmpresaDetalle() {
         <Route path="operadores/:operadorId" element={<OperadorDetalleView empresa={empresa} />} />
         <Route path="geocercas" element={<GeocercasView empresa={empresa} />} />
         <Route path="alertas" element={<AlertasView empresa={empresa} />} />
-        <Route path="dispositivos" element={<DispositivosView empresa={empresa} />} />
+        {puedeVerReportes && <Route path="reportes" element={<ReporteEventosView empresa={empresa} />} />}
+        {esSuperAdmin && <Route path="dispositivos" element={<DispositivosView empresa={empresa} />} />}
         <Route path="database" element={<MotorPrincipal empresa={empresa} />} />
-        <Route path="sedes" element={<SedesView empresa={empresa} />} />
+        {esSuperAdmin && <Route path="sedes" element={<SedesView empresa={empresa} />} />}
         <Route path="*" element={<Navigate to={isPanel ? "/panel" : `/empresa/${token}`} replace />} />
       </Routes>
     </div>

@@ -8,18 +8,20 @@ export const SEV: Record<Severidad, { strip: string; clase: string; etiqueta: st
 };
 
 export const EST: Record<EstadoAlerta, { clase: string; etiqueta: string; punto: string }> = {
-  GENERADO: { clase: "border-blue-500/50 text-blue-400 bg-blue-500/10", etiqueta: "Sin atender", punto: "bg-blue-400" },
-  ATENDIDO: { clase: "border-green-500/50 text-green-400 bg-green-500/10", etiqueta: "Atendida", punto: "bg-green-400" },
-  CERRADO: { clase: "border-white/15 text-slate-400 bg-white/5", etiqueta: "Cerrada", punto: "bg-slate-500" },
+  GENERADO: { clase: "border-blue-500/50 text-blue-400 bg-blue-500/10", etiqueta: "SIN ATENDER", punto: "bg-blue-400" },
+  ATENDIDO: { clase: "border-green-500/50 text-green-400 bg-green-500/10", etiqueta: "ATENDIDO", punto: "bg-green-400" },
+  CERRADO: { clase: "border-white/15 text-slate-400 bg-white/5", etiqueta: "CERRADO", punto: "bg-slate-500" },
 };
 
 export const SEVERIDADES_ORDEN: Severidad[] = ["CRITICO", "ALTO", "MEDIO", "BAJO"];
 
 export const sev = (s: string) => SEV[s as Severidad] ?? SEV.BAJO;
 export const est = (e: string) => EST[e as EstadoAlerta] ?? EST.CERRADO;
-export const nombreRegla = (r: string) => r.replace(/_/g, " ").toUpperCase();
+/** Nombres legibles de las reglas conocidas; el resto se muestra con la clave en mayúsculas. */
+const NOMBRES_REGLA: Record<string, string> = {
+  velocidad_consumo: "CONSUMO 0 CON VELOCIDAD",
+};
+export const nombreRegla = (r: string) => NOMBRES_REGLA[r] ?? r.replace(/_/g, " ").toUpperCase();
 
-/** Cuánto se pasó del umbral, en %: (valor − umbral) / |umbral|. null si el umbral es 0. */
-export function pctSobreUmbral(valor: number, umbral: number): number | null {
-  return umbral === 0 ? null : ((valor - umbral) / Math.abs(umbral)) * 100;
-}
+/** Consumo instantáneo que dispara la alerta (la condición es consumo = 0). */
+export const CONSUMO_ALERTA_LH = 0;

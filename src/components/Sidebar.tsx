@@ -83,7 +83,7 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
         ) : (
           <nav className="space-y-0.5">
             {!collapsed && <div className="sidebar-section-label">{miEmpresa?.nombre ?? "Mi empresa"}</div>}
-            {miEmpresaId && <MenuTree items={menuEmpresa("/panel")} collapsed={collapsed} onExpandSidebar={expandSidebar} />}
+            {miEmpresaId && <MenuTree items={menuEmpresa("/panel", esGlobal, sesion?.permisos.puede("REPORTES", "VER") ?? false)} collapsed={collapsed} onExpandSidebar={expandSidebar} />}
             <AdministracionMenu collapsed={collapsed} onExpandSidebar={expandSidebar} />
           </nav>
         )}

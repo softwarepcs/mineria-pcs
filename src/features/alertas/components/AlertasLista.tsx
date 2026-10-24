@@ -94,7 +94,7 @@ function Fila({
           {mostrarRegla && <span className="block truncate text-[11px] font-bold text-white">{nombreRegla(a.regla)}</span>}
           <span className="block truncate font-mono text-[10px] text-slate-400">
             {fechaHora(a.fechaHora)}
-            {mostrarRegla ? ` · ${a.maquinaria}` : ` · valor ${num(a.valorRegistrado, 1)}`}
+            {mostrarRegla ? ` · ${a.maquinaria}` : ` · ${num(a.velocidad, 1)} km/h vs 0 L/h`}
           </span>
         </span>
         <span className={`shrink-0 rounded border px-1 py-px text-[9px] font-bold ${s.clase}`}>{s.corta}</span>

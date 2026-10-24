@@ -93,7 +93,7 @@ export function CamionesListaView({ empresa }: { empresa: EmpresaDetalle }) {
   if (unidadesQ.error) return <ErrorCarga error={unidadesQ.error} onReintentar={() => void unidadesQ.refetch()} />;
 
   return (
-    <div className="flex h-[calc(100vh-120px)] min-h-[500px] w-full flex-col overflow-hidden rounded-xl border border-white/10 bg-[#070b12] font-sans text-slate-200 shadow-2xl">
+    <div className="flex h-[calc(100vh-120px)] min-h-125 w-full flex-col overflow-hidden rounded-xl border border-white/10 bg-[#070b12] font-sans text-slate-200 shadow-2xl">
       <header className="flex shrink-0 flex-col justify-between gap-2.5 border-b border-white/10 bg-[#0c121d] px-3 py-2 sm:px-4 sm:py-2.5 md:flex-row md:items-center">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-bold tracking-tight text-white sm:text-xl">Unidades</h1>
@@ -168,7 +168,7 @@ export function CamionesListaView({ empresa }: { empresa: EmpresaDetalle }) {
             }}
           />
         ) : (
-          <aside className="hidden w-[340px] shrink-0 items-center justify-center border-l border-white/10 bg-[#090e18] p-6 text-center text-xs text-slate-500 xl:flex">
+          <aside className="hidden w-85 shrink-0 items-center justify-center border-l border-white/10 bg-[#090e18] p-6 text-center text-xs text-slate-500 xl:flex">
             Selecciona una unidad para ver su detalle.
           </aside>
         )}

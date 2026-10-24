@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { menuEmpresa } from "@/features/empresas/menu";
 import { Icon } from "@/components/Icon";
 import { MenuTree } from "@/components/sidebar/MenuTree";
@@ -15,7 +16,9 @@ export function EmpresaAccordionItem({
   collapsed: boolean;
   onExpandSidebar: () => void;
 }) {
-  const empresa = { basePath, nombre, menu: menuEmpresa(basePath) };
+  const { sesion } = useAuth();
+  const esSuperAdmin = sesion?.permisos.esSuperAdmin ?? false;
+  const empresa = { basePath, nombre, menu: menuEmpresa(basePath, esSuperAdmin) };
   const location = useLocation();
   const estaEnEmpresa = location.pathname.startsWith(basePath);
   const [open, setOpen] = useState(estaEnEmpresa);

@@ -9,17 +9,19 @@ export interface Lectura {
   lat: number | null;
   lng: number | null;
   velocidad: number | null;
-  rumbo: number | null;
-  temIngreso: number | null;
-  temRetorno: number | null;
-  caudalIngreso: number | null;
-  caudalRetorno: number | null;
-  consumoInstantaneo?: number | null;
+  angulo?: number | null;
+  rumbo?: number | null;
   temperaturaCombustible?: number | null;
-  consumoGh: number | null;
-  totalGal: number | null;
-  odometro: number | null;
-  porcPaso: number | null;
+  consumoInstantaneo?: number | null;
+  consumoAcumulado?: number | null;
+  horasMotor?: number | null;
+  caudalIngreso?: number | null;
+  caudalRetorno?: number | null;
+  litrosRalenti?: number | null;
+  horasRalenti?: number | null;
+  litrosSobrecarga?: number | null;
+  horasSobrecarga?: number | null;
+  odometro?: number | null;
 }
 
 /** Lecturas entre dos instantes (ISO). El backend limita el rango a 90 días. Se devuelven en orden cronológico. */

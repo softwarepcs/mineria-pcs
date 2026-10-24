@@ -5,7 +5,7 @@ import { SinDatos } from "./Estados";
 
 export interface Columna<T> {
   key: string;
-  encabezado: string;
+  encabezado: ReactNode;
   render: (fila: T, index: number) => ReactNode;
   /** Por defecto `"left"`. */
   alinear?: "left" | "center" | "right";
@@ -22,6 +22,8 @@ interface DataTableProps<T> {
   onClickFila?: (fila: T) => void;
   /** Key de la fila activa (se resalta visualmente). */
   filaActiva?: string | number | null;
+  /** Clase CSS adicional para cada fila. */
+  claseFila?: (fila: T, index: number) => string;
   /** Componente o texto a mostrar cuando no hay datos. */
   vacio?: ReactNode;
   /** Columna y dirección de orden inicial. */
@@ -63,6 +65,7 @@ export function DataTable<T>({
   keyExtractor,
   onClickFila,
   filaActiva,
+  claseFila,
   vacio,
   ordenInicial,
   minWidth,
@@ -117,11 +120,12 @@ export function DataTable<T>({
           {datosOrdenados.map((fila, index) => {
             const k = keyExtractor(fila);
             const activa = filaActiva !== undefined && filaActiva !== null && k === filaActiva;
+            const extraClase = claseFila ? claseFila(fila, index) : "";
             return (
               <tr
                 key={k}
                 onClick={onClickFila ? () => onClickFila(fila) : undefined}
-                className={`transition ${onClickFila ? "cursor-pointer" : ""} ${activa ? "bg-[#1a9a7a]/8" : "hover:bg-white/2"}`}
+                className={`transition ${onClickFila ? "cursor-pointer" : ""} ${activa ? "bg-[#1a9a7a]/8" : "hover:bg-white/2"} ${extraClase}`}
               >
                 {columnas.map((col) => (
                   <td key={col.key} className={`px-4 py-3 ${ALIGN[col.alinear ?? "left"]}`}>

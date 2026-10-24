@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import type { MaquinariaStats, EstadoFlota } from "@/features/flota/api";
+import type { Geocerca } from "@/features/geocercas/api";
 import { useLeafletMap, ajustarVista } from "@/shared/map/useLeafletMap";
 import { useFullscreen } from "@/shared/map/useFullscreen";
 import { MapaControles } from "@/shared/map/MapaControles";
-import { escapeHtml } from "@/shared/utils/escapeHtml";
+import { escapeHtml, colorSeguro } from "@/shared/utils/escapeHtml";
 import { num } from "@/shared/utils/formato";
 
 import { ESTADO_UNIDAD } from "@/features/flota/estado";
@@ -31,7 +32,17 @@ function iconoCamion(estado: EstadoFlota, seleccionado: boolean) {
 
 type ConPosicion = MaquinariaStats & { lat: number; lng: number };
 
-export function FlotaMap({ maquinarias, selectedId, onSelect }: { maquinarias: MaquinariaStats[]; selectedId: string | null; onSelect: (id: string) => void }) {
+export function FlotaMap({
+  maquinarias,
+  selectedId,
+  onSelect,
+  geocercas = [],
+}: {
+  maquinarias: MaquinariaStats[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  geocercas?: Geocerca[];
+}) {
   const contenedorRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const marcadoresRef = useRef<Record<string, L.Marker>>({});
@@ -41,7 +52,52 @@ export function FlotaMap({ maquinarias, selectedId, onSelect }: { maquinarias: M
   // Solo se dibujan las unidades con posición real
   const conPosicion = useMemo(() => maquinarias.filter((m): m is ConPosicion => m.lat !== null && m.lng !== null), [maquinarias]);
   const sinPosicion = maquinarias.length - conPosicion.length;
+  const geocercasActivas = useMemo(() => geocercas.filter((g) => g.activa), [geocercas]);
 
+  // Capa de geocercas activas
+  useEffect(() => {
+    if (!mapa) return;
+    const grupo = L.layerGroup().addTo(mapa);
+
+    geocercasActivas.forEach((g) => {
+      const color = colorSeguro(g.color);
+      const estilo = {
+        color,
+        weight: 2,
+        fillColor: color,
+        fillOpacity: 0.18,
+        interactive: true,
+      };
+
+      let capaG: L.Layer | null = null;
+      if (g.tipo === "CIRCULO" && g.centro && g.radio) {
+        capaG = L.circle(g.centro, { ...estilo, radius: g.radio });
+      } else if (g.tipo === "POLIGONO" && g.puntos.length >= 3) {
+        capaG = L.polygon(g.puntos, estilo);
+      }
+
+      if (capaG) {
+        capaG.bindPopup(`
+          <div style="font-family:sans-serif;font-size:12px;min-width:140px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${color};"></span>
+              <strong style="color:#0f172a;font-size:13px;">${escapeHtml(g.nombre)}</strong>
+            </div>
+            ${g.sede ? `<div style="color:#475569;font-size:11px;">Sede: <strong>${escapeHtml(g.sede)}</strong></div>` : ""}
+            ${g.tipo === "CIRCULO" && g.radio ? `<div style="color:#64748b;font-size:11px;">Radio: ${Math.round(g.radio)} m</div>` : ""}
+            ${g.descripcion ? `<div style="color:#64748b;font-size:11px;margin-top:2px;border-top:1px solid #e2e8f0;padding-top:2px;">${escapeHtml(g.descripcion)}</div>` : ""}
+          </div>
+        `);
+        capaG.addTo(grupo);
+      }
+    });
+
+    return () => {
+      grupo.remove();
+    };
+  }, [mapa, geocercasActivas]);
+
+  // Marcadores de maquinarias
   useEffect(() => {
     if (!mapa) return;
     const grupo = L.layerGroup().addTo(mapa);
@@ -60,7 +116,7 @@ export function FlotaMap({ maquinarias, selectedId, onSelect }: { maquinarias: M
   // Centrar solo cuando cambia la selección o al cargar: el refresco periódico no quita el zoom del usuario
   const centradoParaRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!mapa || conPosicion.length === 0) return;
+    if (!mapa) return;
     const clave = selectedId ?? "todas";
     if (centradoParaRef.current === clave) return;
     centradoParaRef.current = clave;
@@ -70,9 +126,14 @@ export function FlotaMap({ maquinarias, selectedId, onSelect }: { maquinarias: M
       marcadoresRef.current[sel.id]?.openPopup();
     } else {
       mapa.closePopup();
-      ajustarVista(mapa, conPosicion.map((c) => [c.lat, c.lng]));
+      const puntosCamiones = conPosicion.map((c) => [c.lat, c.lng] as [number, number]);
+      const puntosGeocercas = geocercasActivas.flatMap((g) => (g.centro ? [g.centro] : g.puntos));
+      const todosLosPuntos = [...puntosCamiones, ...puntosGeocercas];
+      if (todosLosPuntos.length > 0) {
+        ajustarVista(mapa, todosLosPuntos);
+      }
     }
-  }, [mapa, selectedId, conPosicion]);
+  }, [mapa, selectedId, conPosicion, geocercasActivas]);
 
   return (
     <div
@@ -80,6 +141,14 @@ export function FlotaMap({ maquinarias, selectedId, onSelect }: { maquinarias: M
       className={`relative w-full overflow-hidden rounded-xl border border-white/[0.06] bg-[#161b22] ${pantallaCompleta ? "h-screen" : "h-[320px] sm:h-[380px] lg:h-[450px]"}`}
     >
       <MapaControles capa={capa} onCapa={setCapa} pantallaCompleta={pantallaCompleta} onPantallaCompleta={alternarPantallaCompleta} />
+      
+      {geocercasActivas.length > 0 && (
+        <div className="absolute top-3 left-3 z-[1000] flex items-center gap-1.5 rounded-md bg-[#0b1220]/80 backdrop-blur-sm border border-white/10 px-2.5 py-1 text-[11px] text-slate-300">
+          <span className="h-2 w-2 rounded-full bg-[#00c4cc]"></span>
+          <span>{geocercasActivas.length} geocerca{geocercasActivas.length > 1 ? "s" : ""}</span>
+        </div>
+      )}
+
       {sinPosicion > 0 && (
         <div className="absolute bottom-3 left-3 z-[1000] rounded-md bg-black/60 px-2.5 py-1 text-[11px] text-slate-300">
           {sinPosicion} unidad{sinPosicion > 1 ? "es" : ""} sin posición GPS

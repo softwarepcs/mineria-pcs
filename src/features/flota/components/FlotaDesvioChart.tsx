@@ -278,12 +278,12 @@ export function FlotaDesvioChart({
       {/* ─── Legend ─── */}
       <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-3 sm:pt-3.5 border-t border-white/6 text-[11px] text-[#636e7b]">
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-xs bg-[#d99b42] inline-block shrink-0" />
-          <span>Por encima del objetivo · consume de más</span>
-        </span>
-        <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-xs bg-[#1a9a7a] inline-block shrink-0" />
           <span>Dentro o por debajo del objetivo</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-xs bg-[#d99b42] inline-block shrink-0" />
+          <span>Por encima del objetivo · consume de más</span>
         </span>
       </div>
 

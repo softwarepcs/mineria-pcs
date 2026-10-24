@@ -9,7 +9,7 @@ import { useLeafletMap, ajustarVista } from "@/shared/map/useLeafletMap";
 import { useFullscreen } from "@/shared/map/useFullscreen";
 import { MapaControles } from "@/shared/map/MapaControles";
 import { escapeHtml } from "@/shared/utils/escapeHtml";
-import { descargarCsv } from "@/shared/utils/csv";
+import { descargarExcel } from "@/shared/utils/excel";
 import { fechaHora, hoyISO, num } from "@/shared/utils/formato";
 import { DataTable, type Columna } from "@/shared/ui/DataTable";
 import { Paginacion } from "@/shared/ui/Paginacion";
@@ -108,10 +108,25 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
   useEffect(() => setPagina(1), [busqueda, porPagina]);
 
   const exportar = () => {
-    descargarCsv(
-      `telemetria_${unidad?.identificador ?? "unidad"}_${desde}_${hasta}.csv`,
-      ["Ítem", "Fecha y hora", "Operador", "Latitud", "Longitud", "Velocidad (km/h)", "Rumbo", "Temp. ingreso", "Temp. retorno", "Caudal ingreso (L/h)", "Caudal retorno (L/h)", "Consumo (gal/h)", "Total (gal)", "Odómetro", "% paso"],
-      filtradas.map((l, i) => [i + 1, fechaHora(l.timestamp), l.operador, l.lat, l.lng, l.velocidad, l.rumbo, l.temIngreso, l.temRetorno, l.caudalIngreso, l.caudalRetorno, l.consumoGh, l.totalGal, l.odometro, l.porcPaso]),
+    descargarExcel(
+      `telemetria_${unidad?.identificador ?? "unidad"}_${desde}_${hasta}.xlsx`,
+      ["Ítem", "Fecha y hora", "Operador", "Latitud", "Longitud", "Velocidad (km/h)", "Ángulo", "Temp. combustible (°C)", "Caudal ingreso (gal/h)", "Caudal retorno (gal/h)", "Consumo instantáneo (gal/h)", "Consumo acumulado (gal)", "Odómetro (km)"],
+      filtradas.map((l, i) => [
+        i + 1,
+        fechaHora(l.timestamp),
+        l.operador,
+        l.lat,
+        l.lng,
+        l.velocidad,
+        l.angulo ?? l.rumbo,
+        l.temperaturaCombustible,
+        l.caudalIngreso,
+        l.caudalRetorno,
+        l.consumoInstantaneo,
+        l.consumoAcumulado,
+        l.odometro,
+      ]),
+      "Telemetría",
     );
   };
 
@@ -122,12 +137,12 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
     { key: "lat", encabezado: "Latitud", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{l.lat?.toFixed(6) ?? "—"}</span> },
     { key: "lng", encabezado: "Longitud", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{l.lng?.toFixed(6) ?? "—"}</span> },
     { key: "vel", encabezado: "Velocidad", render: (l) => num(l.velocidad, 1) },
-    { key: "rumbo", encabezado: "Rumbo", render: (l) => num(l.rumbo) },
-    { key: "temin", encabezado: "Temp. in", render: (l) => num(l.temIngreso, 1) },
-    { key: "caudalingreso", encabezado: "Caudal ingreso", render: (l) => num(l.caudalIngreso, 1) },
-    { key: "caudalretorno", encabezado: "Caudal retorno", render: (l) => num(l.caudalRetorno, 1) },
-    { key: "consumo", encabezado: "Consumo gal/h", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{num(l.consumoGh, 1)}</span> },
-    { key: "totalgal", encabezado: "Total gal", render: (l) => num(l.totalGal) },
+    { key: "angulo", encabezado: "Ángulo", render: (l) => num(l.angulo ?? l.rumbo) },
+    { key: "temp", encabezado: "Temp. comb.", render: (l) => num(l.temperaturaCombustible, 1) },
+    { key: "caudalingreso", encabezado: "Caudal ingreso", render: (l) => num(l.caudalIngreso, 2) },
+    { key: "caudalretorno", encabezado: "Caudal retorno", render: (l) => num(l.caudalRetorno, 2) },
+    { key: "consumo", encabezado: "Consumo inst.", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{num(l.consumoInstantaneo, 2)}</span> },
+    { key: "consumoAcum", encabezado: "Consumo acum.", render: (l) => num(l.consumoAcumulado, 2) },
     { key: "odo", encabezado: "Odómetro", render: (l) => num(l.odometro) },
   ];
 
@@ -159,7 +174,7 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
         </div>
         <div className="mp-filter-actions">
           <button type="button" onClick={buscar} disabled={isFetching || !maquinariaId} className="mp-btn-buscar">{isFetching ? "Cargando..." : "Buscar"}</button>
-          <button type="button" onClick={exportar} disabled={!filtradas.length} className="mp-btn-exportar">Exportar CSV</button>
+          <button type="button" onClick={exportar} disabled={!filtradas.length} className="mp-btn-exportar">Exportar Excel</button>
           <button type="button" onClick={() => setVerEnMapa(true)} disabled={!lecturas.length} className="mp-btn-cargar-mapa">Ver en mapa</button>
         </div>
       </div>

@@ -26,11 +26,17 @@ export function FlotaTable({
   selectedId,
   onSelect,
   mode = "full",
+  seleccionadasIds,
+  onToggleSeleccion,
+  onToggleTodas,
 }: {
   maquinarias: Maquinaria[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   mode?: "full" | "alerts";
+  seleccionadasIds?: Set<string>;
+  onToggleSeleccion?: (id: string) => void;
+  onToggleTodas?: (todas: boolean) => void;
 }) {
 
   // ─── ALERTS PANEL (sidebar next to map) ───
@@ -100,7 +106,49 @@ export function FlotaTable({
   }
 
   // ─── FULL TABLE ───
+  const totalSeleccionadas = seleccionadasIds ? maquinarias.filter((m) => seleccionadasIds.has(m.id)).length : maquinarias.length;
+  const todasSeleccionadas = maquinarias.length > 0 && totalSeleccionadas === maquinarias.length;
+  const algunaSeleccionada = totalSeleccionadas > 0 && !todasSeleccionadas;
+
   const columnasTabla: ColumnaTabla<Maquinaria>[] = [
+    ...(seleccionadasIds && onToggleSeleccion
+      ? [
+          {
+            key: "seleccion",
+            encabezado: (
+              <div className="flex items-center justify-center py-0.5" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  aria-label="Seleccionar o deseleccionar todas las maquinarias"
+                  title={todasSeleccionadas ? "Deseleccionar todas" : "Seleccionar todas"}
+                  checked={todasSeleccionadas}
+                  ref={(el) => {
+                    if (el) el.indeterminate = algunaSeleccionada;
+                  }}
+                  onChange={(e) => onToggleTodas && onToggleTodas(e.target.checked)}
+                  className="h-4 w-4 rounded cursor-pointer accent-[#1a9a7a] bg-slate-900 border-white/20 transition focus:ring-1 focus:ring-[#1a9a7a]"
+                />
+              </div>
+            ),
+            alinear: "center" as const,
+            render: (c: Maquinaria) => {
+              const checked = seleccionadasIds.has(c.id);
+              return (
+                <div className="flex items-center justify-center py-0.5" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    aria-label={`Seleccionar camión ${c.placa}`}
+                    title={checked ? "Deseleccionar para ocultar del mapa y gráfico" : "Seleccionar para mostrar en mapa y gráfico"}
+                    checked={checked}
+                    onChange={() => onToggleSeleccion(c.id)}
+                    className="h-4 w-4 rounded cursor-pointer accent-[#1a9a7a] bg-slate-900 border-white/20 transition focus:ring-1 focus:ring-[#1a9a7a]"
+                  />
+                </div>
+              );
+            },
+          },
+        ]
+      : []),
     { key: "placa", encabezado: "Camión", render: (c) => <span className="font-semibold text-[#e6edf3]">{c.placa}</span> },
     ...COLUMNAS.map(c => ({
       key: c.key,
@@ -113,10 +161,7 @@ export function FlotaTable({
         if (c.key === "l100km") return `${fila[c.key].toFixed(1)} L/100km`;
         if (c.key === "desvioPct") return <span style={{ color: fila.desvioPct > 0 ? "#d99b42" : "#1a9a7a" }} className="font-semibold">{fila.desvioPct > 0 ? "+" : ""}{fila.desvioPct.toFixed(1)} %</span>;
         if (c.key === "ralentiLitros") return `${(fila.ralentiLitros ?? 0).toLocaleString("es-PE")} L (${(fila.ralentiHoras ?? 0).toFixed(1)} h)`;
-        if (c.key === "sobrecargaLitros") {
-          const val = fila.sobrecargaLitros ?? 0;
-          return val > 0 ? <span className="font-semibold text-red-400">{val.toLocaleString("es-PE")} L</span> : <span className="text-slate-500">0 L</span>;
-        }
+        if (c.key === "sobrecargaLitros") return `${(fila.sobrecargaLitros ?? 0).toLocaleString("es-PE")} L (${(fila.sobrecargaHoras ?? 0).toFixed(1)} h)`;
         if (c.key === "horas") return `${fila.horas.toLocaleString("es-PE")} h`;
         if (c.key === "co2Ton") return `${fila.co2Ton.toFixed(2)} t`;
         return fila[c.key];
@@ -151,6 +196,7 @@ export function FlotaTable({
           keyExtractor={(c) => c.id}
           onClickFila={(c) => onSelect(c.id === selectedId ? "" : c.id)}
           filaActiva={selectedId}
+          claseFila={(c) => (seleccionadasIds && !seleccionadasIds.has(c.id) ? "opacity-40 hover:opacity-80" : "")}
           ordenInicial={{ col: "desvioPct", dir: "desc" }}
         />
       </div>

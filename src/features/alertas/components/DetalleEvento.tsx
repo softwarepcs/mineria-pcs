@@ -8,7 +8,7 @@ import { useEmpresaPath } from "@/shared/hooks/useEmpresaPath";
 import { fechaHora, hora, num } from "@/shared/utils/formato";
 import { useAlertaDetalle, useCambiarEstadoAlerta } from "../hooks";
 import type { EstadoAlerta } from "../api";
-import { EST, est, nombreRegla, pctSobreUmbral, sev } from "../estilos";
+import { CONSUMO_ALERTA_LH, EST, est, nombreRegla, sev } from "../estilos";
 
 function Metrica({ titulo, valor, unidad }: { titulo: string; valor: string; unidad?: string }) {
   return (
@@ -45,7 +45,6 @@ export function DetalleEvento({ id, empresaId, puedeAtender, onCerrar }: Props) 
     0,
   );
   const marca = ticks.length ? { indice: indiceEvento, etiqueta: "Alerta" } : undefined;
-  const pct = pctSobreUmbral(a.valorRegistrado, a.valorUmbral);
 
   const mover = (estado: EstadoAlerta) =>
     cambiar.mutate({ id: a.id, estado }, { onSuccess: () => avisar.exito(`Alerta marcada como ${EST[estado].etiqueta.toLowerCase()}`), onError: (err) => avisar.error(mensajeError(err)) });
@@ -102,22 +101,20 @@ export function DetalleEvento({ id, empresaId, puedeAtender, onCerrar }: Props) 
       </div>
 
       <div className="flex flex-col gap-5 px-5 py-5">
-        <div className="flex items-end justify-between gap-4 rounded-lg border border-white/8 bg-white/[0.03] p-4">
+        <div className="grid grid-cols-2 gap-4 rounded-lg border border-white/8 bg-white/[0.03] p-4">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Valor registrado</div>
-            <div className="font-mono text-3xl font-bold text-white">{num(a.valorRegistrado, 2)}</div>
-          </div>
-          <div className="text-right text-sm text-slate-400">
-            <div>
-              {a.condicion === ">" ? "supera" : a.condicion === "<" ? "es menor al" : "no cumple el"} umbral de <strong className="font-mono text-white">{num(a.valorUmbral, 2)}</strong>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Velocidad</div>
+            <div className="font-mono text-3xl font-bold text-white">
+              {num(a.velocidad, 1)} <span className="font-sans text-sm font-medium text-slate-400">km/h</span>
             </div>
-            {pct !== null && (
-              <div className="font-mono text-sm font-bold" style={{ color: s.strip }}>
-                {pct >= 0 ? "+" : ""}
-                {pct.toFixed(1)}% sobre el umbral
-              </div>
-            )}
           </div>
+          <div className="text-right">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Consumo instantáneo</div>
+            <div className="font-mono text-3xl font-bold" style={{ color: s.strip }}>
+              {num(CONSUMO_ALERTA_LH, 1)} <span className="font-sans text-sm font-medium text-slate-400">L/h</span>
+            </div>
+          </div>
+          <p className="col-span-2 text-xs text-slate-400">La unidad se desplazaba sin registrar consumo de combustible en lecturas consecutivas.</p>
         </div>
 
         {metricas.length > 0 && (
@@ -133,8 +130,8 @@ export function DetalleEvento({ id, empresaId, puedeAtender, onCerrar }: Props) 
           {hayEvidencia ? (
             <>
               <div>
-                <div className="mb-1.5 text-[11px] font-medium text-slate-400">Caudal de combustible · L/h</div>
-                <GraficoLinea alto={95} etiquetasX={ticks} marcaX={marca} series={[{ nombre: "Caudal", color: "#00ebb0", valores: a.evidencia.puntosCaudal }]} />
+                <div className="mb-1.5 text-[11px] font-medium text-slate-400">Consumo instantáneo · L/h</div>
+                <GraficoLinea alto={95} etiquetasX={ticks} marcaX={marca} series={[{ nombre: "Consumo", color: "#00ebb0", valores: a.evidencia.puntosConsumo }]} />
               </div>
               <div>
                 <div className="mb-1.5 text-[11px] font-medium text-slate-400">Velocidad · km/h</div>

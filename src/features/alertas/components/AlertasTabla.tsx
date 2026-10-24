@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { SinDatos } from "@/shared/ui/Estados";
 import { fechaHora, haceCuanto, num } from "@/shared/utils/formato";
 import type { AlertaEvento, Severidad } from "../api";
-import { SEV, SEVERIDADES_ORDEN, est, nombreRegla, pctSobreUmbral, sev } from "../estilos";
+import { CONSUMO_ALERTA_LH, SEV, SEVERIDADES_ORDEN, est, nombreRegla, sev } from "../estilos";
 
 interface Grupo {
   clave: string;
@@ -39,7 +39,7 @@ interface Props {
   /** Muestra las casillas siempre (modo selección). Si no, solo al pasar el cursor. */
   mostrarCasillas: boolean;
   puedeAtender: boolean;
-  /** Con el panel de detalle abierto la tabla es más estrecha: se omite la columna Valor / umbral. */
+  /** Con el panel de detalle abierto la tabla es más estrecha: se omite la columna Velocidad vs Consumo. */
   compacta: boolean;
   onAbrir: (id: string) => void;
   onMarcar: (ids: string[], marcar: boolean) => void;
@@ -78,18 +78,16 @@ function Estado({ e, soloPunto }: { e: string; soloPunto: boolean }) {
   );
 }
 
-function ValorUmbral({ a }: { a: AlertaEvento }) {
-  const pct = pctSobreUmbral(a.valorRegistrado, a.valorUmbral);
+/** Velocidad registrada frente al consumo instantáneo (0) que disparó la alerta. */
+function VelocidadConsumo({ velocidad, prefijo }: { velocidad: number; prefijo?: string }) {
   return (
     <span className="whitespace-nowrap font-mono">
-      <span className="font-bold text-white">{num(a.valorRegistrado, 1)}</span>
-      <span className="text-slate-500"> {a.condicion} {num(a.valorUmbral, 1)}</span>
-      {pct !== null && (
-        <span className="ml-1.5 rounded px-1 py-px text-[10px] font-bold" style={{ color: sev(a.severidad).strip, background: "rgba(255,255,255,0.05)" }}>
-          {pct >= 0 ? "+" : ""}
-          {pct.toFixed(1)}%
-        </span>
-      )}
+      {prefijo && <span className="text-slate-500">{prefijo} </span>}
+      <span className="font-bold text-white">{num(velocidad, 1)}</span>
+      <span className="text-slate-500"> km/h</span>
+      <span className="mx-1.5 text-slate-600">vs</span>
+      <span className="font-bold text-[#ef5350]">{num(CONSUMO_ALERTA_LH, 1)}</span>
+      <span className="text-slate-500"> L/h</span>
     </span>
   );
 }
@@ -137,7 +135,7 @@ export function AlertasTabla({ items, agrupar, seleccionadaId, marcadas, mostrar
           <span className="block font-mono text-slate-300">{fechaHora(a.fechaHora)}</span>
           <span className="block text-[10px] text-slate-500">{haceCuanto(a.fechaHora)}</span>
         </td>
-        {!compacta && <td className="hidden px-3 py-2 lg:table-cell"><ValorUmbral a={a} /></td>}
+        {!compacta && <td className="hidden px-3 py-2 lg:table-cell"><VelocidadConsumo velocidad={a.velocidad} /></td>}
         <td className="px-3 py-2"><Estado e={a.estado} soloPunto={compacta} /></td>
       </tr>
     );
@@ -146,7 +144,7 @@ export function AlertasTabla({ items, agrupar, seleccionadaId, marcadas, mostrar
   const filaGrupo = (g: Grupo) => {
     const abierto = estaAbierto(g.clave);
     const marcadasGrupo = g.items.filter((a) => marcadas.has(a.id)).length;
-    const peor = g.items.reduce((m, a) => Math.max(m, pctSobreUmbral(a.valorRegistrado, a.valorUmbral) ?? 0), 0);
+    const velocidadMax = g.items.reduce((m, a) => Math.max(m, a.velocidad), 0);
     return (
       <tr key={g.clave} onClick={() => alternar(g.clave)} aria-expanded={abierto} className="group cursor-pointer border-b border-white/5 bg-white/[0.02] hover:bg-white/[0.05]">
         <td className="w-9 py-2 pl-3" style={{ boxShadow: `inset 3px 0 0 ${SEV[g.severidad].strip}` }}>
@@ -173,7 +171,7 @@ export function AlertasTabla({ items, agrupar, seleccionadaId, marcadas, mostrar
           <span className="block font-mono text-slate-300">{fechaHora(g.items[0].fechaHora)}</span>
           <span className="block text-[10px] text-slate-500">última · {haceCuanto(g.items[0].fechaHora)}</span>
         </td>
-        {!compacta && <td className="hidden px-3 py-2 text-slate-400 lg:table-cell">{peor > 0 ? `hasta +${peor.toFixed(1)}%` : "—"}</td>}
+        {!compacta && <td className="hidden px-3 py-2 lg:table-cell"><VelocidadConsumo velocidad={velocidadMax} prefijo="máx." /></td>}
         <td title={`${g.sinAtender} sin atender`} className="whitespace-nowrap px-3 py-2 text-[11px] text-slate-400">{compacta ? `${g.sinAtender} ●` : g.sinAtender ? `${g.sinAtender} sin atender` : "todas atendidas"}</td>
       </tr>
     );
@@ -190,7 +188,7 @@ export function AlertasTabla({ items, agrupar, seleccionadaId, marcadas, mostrar
           <th className={TH}>Regla</th>
           <th className={TH}>Unidad</th>
           <th className={`${TH} hidden md:table-cell`}>Fecha</th>
-          {!compacta && <th className={`${TH} hidden lg:table-cell`}>Valor / umbral</th>}
+          {!compacta && <th className={`${TH} hidden lg:table-cell`}>Velocidad vs Consumo</th>}
           <th className={TH}>Estado</th>
         </tr>
       </thead>

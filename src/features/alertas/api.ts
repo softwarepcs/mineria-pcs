@@ -11,9 +11,8 @@ export interface AlertaEvento {
   maquinariaId: number;
   maquinaria: string;
   fechaHora: string;
-  valorRegistrado: number;
-  valorUmbral: number;
-  condicion: string;
+  /** Velocidad (km/h) con la que se registró consumo instantáneo 0. */
+  velocidad: number;
   estado: EstadoAlerta;
   severidad: Severidad;
   regla: string;
@@ -26,9 +25,9 @@ export interface AlertaDetalle extends Omit<AlertaEvento, "sede"> {
     ventanaInicio: string;
     ventanaFin: string;
     ticksTiempo: string[];
-    puntosCaudal: (number | null)[];
+    puntosConsumo: (number | null)[];
     puntosVelocidad: (number | null)[];
-    caudalMax: number | null;
+    consumoMax: number | null;
     velocidadMax: number | null;
   };
   metricas: {
