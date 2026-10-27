@@ -26,6 +26,8 @@ export function useLecturasRecientes(maquinariaId: number | null, horas: number)
     },
     enabled: !!maquinariaId,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
 }
 
@@ -36,5 +38,7 @@ export function useLecturasSistema(maquinariaId: number | null, sistemaId: numbe
     queryFn: () => getLecturasSistema(maquinariaId!, sistemaId!, horas),
     enabled: !!maquinariaId && !!sistemaId,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
 }

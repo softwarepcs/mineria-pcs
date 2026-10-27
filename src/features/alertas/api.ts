@@ -1,132 +1,127 @@
 import { apiClient } from "@/shared/api/client";
 
-export const ESTADOS_ALERTA = ["GENERADO", "ATENDIDO", "CERRADO"] as const;
-export type EstadoAlerta = (typeof ESTADOS_ALERTA)[number];
-export type Severidad = "CRITICO" | "ALTO" | "MEDIO" | "BAJO";
+/** Una alerta de consumo está ABIERTO mientras dure la condición y pasa sola a CERRADO; las de geocerca son INFORMATIVAS. */
+export type Situacion = "ABIERTO" | "CERRADO" | "INFORMATIVA";
+export type TipoAlerta = "CONSUMO" | "GEOCERCA";
 
-export interface AlertaEvento {
+/** Fila del historial unificado (GET /alertas/historial). */
+export interface FilaHistorial {
   id: string;
-  empresaId: number;
-  sede: string;
-  maquinariaId: number;
-  maquinaria: string;
+  tipo: TipoAlerta;
+  situacion: Situacion;
   fechaHora: string;
-  /** Velocidad (km/h) con la que se registró consumo instantáneo 0. */
-  velocidad: number;
-  estado: EstadoAlerta;
-  severidad: Severidad;
-  regla: string;
-}
-
-export interface AlertaDetalle extends Omit<AlertaEvento, "sede"> {
-  evidencia: {
-    metrica: string;
-    fechaEvento: string;
-    ventanaInicio: string;
-    ventanaFin: string;
-    ticksTiempo: string[];
-    puntosConsumo: (number | null)[];
-    puntosVelocidad: (number | null)[];
-    consumoMax: number | null;
-    velocidadMax: number | null;
-  };
-  metricas: {
-    duracionMin: number | null;
-    distanciaKm: number | null;
-    consumoGal: number | null;
-    velocidadMediaKmH: number | null;
-    ignicion: boolean | null;
-    lecturasSensor: number;
-  };
-}
-
-export interface AlertaGeocerca {
-  id: string;
-  empresaId: number;
-  geocercaId: number;
-  geocerca: string;
+  fechaFin: string | null;
   maquinariaId: number;
-  maquinaria: string;
-  tipoEvento: "ENTRADA" | "SALIDA" | string;
-  fechaHora: string;
+  placa: string;
+  conductor: string | null;
+  /** CONSUMO: velocidad (km/h) al dispararse */
+  valor: number | null;
+  galonesDia: number | null;
+  km: number | null;
+  /** CONSUMO: duración; GEOCERCA: permanencia (solo en salidas) */
+  duracionMin: number | null;
+  /** GEOCERCA */
+  geocerca: string | null;
+  tipoEvento: "ENTRADA" | "SALIDA" | null;
   latitud: number | null;
   longitud: number | null;
 }
 
-export interface AlertasOperador {
-  maquinariaId: number;
-  maquinaria: string;
-  periodo: { inicio: string; fin: string | null };
-  eventosMotor: { id: string; regla: string; severidad: Severidad; valor: number; estado: EstadoAlerta; fechaHora: string }[];
-  crucesGeocerca: { id: string; geocerca: string; evento: string; fechaHora: string }[];
-}
-
-export type RangoAlertas = "todo" | "24h" | "7d" | "30d";
-
-export interface FiltrosAlertas {
-  estado: "" | EstadoAlerta;
-  severidad: "" | Severidad;
-  maquinariaId: number | null;
-  rango: RangoAlertas;
-}
-
-export interface ResumenAlertas {
-  porEstado: Record<EstadoAlerta, number>;
-  /** Alertas por severidad dentro del estado filtrado (respeta unidad y periodo). */
-  porSeveridad: Record<Severidad, number>;
-}
-
-export interface PaginaAlertas {
-  items: AlertaEvento[];
+export interface PaginaHistorial {
+  items: FilaHistorial[];
   total: number;
   page: number;
   limit: number;
   hayMas: boolean;
-  resumen: ResumenAlertas;
+  resumen: { abiertas: number; cerradas: number; informativas: number; consumo: number; geocerca: number };
 }
 
-export const ALERTAS_POR_PAGINA = 50;
+export interface FiltroHistorial {
+  desde?: string;
+  hasta?: string;
+  tipo?: TipoAlerta;
+  situacion?: Situacion;
+  maquinariaId?: number;
+}
 
-const HORAS_RANGO: Record<Exclude<RangoAlertas, "todo">, number> = { "24h": 24, "7d": 24 * 7, "30d": 24 * 30 };
-
-export async function getAlertasEventos(empresaId: number, f: FiltrosAlertas, page: number): Promise<PaginaAlertas> {
-  // `desde` se calcula al pedir, no al renderizar: así la clave de caché no cambia cada segundo
-  const desde = f.rango === "todo" ? undefined : new Date(Date.now() - HORAS_RANGO[f.rango] * 3_600_000).toISOString();
-  const { data } = await apiClient.get<PaginaAlertas>("/alertas/eventos", {
-    params: {
-      empresaId,
-      estado: f.estado || undefined,
-      severidad: f.severidad || undefined,
-      maquinariaId: f.maquinariaId ?? undefined,
-      desde,
-      page,
-      limit: ALERTAS_POR_PAGINA,
-    },
-  });
+export async function getHistorial(empresaId: number, f: FiltroHistorial, page = 1, limit = 50): Promise<PaginaHistorial> {
+  const { data } = await apiClient.get<PaginaHistorial>("/alertas/historial", { params: { empresaId, ...f, page, limit } });
   return data;
 }
 
-export async function cambiarEstadoMasivo(ids: string[], estado: EstadoAlerta) {
-  const { data } = await apiClient.patch<{ solicitadas: number; actualizadas: number; estado: EstadoAlerta }>("/alertas/eventos/estado", { ids, estado });
+/** Todas las filas del rango (para exportar), pidiendo páginas de 500. */
+export async function getHistorialCompleto(empresaId: number, f: FiltroHistorial): Promise<FilaHistorial[]> {
+  const filas: FilaHistorial[] = [];
+  for (let page = 1; page <= 40; page++) {
+    const r = await getHistorial(empresaId, f, page, 500);
+    filas.push(...r.items);
+    if (!r.hayMas) break;
+  }
+  return filas;
+}
+
+/** Última alerta de consumo de un camión (GET /alertas/consumo/ultimas). */
+export interface UltimaConsumo {
+  maquinariaId: number;
+  placa: string;
+  alerta: {
+    id: string;
+    fechaHora: string;
+    fechaFin: string | null;
+    situacion: "ABIERTO" | "CERRADO";
+    duracionMin: number;
+    conductor: string | null;
+    velocidadKmH: number | null;
+    galonesDia: number | null;
+    km: number | null;
+    galonesAlerta: number | null;
+    velocidadMedia: number | null;
+    latitud: number | null;
+    longitud: number | null;
+  } | null;
+}
+
+export async function getUltimasConsumo(empresaId: number, situacion?: "ABIERTO" | "CERRADO"): Promise<UltimaConsumo[]> {
+  const { data } = await apiClient.get<UltimaConsumo[]>("/alertas/consumo/ultimas", { params: { empresaId, situacion } });
   return data;
 }
 
-export async function getAlertaDetalle(id: string): Promise<AlertaDetalle> {
-  const { data } = await apiClient.get<AlertaDetalle>(`/alertas/eventos/${id}`);
+/** Configuración de avisos (GET /alertas/config). */
+export interface TipoConfig {
+  tipo: TipoAlerta;
+  activa: boolean;
+  canalPlataforma: boolean;
+  canalCorreo: boolean;
+  destinatarios: number;
+}
+
+export interface UsuarioAviso {
+  id: number;
+  nombre: string;
+  email: string | null;
+  estado: string;
+  roles: string[];
+  ultimoIngresoEn: string | null;
+  recibeConsumo: boolean;
+  recibeGeocerca: boolean;
+}
+
+export interface ConfigAlertas {
+  tipos: TipoConfig[];
+  usuarios: UsuarioAviso[];
+}
+
+export async function getConfigAlertas(empresaId: number): Promise<ConfigAlertas> {
+  const { data } = await apiClient.get<ConfigAlertas>("/alertas/config", { params: { empresaId } });
   return data;
 }
 
-export async function cambiarEstadoAlerta(id: string, estado: EstadoAlerta) {
-  const { data } = await apiClient.patch<{ id: string; estado: EstadoAlerta }>(`/alertas/eventos/${id}/estado`, { estado });
+export async function guardarConfigAlerta(empresaId: number, tipo: TipoAlerta, cambios: Partial<Pick<TipoConfig, "activa" | "canalPlataforma" | "canalCorreo">>) {
+  const { data } = await apiClient.put(`/alertas/config/${tipo}`, cambios, { params: { empresaId } });
   return data;
 }
 
-export async function getAlertasGeocerca(empresaId: number): Promise<AlertaGeocerca[]> {
-  const { data } = await apiClient.get<AlertaGeocerca[]>("/alertas/geocercas", { params: { empresaId } });
-  return data;
-}
-
-export async function getAlertasOperador(operadorId: number): Promise<AlertasOperador[]> {
-  const { data } = await apiClient.get<AlertasOperador[]>(`/alertas/operador/${operadorId}`);
+export async function guardarDestinatario(empresaId: number, tipo: TipoAlerta, usuarioId: number, recibe: boolean) {
+  const { data } = await apiClient.put(`/alertas/config/${tipo}/destinatarios/${usuarioId}`, { recibe }, { params: { empresaId } });
   return data;
 }

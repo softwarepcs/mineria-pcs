@@ -6,12 +6,13 @@ export function num(valor: number | null | undefined, decimales = 0): string {
   return valor.toLocaleString(LOCALE, { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
 }
 
-export function fechaHora(iso: string | Date | null | undefined): string {
+/** `zonaHoraria` (opcional): la de la empresa; sin ella se usa la del navegador. */
+export function fechaHora(iso: string | Date | null | undefined, zonaHoraria?: string): string {
   if (!iso) return "—";
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
     ? "—"
-    : d.toLocaleString(LOCALE, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+    : d.toLocaleString(LOCALE, { timeZone: zonaHoraria, day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
 }
 
 export function fecha(iso: string | Date | null | undefined): string {

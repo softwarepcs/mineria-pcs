@@ -1,20 +1,15 @@
 import type { EstadoFlota } from "@/features/flota/api";
-import { nombreRegla, sev } from "@/features/alertas/estilos";
+import { COLOR_CONSUMO, COLOR_GEOCERCA, nombreRegla } from "@/features/alertas/estilos";
 import type { AlertaReporte } from "./api";
+import { ESTADO_UNIDAD } from "@/features/flota/estado";
 
-/** Colores validados contra el fondo #0d1117 (contraste ≥ 3:1 y separables con daltonismo). */
-export const ESTADO: Record<EstadoFlota, { color: string; etiqueta: string }> = {
-  conduccion: { color: "#109c7c", etiqueta: "Conducción" },
-  ralenti: { color: "#b5792c", etiqueta: "Ralentí" },
-  offline: { color: "#2b3442", etiqueta: "Offline" },
-};
+/** Los mismos colores y nombres que el resto de la plataforma (features/flota/estado.ts). */
+export const ESTADO: Record<EstadoFlota, { color: string; etiqueta: string }> = ESTADO_UNIDAD;
 
-export const ESTADOS_ORDEN: EstadoFlota[] = ["conduccion", "ralenti", "offline"];
+export { ESTADOS_ORDEN } from "@/features/flota/estado";
 
-const COLOR_GEOCERCA = "#60a5fa";
-
-export const colorAlerta = (a: AlertaReporte) => (a.origen === "GEOCERCA" ? COLOR_GEOCERCA : sev(a.severidad).strip);
+export const colorAlerta = (a: AlertaReporte) => (a.origen === "GEOCERCA" ? COLOR_GEOCERCA : COLOR_CONSUMO);
 
 export const nombreAlerta = (a: AlertaReporte) => (a.origen === "GEOCERCA" ? `Geocerca: ${a.tipo}` : nombreRegla(a.tipo));
 
-export const etiquetaSeveridad = (a: AlertaReporte) => (a.origen === "GEOCERCA" ? "Informativa" : sev(a.severidad).etiqueta);
+export const etiquetaSeveridad = (a: AlertaReporte) => (a.origen === "GEOCERCA" ? "Informativa" : a.fin ? "Cerrado" : "Abierto");

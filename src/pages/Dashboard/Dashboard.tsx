@@ -23,7 +23,7 @@ export function Dashboard() {
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard titulo="Empresas activas" valor={`${activas}/${empresas.length}`} color="text-blue-400" />
         <StatCard titulo="Unidades registradas" valor={totalUnidades} color="text-green-400" />
-        <StatCard titulo="Alertas sin atender" valor={totalAlertas} color={totalAlertas > 0 ? "text-red-400" : "text-white"} />
+        <StatCard titulo="Alertas abiertas" valor={totalAlertas} color={totalAlertas > 0 ? "text-red-400" : "text-white"} />
       </div>
 
       <h2 className="mb-3 mt-8 text-lg font-semibold text-white">Empresas</h2>

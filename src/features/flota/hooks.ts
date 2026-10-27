@@ -10,5 +10,7 @@ export function useFlotaDashboard(empresaId: number, dias: Periodo) {
     queryKey: flotaKeys.dashboard(empresaId, dias),
     queryFn: () => getFlotaDashboard(empresaId, dias),
     refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
 }

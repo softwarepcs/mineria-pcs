@@ -35,7 +35,7 @@ export function Modal({ abierto, titulo, onCerrar, children, ancho = "max-w-lg" 
         aria-modal="true"
         aria-label={titulo}
         onMouseDown={(e) => e.stopPropagation()}
-        className={`flex max-h-[90vh] w-full ${ancho} flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0d1117] shadow-2xl`}
+        className={`flex max-h-[90vh] w-full ${ancho} flex-col overflow-hidden rounded-xl border border-white/10 bg-[#071623] shadow-2xl`}
       >
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
           <h3 className="text-sm font-bold text-white">{titulo}</h3>

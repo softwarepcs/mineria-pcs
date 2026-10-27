@@ -89,7 +89,7 @@ function desdeApi(g: GeocercaApi): Geocerca {
     nombre: g.nombre,
     descripcion: g.descripcion ?? "",
     tipo: g.tipo,
-    color: g.color ?? "#00c4cc",
+    color: g.color ?? "#5FD3EE",
     centro,
     radio: g.radio,
     puntos,

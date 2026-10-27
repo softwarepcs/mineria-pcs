@@ -35,8 +35,8 @@ export function GeocercasList({
   }, [geocercas, busqueda, tipo, asc]);
 
   return (
-    <div className="sidebar-scroll flex flex-1 flex-col overflow-y-auto bg-[#0d1117]">
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1.5 border-b border-white/10 bg-[#161b22] p-2">
+    <div className="sidebar-scroll flex flex-1 flex-col overflow-y-auto bg-[#071623]">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1.5 border-b border-white/10 bg-[#0A1C2B] p-2">
         {puedeEditar && (
           <button type="button" onClick={onNueva} className="flex items-center gap-1 rounded bg-white/10 px-2 py-1 text-[11px] font-medium text-white hover:bg-white/15">
             <Plus className="h-3 w-3" /> Crear
@@ -45,7 +45,7 @@ export function GeocercasList({
         <button type="button" onClick={() => setAsc((a) => !a)} title="Ordenar por nombre" className="rounded border border-white/10 p-1 text-slate-400 hover:text-white">
           <ArrowDownAZ className="h-3.5 w-3.5" />
         </button>
-        <select value={tipo} onChange={(e) => setTipo(e.target.value as TipoGeocerca | "")} className="rounded border border-white/15 bg-[#161b22] px-1.5 py-1 text-[11px] text-slate-300 outline-none">
+        <select value={tipo} onChange={(e) => setTipo(e.target.value as TipoGeocerca | "")} className="rounded border border-white/15 bg-[#0A1C2B] px-1.5 py-1 text-[11px] text-slate-300 outline-none">
           <option value="">Todas</option>
           <option value="CIRCULO">Círculos</option>
           <option value="POLIGONO">Polígonos</option>

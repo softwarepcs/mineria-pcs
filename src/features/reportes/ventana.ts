@@ -1,6 +1,6 @@
 import type { PeriodoReporte } from "./api";
 
-const LOCALE = "es-PE";
+const LOCALE = "es-AR";
 
 /** Posición de un instante dentro de la ventana, en % (acotada a 0–100). */
 export function posicion(t: number, desde: number, hasta: number): number {
@@ -12,21 +12,43 @@ export interface Marca {
   etiqueta: string;
 }
 
-/** Marcas de la cinta de horas: cada 2 h exactas en 24 h; cada medianoche en 7 días (hora local). */
-export function marcasDeVentana(desde: number, hasta: number, periodo: PeriodoReporte): Marca[] {
+/** Hora y minuto locales de un instante en la zona `tz` (la de la sede, no la del navegador). */
+function partesLocales(t: number, tz: string) {
+  const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", hour: "2-digit", minute: "2-digit", weekday: "short", day: "2-digit" }).formatToParts(new Date(t));
+  const v = (tipo: string) => p.find((x) => x.type === tipo)?.value ?? "";
+  return { hora: Number(v("hour")), minuto: Number(v("minute")), dia: v("day") };
+}
+
+/** "13:36" en la zona de la sede. */
+export function horaEn(t: number | string | Date, tz: string): string {
+  return new Date(t).toLocaleTimeString(LOCALE, { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+/** "23/10 22:10" en la zona de la sede. */
+export function fechaHoraEn(t: number | string | Date, tz: string): string {
+  const d = new Date(t);
+  return `${d.toLocaleDateString(LOCALE, { timeZone: tz, day: "2-digit", month: "2-digit" })} ${horaEn(d, tz)}`;
+}
+
+/** Instantes (ms) de cada medianoche local dentro de la ventana. */
+export function medianoches(desde: number, hasta: number, tz: string): number[] {
+  const res: number[] = [];
+  // Se recorre de hora en hora (los cambios de horario no caen en medio de una hora entera)
+  for (let t = Math.ceil(desde / 3_600_000) * 3_600_000; t < hasta; t += 3_600_000) {
+    const { hora, minuto } = partesLocales(t, tz);
+    if (hora === 0 && minuto === 0) res.push(t);
+  }
+  return res;
+}
+
+/** Marcas de la cinta de horas: cada 2 h en 24 h; cada medianoche en 7 días (hora de la sede). */
+export function marcasDeVentana(desde: number, hasta: number, periodo: PeriodoReporte, tz: string): Marca[] {
   const marcas: Marca[] = [];
-  const d = new Date(desde);
-  if (periodo === "24h") {
-    d.setMinutes(0, 0, 0);
-    d.setHours(d.getHours() + (d.getHours() % 2 === 0 ? 2 : 1));
-    for (; d.getTime() < hasta; d.setHours(d.getHours() + 2)) {
-      marcas.push({ t: d.getTime(), etiqueta: d.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit", hour12: false }) });
-    }
-  } else {
-    d.setHours(24, 0, 0, 0);
-    for (; d.getTime() < hasta; d.setDate(d.getDate() + 1)) {
-      marcas.push({ t: d.getTime(), etiqueta: d.toLocaleDateString(LOCALE, { weekday: "short", day: "2-digit" }) });
-    }
+  for (let t = Math.ceil(desde / 3_600_000) * 3_600_000; t < hasta; t += 3_600_000) {
+    const { hora, minuto, dia } = partesLocales(t, tz);
+    if (minuto !== 0) continue;
+    if (periodo === "24h" && hora % 2 === 0) marcas.push({ t, etiqueta: `${String(hora).padStart(2, "0")}:00` });
+    if (periodo === "7d" && hora === 0) marcas.push({ t, etiqueta: `${dia}/${new Date(t).toLocaleDateString(LOCALE, { timeZone: tz, month: "2-digit" })}` });
   }
   return marcas;
 }
@@ -40,6 +62,3 @@ export function duracion(ms: number): string {
   const dias = Math.floor(h / 24);
   return h % 24 ? `${dias} d ${h % 24} h` : `${dias} d`;
 }
-
-export const tituloPeriodo = (periodo: PeriodoReporte) =>
-  periodo === "24h" ? "Monitoreo de últimas 24h" : "Monitoreo de últimos 7 días";

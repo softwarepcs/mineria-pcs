@@ -36,3 +36,24 @@ export function descargarExcel(
 
   XLSX.writeFile(wb, archivoFinal);
 }
+
+export interface HojaExcel {
+  nombre: string;
+  encabezados: string[];
+  filas: (string | number | boolean | null | undefined)[][];
+}
+
+/** Descarga un libro .xlsx con varias hojas (una por camión, por ejemplo). Los nombres de hoja se recortan a 31 caracteres y se hacen únicos. */
+export function descargarExcelHojas(nombreArchivo: string, hojas: HojaExcel[]) {
+  const wb = XLSX.utils.book_new();
+  const usados = new Set<string>();
+  for (const h of hojas) {
+    const ws = XLSX.utils.aoa_to_sheet([h.encabezados, ...h.filas]);
+    ws["!cols"] = h.encabezados.map((e) => ({ wch: Math.max(e.length + 3, 12) }));
+    let nombre = h.nombre.replace(/[\\/?*[\]:]/g, "-").slice(0, 31) || "Hoja";
+    for (let i = 2; usados.has(nombre.toLowerCase()); i++) nombre = `${nombre.slice(0, 28)}-${i}`;
+    usados.add(nombre.toLowerCase());
+    XLSX.utils.book_append_sheet(wb, ws, nombre);
+  }
+  XLSX.writeFile(wb, nombreArchivo.endsWith(".xlsx") ? nombreArchivo : `${nombreArchivo}.xlsx`);
+}

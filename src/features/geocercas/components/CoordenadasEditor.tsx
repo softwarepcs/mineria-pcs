@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ClipboardPaste, Plus, X } from "lucide-react";
 import { latValida, lngValida, parsearCoordenadas, parsearNumero, type LatLng } from "@/shared/utils/geometria";
 
-const claseInput = "w-full min-w-0 rounded border bg-[#161b22] px-2 py-1 font-mono text-xs text-white outline-none placeholder:text-slate-600 focus:border-cyan-400";
+const claseInput = "w-full min-w-0 rounded border bg-[#0A1C2B] px-2 py-1 font-mono text-xs text-white outline-none placeholder:text-slate-600 focus:border-cyan-400";
 
 /**
  * Campo numérico que acepta texto a medias («-12.», «-») sin perderlo: solo avisa al padre
@@ -158,7 +158,7 @@ export function CoordenadasPoligono({
         <ClipboardPaste className="h-3.5 w-3.5" /> Pegar lista de coordenadas
       </button>
       {pegando && (
-        <div className="space-y-1.5 rounded border border-white/10 bg-[#0b0f17] p-2">
+        <div className="space-y-1.5 rounded border border-white/10 bg-[#041725] p-2">
           <textarea
             aria-label="Lista de coordenadas"
             rows={5}

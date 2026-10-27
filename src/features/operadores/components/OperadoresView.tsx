@@ -67,7 +67,7 @@ export function OperadoresView({ empresa }: { empresa: EmpresaDetalle }) {
       key: "operador",
       encabezado: "Operador",
       render: (o) => (
-        <Link to={`${basePath}/operadores/${o.id}`} className="font-medium text-white hover:text-[#0df5c6]">
+        <Link to={`${basePath}/operadores/${o.id}`} className="font-medium text-white hover:text-[#2BC4E8]">
           {o.nombreCompleto}
         </Link>
       ),
@@ -99,7 +99,7 @@ export function OperadoresView({ empresa }: { empresa: EmpresaDetalle }) {
   ];
 
   return (
-    <div className="space-y-5 rounded-xl border border-white/5 bg-[#0a0e17] p-3.5 font-sans text-slate-300 sm:p-6">
+    <div className="space-y-5 rounded-xl border border-white/5 bg-[#041725] p-3.5 font-sans text-slate-300 sm:p-6">
       <PageHeader
         titulo="Operadores"
         contador={operadores.length}
@@ -118,7 +118,7 @@ export function OperadoresView({ empresa }: { empresa: EmpresaDetalle }) {
                   crear.reset();
                   setModalAbierto(true);
                 }}
-                className="flex items-center justify-center gap-2 rounded-lg bg-[#0df5c6] px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-[#0be0b5]"
+                className="flex items-center justify-center gap-2 rounded-lg bg-[#2BC4E8] px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-[#5FD3EE]"
               >
                 <Plus className="h-4 w-4" /> Registrar operador
               </button>

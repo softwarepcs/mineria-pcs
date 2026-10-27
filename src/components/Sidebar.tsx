@@ -5,8 +5,9 @@ import { Icon } from "@/components/Icon";
 import { MenuTree } from "@/components/sidebar/MenuTree";
 import { EmpresaAccordionItem } from "@/components/sidebar/EmpresaAccordionItem";
 import { AdministracionMenu } from "@/components/sidebar/AdministracionMenu";
-import { useEmpresa, useEmpresas } from "@/features/empresas/hooks";
-import { menuEmpresa } from "@/features/empresas/menu";
+import { useEmpresas } from "@/features/empresas/hooks";
+import { seccionesEmpresa } from "@/features/empresas/menu";
+import { useAlertasAbiertas } from "@/features/alertas/hooks";
 
 function leerColapsado() {
   try {
@@ -22,7 +23,7 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
   const miEmpresaId = sesion?.usuario.empresaId ?? null;
 
   const { data: empresas = [] } = useEmpresas(esGlobal);
-  const { data: miEmpresa } = useEmpresa(esGlobal ? null : miEmpresaId);
+  const abiertas = useAlertasAbiertas(esGlobal ? null : miEmpresaId);
 
   const [collapsed, setCollapsed] = useState<boolean>(leerColapsado);
   const guardar = (v: boolean) => {
@@ -37,28 +38,15 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
 
   return (
     <aside className={`sidebar-root ${collapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}>
-      <div className="sidebar-brand-area">
-        {!collapsed ? (
-          <>
-            <button type="button" onClick={() => guardar(true)} title="Colapsar menú" className="sidebar-brand-btn">
-              <span className="sidebar-logo-icon">
-                <Icon name="monitor" className="h-5 w-5 text-[#0df5c6]" />
-              </span>
-              <span className="sidebar-brand-text">
-                <span className="sidebar-brand-title">EDGE SMART</span>
-              </span>
-            </button>
-            <button type="button" onClick={() => guardar(true)} title="Colapsar menú" className="sidebar-collapse-btn">
-              <Icon name="chevronLeft" className="h-4 w-4" />
-            </button>
-          </>
-        ) : (
-          <div className="flex w-full flex-col items-center gap-2">
-            <button type="button" onClick={expandSidebar} title="Expandir menú" className="sidebar-expand-btn">
-              <Icon name="chevronRight" className="h-4 w-4 transition group-hover:translate-x-0.5" />
-            </button>
-          </div>
-        )}
+      <div className={`mb-1 flex ${collapsed ? "justify-center" : "justify-end"}`}>
+        <button
+          type="button"
+          onClick={() => (collapsed ? expandSidebar() : guardar(true))}
+          title={collapsed ? "Expandir menú" : "Colapsar menú"}
+          className="sidebar-collapse-btn"
+        >
+          <Icon name={collapsed ? "chevronRight" : "chevronLeft"} className="h-4 w-4" />
+        </button>
       </div>
 
       <div className="sidebar-scroll min-h-0 flex-1 space-y-1 overflow-y-auto">
@@ -81,14 +69,20 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
             </div>
           </nav>
         ) : (
-          <nav className="space-y-0.5">
-            {!collapsed && <div className="sidebar-section-label">{miEmpresa?.nombre ?? "Mi empresa"}</div>}
-            {miEmpresaId && <MenuTree items={menuEmpresa("/panel", esGlobal, sesion?.permisos.puede("REPORTES", "VER") ?? false)} collapsed={collapsed} onExpandSidebar={expandSidebar} />}
+          <nav aria-label="Menú principal">
+            {miEmpresaId &&
+              seccionesEmpresa("/panel", esGlobal, sesion?.permisos.puede("REPORTES", "VER") ?? false, abiertas).map((sec) => (
+                <div key={sec.titulo}>
+                  {!collapsed ? <div className="sidebar-section-label">{sec.titulo}</div> : <div className="sidebar-divider" />}
+                  <MenuTree items={sec.items} collapsed={collapsed} onExpandSidebar={expandSidebar} />
+                </div>
+              ))}
             <AdministracionMenu collapsed={collapsed} onExpandSidebar={expandSidebar} />
           </nav>
         )}
       </div>
 
+      {!collapsed && <div className="sidebar-version">EDGE SMART · PCS · v1.0</div>}
       <div className="sidebar-footer">
         <button type="button" onClick={onLogout} title="Cerrar sesión" className={`sidebar-logout-btn ${collapsed ? "sidebar-logout-collapsed" : ""}`}>
           <Icon name="logout" className="h-[18px] w-[18px] shrink-0" />

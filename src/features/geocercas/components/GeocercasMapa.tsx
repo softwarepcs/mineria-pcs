@@ -10,7 +10,7 @@ import type { Geocerca, GeocercaValores } from "../api";
 
 export interface UnidadEnMapa {
   id: number;
-  identificador: string;
+  placa: string;
   posicion: LatLng;
   dentroDeEdicion: boolean;
 }
@@ -125,8 +125,8 @@ export function GeocercasMapa({
     const grupo = L.layerGroup().addTo(mapa);
     unidades.forEach((u) => {
       const dentro = modoEdicion && u.dentroDeEdicion;
-      L.circleMarker(u.posicion, { radius: 7, color: dentro ? "#fff" : "#0df5c6", weight: 2, fillColor: dentro ? "#0df5c6" : "#1e293b", fillOpacity: 1, interactive: !modoEdicion })
-        .bindPopup(`<strong>${escapeHtml(u.identificador)}</strong>${modoEdicion ? `<br/>${dentro ? "Dentro de la geocerca" : "Fuera de la geocerca"}` : ""}`)
+      L.circleMarker(u.posicion, { radius: 7, color: dentro ? "#fff" : "#2BC4E8", weight: 2, fillColor: dentro ? "#2BC4E8" : "#1e293b", fillOpacity: 1, interactive: !modoEdicion })
+        .bindPopup(`<strong>${escapeHtml(u.placa)}</strong>${modoEdicion ? `<br/>${dentro ? "Dentro de la geocerca" : "Fuera de la geocerca"}` : ""}`)
         .addTo(grupo);
     });
     return () => {
@@ -142,11 +142,11 @@ export function GeocercasMapa({
   return (
     <div ref={wrapperRef} className={`relative h-full flex-1 flex-col overflow-hidden bg-[#050b14] lg:flex ${visible ? "flex" : "hidden"}`}>
       <MapaControles capa={capa} onCapa={setCapa} pantallaCompleta={pantallaCompleta} onPantallaCompleta={alternarPantallaCompleta} />
-      <button type="button" onClick={ajustarTodo} title="Ver todas" className="absolute left-3 top-3 z-[1000] rounded-lg border border-white/15 bg-[#0d1422]/90 p-1.5 text-slate-300 hover:text-[#0df5c6]">
+      <button type="button" onClick={ajustarTodo} title="Ver todas" className="absolute left-3 top-3 z-[1000] rounded-lg border border-white/15 bg-[#0A1C2B]/90 p-1.5 text-slate-300 hover:text-[#2BC4E8]">
         <Layers className="h-4 w-4" />
       </button>
       {modoEdicion && (
-        <div className="absolute bottom-6 left-1/2 z-[1000] -translate-x-1/2 rounded-md bg-[#0d1117]/90 px-3 py-1.5 text-[11px] text-slate-200 shadow-lg">
+        <div className="absolute bottom-6 left-1/2 z-[1000] -translate-x-1/2 rounded-md bg-[#071623]/90 px-3 py-1.5 text-[11px] text-slate-200 shadow-lg">
           {valores.tipo === "CIRCULO" ? "Clic para ubicar el centro" : "Clic para agregar vértices"}
         </div>
       )}

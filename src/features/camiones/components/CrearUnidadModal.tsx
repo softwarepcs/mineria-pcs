@@ -13,7 +13,7 @@ import { ESTADOS_OPERATIVOS } from "../api";
 export function CrearUnidadModal({ abierto, onCerrar, sedes, onCreada }: { abierto: boolean; onCerrar: () => void; sedes: Sede[]; onCreada: (id: number) => void }) {
   const { data: tipos = [] } = useTiposMaquinaria();
   const crear = useCrearUnidad();
-  const vacio = { identificador: "", sedeId: "", tipoMaquinariaId: "", marca: "", modelo: "", estadoOperativo: "Activo" };
+  const vacio = { placa: "", sedeId: "", tipoMaquinariaId: "", marca: "", modelo: "", estadoOperativo: "Activo" };
   const [v, setV] = useState(vacio);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export function CrearUnidadModal({ abierto, onCerrar, sedes, onCreada }: { abier
     e.preventDefault();
     crear.mutate(
       {
-        identificador: v.identificador.trim(),
+        placa: v.placa.trim(),
         sedeId: Number(v.sedeId),
         tipoMaquinariaId: Number(v.tipoMaquinariaId),
         marca: v.marca.trim() || undefined,
@@ -48,7 +48,7 @@ export function CrearUnidadModal({ abierto, onCerrar, sedes, onCreada }: { abier
       ) : (
         <form onSubmit={onSubmit} className="space-y-4">
           <Campo etiqueta="Placa o código" requerido ayuda="Identificador único de la unidad dentro de la sede.">
-            <Input required maxLength={100} value={v.identificador} onChange={set("identificador")} placeholder="Ej. ABC-123" />
+            <Input required maxLength={100} value={v.placa} onChange={set("placa")} placeholder="Ej. ABC-123" />
           </Campo>
           <div className="grid gap-4 sm:grid-cols-2">
             <Campo etiqueta="Sede" requerido>

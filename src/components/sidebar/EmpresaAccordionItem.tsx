@@ -18,7 +18,7 @@ export function EmpresaAccordionItem({
 }) {
   const { sesion } = useAuth();
   const esSuperAdmin = sesion?.permisos.esSuperAdmin ?? false;
-  const empresa = { basePath, nombre, menu: menuEmpresa(basePath, esSuperAdmin) };
+  const empresa = { basePath, nombre, menu: menuEmpresa(basePath, esSuperAdmin, sesion?.permisos.puede("REPORTES", "VER") ?? false) };
   const location = useLocation();
   const estaEnEmpresa = location.pathname.startsWith(basePath);
   const [open, setOpen] = useState(estaEnEmpresa);

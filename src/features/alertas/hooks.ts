@@ -1,74 +1,70 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  cambiarEstadoAlerta,
-  cambiarEstadoMasivo,
-  getAlertaDetalle,
-  getAlertasEventos,
-  getAlertasGeocerca,
-  getAlertasOperador,
-  type EstadoAlerta,
-  type FiltrosAlertas,
+  getConfigAlertas,
+  getHistorial,
+  getUltimasConsumo,
+  guardarConfigAlerta,
+  guardarDestinatario,
+  type FiltroHistorial,
+  type TipoAlerta,
+  type TipoConfig,
 } from "./api";
-import { empresasKeys } from "@/features/empresas/hooks";
 
 export const alertasKeys = {
   todas: ["alertas"] as const,
-  /** Prefijo de todas las listas de eventos (cualquier filtro) de una empresa. */
-  eventosDe: (empresaId: number) => ["alertas", "eventos", empresaId] as const,
-  eventos: (empresaId: number, filtros: FiltrosAlertas) => ["alertas", "eventos", empresaId, filtros] as const,
-  detalle: (id: string) => ["alertas", "detalle", id] as const,
-  geocercas: (empresaId: number) => ["alertas", "geocercas", empresaId] as const,
-  operador: (id: number) => ["alertas", "operador", id] as const,
+  historial: (empresaId: number, f: FiltroHistorial, page: number) => ["alertas", "historial", empresaId, f, page] as const,
+  ultimas: (empresaId: number, situacion?: string) => ["alertas", "ultimas", empresaId, situacion ?? "todas"] as const,
+  config: (empresaId: number) => ["alertas", "config", empresaId] as const,
 };
 
-/** Lista paginada: cada `fetchNextPage` trae 50 más con los mismos filtros. */
-export function useAlertasEventos(empresaId: number, filtros: FiltrosAlertas) {
-  return useInfiniteQuery({
-    queryKey: alertasKeys.eventos(empresaId, filtros),
-    queryFn: ({ pageParam }) => getAlertasEventos(empresaId, filtros, pageParam),
-    initialPageParam: 1,
-    getNextPageParam: (ultima) => (ultima.hayMas ? ultima.page + 1 : undefined),
+/** Historial paginado. El filtro no lleva fechas móviles: quien llama las fija para no cambiar la clave a cada render. */
+export function useHistorialAlertas(empresaId: number, f: FiltroHistorial, page: number, limite = 25) {
+  return useQuery({
+    queryKey: [...alertasKeys.historial(empresaId, f, page), limite],
+    queryFn: () => getHistorial(empresaId, f, page, limite),
     refetchInterval: 60_000,
-    // Al cambiar de filtro se sigue viendo la lista anterior hasta que llega la nueva
-    placeholderData: (previa) => previa,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+    placeholderData: keepPreviousData,
   });
 }
 
-export function useAlertaDetalle(id: string | null) {
-  return useQuery({ queryKey: alertasKeys.detalle(id ?? ""), queryFn: () => getAlertaDetalle(id!), enabled: !!id });
+export function useUltimasConsumo(empresaId: number, situacion?: "ABIERTO" | "CERRADO", habilitado = true) {
+  return useQuery({
+    enabled: habilitado && empresaId > 0,
+    queryKey: alertasKeys.ultimas(empresaId, situacion),
+    queryFn: () => getUltimasConsumo(empresaId, situacion),
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+    placeholderData: keepPreviousData,
+  });
 }
 
-export function useAlertasGeocerca(empresaId: number) {
-  return useQuery({ queryKey: alertasKeys.geocercas(empresaId), queryFn: () => getAlertasGeocerca(empresaId), refetchInterval: 60_000 });
+export function useConfigAlertas(empresaId: number, habilitado = true) {
+  return useQuery({ queryKey: alertasKeys.config(empresaId), queryFn: () => getConfigAlertas(empresaId), enabled: habilitado });
 }
 
-export function useAlertasOperador(operadorId: number | null) {
-  return useQuery({ queryKey: alertasKeys.operador(operadorId ?? 0), queryFn: () => getAlertasOperador(operadorId!), enabled: !!operadorId });
-}
-
-/** Un cambio de estado mueve alertas entre listas (y cambia contadores): se recargan todas. */
-function useRefrescarAlertas(empresaId: number) {
+export function useGuardarConfigAlerta(empresaId: number) {
   const qc = useQueryClient();
-  return (ids: string[]) => {
-    void qc.invalidateQueries({ queryKey: alertasKeys.eventosDe(empresaId) });
-    ids.forEach((id) => void qc.invalidateQueries({ queryKey: alertasKeys.detalle(id) }));
-    // El contador de alertas abiertas del dashboard cambia
-    void qc.invalidateQueries({ queryKey: empresasKeys.lista });
-  };
-}
-
-export function useCambiarEstadoAlerta(empresaId: number) {
-  const refrescar = useRefrescarAlertas(empresaId);
   return useMutation({
-    mutationFn: ({ id, estado }: { id: string; estado: EstadoAlerta }) => cambiarEstadoAlerta(id, estado),
-    onSuccess: ({ id }) => refrescar([id]),
+    mutationFn: ({ tipo, cambios }: { tipo: TipoAlerta; cambios: Partial<Pick<TipoConfig, "activa" | "canalPlataforma" | "canalCorreo">> }) =>
+      guardarConfigAlerta(empresaId, tipo, cambios),
+    onSuccess: () => qc.invalidateQueries({ queryKey: alertasKeys.config(empresaId) }),
   });
 }
 
-export function useCambiarEstadoMasivo(empresaId: number) {
-  const refrescar = useRefrescarAlertas(empresaId);
+export function useGuardarDestinatario(empresaId: number) {
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ ids, estado }: { ids: string[]; estado: EstadoAlerta }) => cambiarEstadoMasivo(ids, estado),
-    onSuccess: (_r, { ids }) => refrescar(ids),
+    mutationFn: ({ tipo, usuarioId, recibe }: { tipo: TipoAlerta; usuarioId: number; recibe: boolean }) =>
+      guardarDestinatario(empresaId, tipo, usuarioId, recibe),
+    onSuccess: () => qc.invalidateQueries({ queryKey: alertasKeys.config(empresaId) }),
   });
+}
+
+/** Cuántos camiones tienen ahora una alerta de consumo ABIERTO (campana y menú). */
+export function useAlertasAbiertas(empresaId: number | null | undefined): number {
+  const q = useUltimasConsumo(empresaId ?? 0, "ABIERTO", !!empresaId);
+  return (q.data ?? []).filter((u) => u.alerta).length;
 }

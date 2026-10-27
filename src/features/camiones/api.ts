@@ -9,7 +9,7 @@ export const ESTADOS_OPERATIVOS = ["Activo", "Mantenimiento", "Fuera de servicio
 /** Unidad con su estado en vivo (GET /maquinarias/monitoreo). */
 export interface Unidad {
   id: number;
-  identificador: string;
+  placa: string;
   marca: string | null;
   modelo: string | null;
   estadoOperativo: string;
@@ -19,8 +19,12 @@ export interface Unidad {
   sede: string;
   empresaId: number;
   dispositivo: { id: number; imei: string; modelo: string | null; instaladoEn: string } | null;
-  /** conduccion | ralenti | offline — calculado por el backend. */
+  /** conduccion | ralenti | apagado | sin_senal — calculado por el backend. */
   estado: EstadoUnidad;
+  /** Desde cuándo está en ese estado. */
+  estadoDesde: string | null;
+  /** Geocerca en la que está ahora, si está dentro de alguna. */
+  geocercaActual: { id: number; nombre: string } | null;
   ultimaConexion: string | null;
   telemetria: {
     timestamp: string;
@@ -32,11 +36,15 @@ export interface Unidad {
     temperaturaCombustible?: number | null;
     caudalIngreso: number | null;
     caudalRetorno: number | null;
+    /** gal/h */
     consumoInstantaneo?: number | null;
+    /** Contador de combustible (galones) */
     consumoAcumulado?: number | null;
     odometro?: number | null;
+    /** Horómetro del motor (h) */
+    horasMotor?: number | null;
   } | null;
-  operadorActual: { id: number; nombre: string } | null;
+  operadorActual: { id: number; nombre: string; desde: string } | null;
 }
 
 export interface TipoMaquinaria {
@@ -45,7 +53,7 @@ export interface TipoMaquinaria {
 }
 
 export interface NuevaUnidad {
-  identificador: string;
+  placa: string;
   sedeId: number;
   tipoMaquinariaId: number;
   marca?: string;
@@ -81,7 +89,7 @@ export async function getTiposMaquinaria(): Promise<TipoMaquinaria[]> {
 
 export async function crearUnidad(dto: NuevaUnidad) {
   const { data } = await apiClient.post("/maquinarias", dto);
-  return data as { id: number; identificador: string };
+  return data as { id: number; placa: string };
 }
 
 export async function actualizarUnidad(id: number, dto: Partial<NuevaUnidad>) {

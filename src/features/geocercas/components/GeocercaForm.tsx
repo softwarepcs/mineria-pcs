@@ -5,7 +5,7 @@ import { num } from "@/shared/utils/formato";
 import type { LatLng } from "@/shared/utils/geometria";
 import { CoordenadasCirculo, CoordenadasPoligono } from "./CoordenadasEditor";
 
-const claseInput = "flex-1 min-w-0 rounded border border-white/15 bg-[#161b22] px-2 py-1 text-xs text-white outline-none placeholder:text-slate-500 focus:border-cyan-400";
+const claseInput = "flex-1 min-w-0 rounded border border-white/15 bg-[#0A1C2B] px-2 py-1 text-xs text-white outline-none placeholder:text-slate-500 focus:border-cyan-400";
 
 function Fila({ etiqueta, requerido, children }: { etiqueta: string; requerido?: boolean; children: React.ReactNode }) {
   return (
@@ -55,7 +55,7 @@ export function GeocercaForm({
         e.preventDefault();
         onGuardar();
       }}
-      className="sidebar-scroll flex-1 space-y-3 overflow-y-auto bg-[#0d1117] p-3"
+      className="sidebar-scroll flex-1 space-y-3 overflow-y-auto bg-[#071623] p-3"
     >
       <div className="flex items-center justify-between rounded-md border border-white/5 bg-[#21262d] px-3 py-1.5 text-xs font-medium text-slate-200">
         <span>{editando ? "Editar geocerca" : "Nueva geocerca"}</span>
@@ -78,7 +78,7 @@ export function GeocercaForm({
 
       <div className="flex items-center gap-2">
         <span className="w-20 shrink-0 text-xs text-slate-300">Tipo</span>
-        <div className="flex items-center rounded border border-white/15 bg-[#161b22] p-0.5">
+        <div className="flex items-center rounded border border-white/15 bg-[#0A1C2B] p-0.5">
           {([["CIRCULO", Circle, "Círculo"], ["POLIGONO", Pentagon, "Polígono"]] as const).map(([t, Icono, titulo]) => (
             <button
               key={t}

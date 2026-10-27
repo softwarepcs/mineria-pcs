@@ -23,7 +23,13 @@ export interface FlotaResumen {
   horasMotor: number;
 }
 
-export type EstadoFlota = "conduccion" | "ralenti" | "offline";
+/**
+ * Los 4 estados de una unidad (los calcula el backend, common/utils/estado-unidad.ts):
+ * conduccion = "En ruta", ralenti, apagado (ignición apagada) y sin_senal ("Sin comunicación").
+ */
+export type EstadoFlota = "conduccion" | "ralenti" | "apagado" | "sin_senal";
+
+export const ESTADOS_ORDEN: EstadoFlota[] = ["conduccion", "ralenti", "apagado", "sin_senal"];
 
 /** Estadísticas de una unidad en el período. */
 export interface MaquinariaStats {

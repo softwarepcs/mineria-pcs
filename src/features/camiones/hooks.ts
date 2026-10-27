@@ -27,6 +27,8 @@ export function useUnidades(empresaId: number | undefined) {
     queryKey: unidadesKeys.lista(empresaId),
     queryFn: () => getUnidades(empresaId),
     refetchInterval: 30_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
   });
 }
 

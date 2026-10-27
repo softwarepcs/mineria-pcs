@@ -68,3 +68,13 @@ export function useEliminarEmpresa() {
     },
   });
 }
+
+/**
+ * Empresa de la pantalla actual: la del token de la URL (SuperAdmin en /empresa/:token) o la del
+ * usuario (resto de roles, en /panel). `undefined` mientras carga o fuera de una empresa.
+ */
+export function useEmpresaActual(token: string | undefined, empresaIdUsuario: number | null | undefined, esGlobal: boolean) {
+  const porToken = useEmpresaPorToken(token);
+  const propia = useEmpresa(!token && !esGlobal ? empresaIdUsuario : null);
+  return token ? porToken.data : propia.data;
+}

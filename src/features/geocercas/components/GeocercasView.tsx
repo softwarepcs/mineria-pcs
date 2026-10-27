@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { Radio } from "lucide-react";
 import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useUnidades } from "@/features/camiones/hooks";
-import { posicion } from "@/features/camiones/estado";
 import { useAuth } from "@/hooks/useAuth";
 import { Cargando, ErrorCarga } from "@/shared/ui/Estados";
 import { avisar, useConfirmar } from "@/shared/ui/Avisos";
@@ -40,8 +39,8 @@ export function GeocercasView({ empresa }: { empresa: EmpresaDetalle }) {
   const unidades: UnidadEnMapa[] = useMemo(
     () =>
       unidadesApi.flatMap((u) => {
-        const p = posicion(u);
-        return p ? [{ id: u.id, identificador: u.identificador, posicion: p, dentroDeEdicion: contiene(form.valores, p) }] : [];
+        const p: LatLng | null = u.telemetria?.lat != null && u.telemetria?.lng != null ? [u.telemetria.lat, u.telemetria.lng] : null;
+        return p ? [{ id: u.id, placa: u.placa, posicion: p, dentroDeEdicion: contiene(form.valores, p) }] : [];
       }),
     [unidadesApi, form.valores],
   );
@@ -100,8 +99,8 @@ export function GeocercasView({ empresa }: { empresa: EmpresaDetalle }) {
   if (geocercasQ.error) return <ErrorCarga error={geocercasQ.error} onReintentar={() => void geocercasQ.refetch()} />;
 
   return (
-    <div className="flex h-[calc(100vh-100px)] min-h-[520px] w-full flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0d1117] shadow-2xl">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-[#161b22] px-4 py-2.5">
+    <div className="flex h-[calc(100vh-100px)] min-h-[520px] w-full flex-col overflow-hidden rounded-xl border border-white/10 bg-[#071623] shadow-2xl">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-[#0A1C2B] px-4 py-2.5">
         <div className="flex items-center gap-3">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-500/20 bg-cyan-500/10 text-cyan-400">
             <Radio className="h-4 w-4" />
@@ -111,7 +110,7 @@ export function GeocercasView({ empresa }: { empresa: EmpresaDetalle }) {
             <p className="text-[11px] text-slate-400">{geocercas.length} registradas · {geocercas.filter((g) => g.activa).length} activas</p>
           </div>
         </div>
-        <div className="flex items-center rounded-lg border border-white/10 bg-[#0d1117] p-0.5 lg:hidden">
+        <div className="flex items-center rounded-lg border border-white/10 bg-[#071623] p-0.5 lg:hidden">
           {(["panel", "mapa"] as const).map((v) => (
             <button key={v} type="button" onClick={() => setVistaMovil(v)} className={`rounded-md px-2.5 py-1 text-xs font-medium capitalize ${vistaMovil === v ? "bg-cyan-500 text-slate-950" : "text-slate-400"}`}>
               {v}
@@ -121,8 +120,8 @@ export function GeocercasView({ empresa }: { empresa: EmpresaDetalle }) {
       </div>
 
       <div className="relative flex min-h-0 w-full flex-1 overflow-hidden">
-        <div className={`h-full w-full shrink-0 flex-col overflow-hidden border-r border-white/10 bg-[#0d1117] lg:flex lg:w-[380px] ${vistaMovil === "panel" ? "flex" : "hidden"}`}>
-          <div className="flex shrink-0 border-b border-white/10 bg-[#161b22]/70">
+        <div className={`h-full w-full shrink-0 flex-col overflow-hidden border-r border-white/10 bg-[#071623] lg:flex lg:w-[380px] ${vistaMovil === "panel" ? "flex" : "hidden"}`}>
+          <div className="flex shrink-0 border-b border-white/10 bg-[#0A1C2B]/70">
             <button type="button" onClick={() => setPestana("lista")} className={`flex-1 border-b-2 py-2.5 text-xs font-semibold ${pestana === "lista" ? "border-cyan-400 text-cyan-300" : "border-transparent text-slate-400"}`}>
               Lista
             </button>

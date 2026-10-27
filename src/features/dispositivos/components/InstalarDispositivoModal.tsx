@@ -76,7 +76,7 @@ export function InstalarDispositivoModal({
             <option value="">Selecciona…</option>
             {unidades.map((u) => (
               <option key={u.id} value={u.id}>
-                {u.identificador} · {u.sede}{u.dispositivo ? ` (tiene ${u.dispositivo.imei})` : ""}
+                {u.placa} · {u.sede}{u.dispositivo ? ` (tiene ${u.dispositivo.imei})` : ""}
               </option>
             ))}
           </Select>

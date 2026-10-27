@@ -68,6 +68,7 @@ export function MenuTree({ items, depth = 0, collapsed = false, onExpandSidebar 
             <li key={item.id}>
               <NavLink
                 to={item.path ?? "#"}
+                end={item.end}
                 title={item.label}
                 className={({ isActive }) =>
                   `sidebar-nav-link-collapsed ${isActive ? "sidebar-nav-active-collapsed" : ""}`
@@ -108,12 +109,14 @@ export function MenuTree({ items, depth = 0, collapsed = false, onExpandSidebar 
             ) : (
               <NavLink
                 to={item.path ?? "#"}
+                end={item.end}
                 className={({ isActive }) =>
                   `sidebar-nav-link ${isActive ? "sidebar-nav-link-active" : ""}`
                 }
               >
                 <Icon name={item.icon ?? "arrowRight"} className="h-4.5 w-4.5 shrink-0" />
                 <span className="truncate">{item.label}</span>
+                {!!item.badge && <span className="sidebar-badge">{item.badge}</span>}
               </NavLink>
             )}
             {hasChildren && isOpen && (

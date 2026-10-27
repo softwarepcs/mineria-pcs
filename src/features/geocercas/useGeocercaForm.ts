@@ -8,7 +8,7 @@ export const VALORES_VACIOS: GeocercaValores = {
   descripcion: "",
   sedeId: null,
   tipo: "CIRCULO",
-  color: "#00c4cc",
+  color: "#5FD3EE",
   centro: null,
   radio: 500,
   puntos: [],

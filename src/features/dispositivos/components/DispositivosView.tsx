@@ -36,7 +36,7 @@ export function DispositivosView({ empresa }: { empresa: EmpresaDetalle }) {
   const columnas: Columna<any>[] = [
     { key: "imei", encabezado: "IMEI", render: (i) => <span className="font-mono text-white">{i.dispositivo.imei}</span> },
     { key: "modelo", encabezado: "Modelo", render: (i) => i.dispositivo.modelo ?? "—" },
-    { key: "unidad", encabezado: "Unidad", render: (i) => <>{i.maquinaria.identificador} <span className="text-xs text-slate-500">· {i.sede.nombre}</span></> },
+    { key: "unidad", encabezado: "Unidad", render: (i) => <>{i.maquinaria.placa} <span className="text-xs text-slate-500">· {i.sede.nombre}</span></> },
     { key: "sistema", encabezado: "Sistema", render: (i) => i.sistema.nombre },
     { key: "instalado", encabezado: "Instalado", render: (i) => <span className="text-xs">{fechaHora(i.fechaInicio)}</span> },
     {
@@ -53,10 +53,10 @@ export function DispositivosView({ empresa }: { empresa: EmpresaDetalle }) {
           alinear: "right" as const,
           render: (i: any) => i.activa ? (
             <span className="flex justify-end gap-3">
-              <button type="button" onClick={() => setEditando({ imei: i.dispositivo.imei, unidad: i.maquinaria.identificador })} className="text-xs font-semibold text-cyan-300 hover:text-cyan-200">
+              <button type="button" onClick={() => setEditando({ imei: i.dispositivo.imei, unidad: i.maquinaria.placa })} className="text-xs font-semibold text-cyan-300 hover:text-cyan-200">
                 Editar sistemas
               </button>
-              <button type="button" onClick={() => onRetirar(i.id, i.dispositivo.imei, i.maquinaria.identificador)} className="text-xs font-semibold text-red-400 hover:text-red-300">
+              <button type="button" onClick={() => onRetirar(i.id, i.dispositivo.imei, i.maquinaria.placa)} className="text-xs font-semibold text-red-400 hover:text-red-300">
                 Retirar
               </button>
             </span>
@@ -66,7 +66,7 @@ export function DispositivosView({ empresa }: { empresa: EmpresaDetalle }) {
   ];
 
   return (
-    <div className="space-y-5 rounded-xl border border-white/5 bg-[#0a0e17] p-4 text-slate-300 sm:p-6">
+    <div className="space-y-5 rounded-xl border border-white/5 bg-[#041725] p-4 text-slate-300 sm:p-6">
       <PageHeader
         titulo="Dispositivos"
         accion={
@@ -76,7 +76,7 @@ export function DispositivosView({ empresa }: { empresa: EmpresaDetalle }) {
               Mostrar historial
             </label>
             {puedeEditar && (
-              <button type="button" onClick={() => setModalAbierto(true)} className="flex items-center gap-1.5 rounded-lg bg-[#0df5c6] px-3.5 py-2 text-sm font-semibold text-slate-900 hover:bg-[#0be0b5]">
+              <button type="button" onClick={() => setModalAbierto(true)} className="flex items-center gap-1.5 rounded-lg bg-[#2BC4E8] px-3.5 py-2 text-sm font-semibold text-slate-900 hover:bg-[#5FD3EE]">
                 <Plus className="h-4 w-4" /> Instalar dispositivo
               </button>
             )}

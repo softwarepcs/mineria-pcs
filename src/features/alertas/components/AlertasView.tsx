@@ -1,326 +1,356 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { createPortal } from "react-dom";
+import { useMemo, useState, type ReactNode } from "react";
 import type { EmpresaDetalle } from "@/features/empresas/api";
-import { useUnidades } from "@/features/camiones/hooks";
-import { useAuth } from "@/hooks/useAuth";
-import { Cargando, ErrorCarga, Spinner } from "@/shared/ui/Estados";
-import { PageHeader } from "@/shared/ui/PageHeader";
-import { avisar, useConfirmar } from "@/shared/ui/Avisos";
-import { mensajeError } from "@/shared/api/errores";
-import { useAlertasEventos, useCambiarEstadoMasivo } from "../hooks";
+import { Cargando, ErrorCarga } from "@/shared/ui/Estados";
+import { Input } from "@/shared/ui/Formulario";
 import { descargarExcel } from "@/shared/utils/excel";
-import { fechaHora } from "@/shared/utils/formato";
-import type { EstadoAlerta, FiltrosAlertas, RangoAlertas, Severidad } from "../api";
-import { CONSUMO_ALERTA_LH, EST, SEV, SEVERIDADES_ORDEN, nombreRegla } from "../estilos";
-import { AlertasTabla } from "./AlertasTabla";
-import { CrucesGeocerca } from "./CrucesGeocerca";
-import { DetalleEvento } from "./DetalleEvento";
+import { fechaHora, hoyISO, num } from "@/shared/utils/formato";
+import { duracion, horaEn } from "@/features/reportes/ventana";
+import { getHistorialCompleto, type FilaHistorial, type UltimaConsumo } from "../api";
+import { COLOR_CONSUMO, COLOR_GEOCERCA } from "../estilos";
+import { useHistorialAlertas, useUltimasConsumo } from "../hooks";
 
-const FILTROS_INICIALES: FiltrosAlertas = { estado: "GENERADO", severidad: "", maquinariaId: null, rango: "todo" };
-const RANGOS: { valor: RangoAlertas; etiqueta: string }[] = [
-  { valor: "todo", etiqueta: "Todo el tiempo" },
-  { valor: "24h", etiqueta: "Últimas 24 h" },
-  { valor: "7d", etiqueta: "Últimos 7 días" },
-  { valor: "30d", etiqueta: "Últimos 30 días" },
-];
-const ESTADOS: { valor: FiltrosAlertas["estado"]; etiqueta: string }[] = [
-  { valor: "GENERADO", etiqueta: EST.GENERADO.etiqueta },
-  { valor: "ATENDIDO", etiqueta: "Atendidas" },
-  { valor: "CERRADO", etiqueta: "Cerradas" },
-  { valor: "", etiqueta: "Todas" },
-];
+type Tipo = "TODAS" | "CONSUMO" | "GEOCERCA";
+type Sub = "TODAS" | "ABIERTO" | "CERRADO" | "ENTRADA" | "SALIDA";
 
-function Seleccion({ valor, onCambiar, etiqueta, children }: { valor: string; onCambiar: (v: string) => void; etiqueta: string; children: React.ReactNode }) {
+/** Una fila de la tabla: la última alerta de consumo o un evento de geocerca de un camión. */
+interface Fila {
+  key: string;
+  tipo: "CONSUMO" | "GEOCERCA";
+  orden: number;
+  cuando: string;
+  placa: string;
+  conductor: string;
+  que: string;
+  donde: string;
+  colorQue: string;
+  redondo: boolean;
+  galones: string;
+  km: string;
+  notaKm: string;
+  duracion: string;
+  estado: "ABIERTO" | "CERRADO" | "ENTRADA" | "SALIDA";
+  cierre: string;
+}
+
+const ETIQUETA_TIPO = {
+  CONSUMO: { txt: "Consumo de combustible", bg: "#2A1745", fg: "#D9B3FF" },
+  ENTRADA: { txt: "Geocerca · Entrada", bg: "#0C2E4A", fg: "#8FD9EE" },
+  SALIDA: { txt: "Geocerca · Salida", bg: "#2A2140", fg: "#D7C5FF" },
+} as const;
+
+const ETIQUETA_ESTADO = {
+  ABIERTO: { bg: "#4A1018", fg: "#FF8A93" },
+  CERRADO: { bg: "#0B3B22", fg: "#4DF08A" },
+  ENTRADA: { bg: "#0C2E4A", fg: "#8FD9EE" },
+  SALIDA: { bg: "#2A2140", fg: "#D7C5FF" },
+} as const;
+
+/** "Hoy 14:20", "Ayer 22:10" o "23/10 08:05", en la zona horaria de la empresa. */
+function cuando(iso: string, tz: string): string {
+  const d = new Date(iso);
+  const dia = (x: Date) => x.toLocaleDateString("en-CA", { timeZone: tz });
+  const ahora = new Date();
+  const etiqueta =
+    dia(d) === dia(ahora) ? "Hoy" : dia(d) === dia(new Date(ahora.getTime() - 86_400_000)) ? "Ayer" : d.toLocaleDateString("es-AR", { timeZone: tz, day: "2-digit", month: "2-digit" });
+  return `${etiqueta} ${horaEn(d, tz)}`;
+}
+const minutos = (m: number | null) => (m === null ? "—" : duracion(m * 60_000));
+const coord = (lat: number | null, lng: number | null) => (lat === null || lng === null ? "Sin posición registrada" : `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+
+function filaConsumo(u: UltimaConsumo, tz: string): Fila | null {
+  const a = u.alerta;
+  if (!a) return null;
+  const abierta = a.situacion === "ABIERTO";
+  return {
+    key: `c-${a.id}`,
+    tipo: "CONSUMO",
+    orden: new Date(a.fechaHora).getTime(),
+    cuando: cuando(a.fechaHora, tz),
+    placa: u.placa,
+    conductor: a.conductor ?? "—",
+    que: abierta ? "Avanza sin registrar consumo" : "Avanzó sin registrar consumo",
+    donde: coord(a.latitud, a.longitud),
+    colorQue: COLOR_CONSUMO,
+    redondo: true,
+    galones: a.galonesDia === null ? "—" : `${num(a.galonesDia, 1)} gal`,
+    km: num(a.km, 1),
+    notaKm: a.km === null ? "al cerrarse" : "en la alerta",
+    duracion: `${minutos(a.duracionMin)}${abierta ? " · en curso" : ""}`,
+    estado: abierta ? "ABIERTO" : "CERRADO",
+    cierre: abierta ? "Se cerrará sola al volver el consumo" : a.fechaFin ? `Sola a las ${horaEn(a.fechaFin, tz)}` : "—",
+  };
+}
+
+/**
+ * Último evento de geocerca de cada camión: si es una SALIDA, también su ENTRADA (con cuánto
+ * estuvo dentro); si es una ENTRADA, el camión sigue dentro. `eventos` viene del más reciente al más antiguo.
+ */
+function filasGeocerca(eventos: FilaHistorial[], tz: string): Fila[] {
+  const porCamion = new Map<number, FilaHistorial[]>();
+  for (const e of eventos) porCamion.set(e.maquinariaId, [...(porCamion.get(e.maquinariaId) ?? []), e]);
+
+  const filas: Fila[] = [];
+  for (const lista of porCamion.values()) {
+    const ultimo = lista[0]!;
+    const base = (e: FilaHistorial) => ({
+      tipo: "GEOCERCA" as const,
+      orden: new Date(e.fechaHora).getTime(),
+      cuando: cuando(e.fechaHora, tz),
+      placa: e.placa,
+      conductor: e.conductor ?? "—",
+      colorQue: COLOR_GEOCERCA,
+      redondo: false,
+      galones: e.galonesDia === null ? "—" : `${num(e.galonesDia, 1)} gal`,
+      km: e.km === null ? "—" : num(e.km, 0),
+      notaKm: e.km === null ? "" : "del día al momento",
+      cierre: "—",
+    });
+    if (ultimo.tipoEvento === "SALIDA") {
+      const entrada = lista.slice(1).find((e) => e.tipoEvento === "ENTRADA" && e.geocerca === ultimo.geocerca);
+      const dentro = minutos(ultimo.duracionMin);
+      if (entrada) {
+        filas.push({ ...base(entrada), key: `g-${entrada.id}`, que: `→ Entrada a ${entrada.geocerca}`, donde: `Salió a las ${horaEn(ultimo.fechaHora, tz)}`, duracion: "—", estado: "ENTRADA" });
+      }
+      filas.push({ ...base(ultimo), key: `g-${ultimo.id}`, que: `← Salida de ${ultimo.geocerca}`, donde: `Estuvo dentro ${dentro}`, duracion: dentro, estado: "SALIDA" });
+    } else {
+      const dentro = duracion(Date.now() - new Date(ultimo.fechaHora).getTime());
+      filas.push({ ...base(ultimo), key: `g-${ultimo.id}`, que: `→ Entrada a ${ultimo.geocerca}`, donde: `Sigue dentro · ${dentro} hasta ahora`, duracion: "—", estado: "ENTRADA" });
+    }
+  }
+  return filas;
+}
+
+const GEO = { tipo: "GEOCERCA" } as const;
+
+/** Pantalla Alertas: la última alerta de consumo y el último evento de geocerca de cada camión. */
+export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
+  const [tipo, setTipo] = useState<Tipo>("TODAS");
+  const [sub, setSub] = useState<Sub>("TODAS");
+  const consumo = useUltimasConsumo(empresa.id);
+  // Los 500 cruces más recientes alcanzan para encontrar el último de cada camión
+  const geocercas = useHistorialAlertas(empresa.id, GEO, 1, 500);
+
+  const tz = empresa.zonaHoraria;
+  const todas = useMemo(() => {
+    const filas = [
+      ...(consumo.data ?? []).map((u) => filaConsumo(u, tz)).filter((f): f is Fila => f !== null),
+      ...filasGeocerca(geocercas.data?.items ?? [], tz),
+    ];
+    return filas.sort((a, b) => b.orden - a.orden);
+  }, [consumo.data, geocercas.data, tz]);
+
+  const nConsumo = todas.filter((f) => f.tipo === "CONSUMO").length;
+  const modoGeo = tipo === "GEOCERCA";
+  const visibles = todas.filter((f) => {
+    if (tipo !== "TODAS" && f.tipo !== tipo) return false;
+    if (sub === "TODAS") return true;
+    return f.estado === sub;
+  });
+
+  const elegirTipo = (t: Tipo) => {
+    setTipo(t);
+    setSub("TODAS");
+  };
+  const elegirSub = (s: Sub) => {
+    setSub(s);
+    // Abiertas/Cerradas solo aplican al consumo
+    if (!modoGeo && s !== "TODAS" && tipo === "TODAS") setTipo("CONSUMO");
+  };
+
+  const titulo = `${tipo === "TODAS" ? "Todas las alertas" : tipo === "CONSUMO" ? "Consumo de combustible" : "Geocercas · entradas y salidas"} · ${visibles.length}`;
+  const cargando = consumo.isLoading || geocercas.isLoading;
+  const error = consumo.isError ? consumo : geocercas.isError ? geocercas : null;
+
   return (
-    <div className="relative">
-      <select
-        aria-label={etiqueta}
-        value={valor}
-        onChange={(e) => onCambiar(e.target.value)}
-        className="cursor-pointer appearance-none rounded-md border border-white/10 bg-[#0e1420] py-1.5 pl-2.5 pr-7 text-xs text-slate-300 outline-none focus:ring-1 focus:ring-[#0df5c6]"
-      >
-        {children}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2 top-2 h-3.5 w-3.5 text-slate-500" />
+    <div className="flex w-full max-w-full flex-col gap-[18px]">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-cond text-[32px] font-bold leading-none text-white sm:text-[38px]">Alertas</h1>
+          <p className="mt-1 text-base text-[#A9BBCC]">Última alerta de consumo y último evento de geocerca de cada camión</p>
+        </div>
+        <BotonExportar empresaId={empresa.id} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-[18px] gap-y-2.5 rounded-xl border border-[#12263A] bg-[#071623] px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-0.5 text-sm text-[#8FA3B8]">Tipo</span>
+          <ChipTipo activo={tipo === "TODAS"} onClick={() => elegirTipo("TODAS")} color="#8FA3B8" redondo n={todas.length}>Todas</ChipTipo>
+          <ChipTipo activo={tipo === "CONSUMO"} onClick={() => elegirTipo("CONSUMO")} color={COLOR_CONSUMO} redondo n={nConsumo}>Consumo de combustible</ChipTipo>
+          <ChipTipo activo={tipo === "GEOCERCA"} onClick={() => elegirTipo("GEOCERCA")} color={COLOR_GEOCERCA} redondo={false} n={todas.length - nConsumo}>Geocercas</ChipTipo>
+        </div>
+        <div className="hidden h-7 w-px bg-[#1E3850] sm:block" />
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-0.5 text-sm text-[#8FA3B8]">{modoGeo ? "Evento" : "Estado"}</span>
+          {(modoGeo ? (["TODAS", "ENTRADA", "SALIDA"] as Sub[]) : (["TODAS", "ABIERTO", "CERRADO"] as Sub[])).map((s) => (
+            <Chip key={s} activo={sub === s} onClick={() => elegirSub(s)}>
+              {{ TODAS: "Todas", ABIERTO: "Abiertas", CERRADO: "Cerradas", ENTRADA: "Entradas", SALIDA: "Salidas" }[s]}
+            </Chip>
+          ))}
+        </div>
+      </div>
+
+      <section className="rounded-xl border border-[#12263A] bg-[#071623] px-5 py-[18px]">
+        <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-cond text-[21px] font-semibold text-[#F2F6FA]">{titulo}</h2>
+          <span className="text-[13px] text-[#8FA3B8]">Ordenadas de la más reciente a la más antigua</span>
+        </div>
+
+        {cargando ? (
+          <Cargando />
+        ) : error ? (
+          <ErrorCarga error={error.error} onReintentar={() => void error.refetch()} />
+        ) : visibles.length === 0 ? (
+          <p className="py-8 text-center text-sm text-[#8FA3B8]">No hay alertas con estos filtros.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[960px] border-collapse text-sm text-[#E3EBF2]">
+              <thead>
+                <tr className="border-b border-[#12263A] text-left text-[12.5px] text-[#8FA3B8] [&>th+th]:border-l [&>th+th]:border-[#13283B] [&>th]:whitespace-nowrap [&>th]:px-3 [&>th]:py-2.5 [&>th]:align-bottom [&>th]:font-medium">
+                  <th>Fecha y hora</th>
+                  <th>Tipo</th>
+                  <th>Camión</th>
+                  <th>Conductor</th>
+                  <th>Qué pasó</th>
+                  <th className="text-right">Galones del día<br />al momento</th>
+                  <th className="text-right">Km</th>
+                  <th>Duración</th>
+                  <th>Estado · cierre</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibles.map((f) => {
+                  const et = ETIQUETA_TIPO[f.tipo === "CONSUMO" ? "CONSUMO" : (f.estado as "ENTRADA" | "SALIDA")];
+                  const borde = f.estado === "ABIERTO" ? "#F64651" : f.tipo === "CONSUMO" ? COLOR_CONSUMO : COLOR_GEOCERCA;
+                  return (
+                    <tr key={f.key} className="border-b border-[#0F2233] hover:bg-[#0A1E30] [&>td+td]:border-l [&>td+td]:border-[#13283B] [&>td]:whitespace-nowrap [&>td]:px-3 [&>td]:py-[11px]">
+                      <td className="tabular-nums" style={{ boxShadow: `inset 3px 0 0 ${borde}` }}>{f.cuando}</td>
+                      <td>
+                        <span className="inline-block rounded-md px-2.5 py-[3px] text-[12.5px] font-semibold" style={{ background: et.bg, color: et.fg }}>{et.txt}</span>
+                      </td>
+                      <td className="font-semibold text-white">{f.placa}</td>
+                      <td className="max-w-[140px] !whitespace-normal">{f.conductor}</td>
+                      <td className="min-w-[210px] !whitespace-normal">
+                        <span className="block text-white">
+                          <span className="mr-[7px] inline-block h-[9px] w-[9px] align-[1px]" style={{ background: f.colorQue, borderRadius: f.redondo ? "50%" : "2px" }} />
+                          {f.que}
+                        </span>
+                        <span className="mt-px block text-xs text-[#8FA3B8]">{f.donde}</span>
+                      </td>
+                      <td className="text-right font-semibold tabular-nums text-white">{f.galones}</td>
+                      <td className="text-right tabular-nums">
+                        {f.km}
+                        {f.notaKm && <span className="mt-px block text-xs text-[#8FA3B8]">{f.notaKm}</span>}
+                      </td>
+                      <td className="min-w-[100px] max-w-[120px] !whitespace-normal">{f.duracion}</td>
+                      <td className="min-w-[130px] max-w-[190px] !whitespace-normal">
+                        <span className="inline-block rounded-md px-2.5 py-[3px] text-[12.5px] font-semibold" style={{ background: ETIQUETA_ESTADO[f.estado].bg, color: ETIQUETA_ESTADO[f.estado].fg }}>
+                          {f.estado}
+                        </span>
+                        {f.cierre !== "—" && <span className="mt-1 block text-xs text-[#A9BBCC]">{f.cierre}</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <p className="mt-3.5 text-[13px] text-[#8FA3B8]">
+          Consumo de combustible: se abre cuando el camión avanza sin registrar consumo y se cierra sola al volver el consumo · Geocercas: el estado indica ENTRADA o SALIDA de cada evento
+        </p>
+      </section>
     </div>
   );
 }
 
-function Interruptor({ activo, onCambiar, children }: { activo: boolean; onCambiar: () => void; children: React.ReactNode }) {
+function Chip({ activo, onClick, children }: { activo: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
       aria-pressed={activo}
-      onClick={onCambiar}
-      className={`rounded-md border px-2.5 py-1.5 text-xs font-semibold transition ${activo ? "border-[#0df5c6]/50 bg-[#0df5c6]/10 text-[#0df5c6]" : "border-white/10 text-slate-400 hover:text-white"}`}
+      onClick={onClick}
+      className={`inline-flex h-9 items-center gap-2 rounded-full border border-[#1E3850] px-4 text-sm font-medium ${activo ? "bg-[#2BC4E8] text-[#02111C]" : "bg-[#0C2133] text-[#C9D6E3] hover:border-[#2A6A8C]"}`}
     >
       {children}
     </button>
   );
 }
 
-export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
-  const { sesion } = useAuth();
-  const puedeAtender = sesion?.permisos.atenderAlertas ?? false;
-  const [pestana, setPestana] = useState<"motor" | "geocercas">("motor");
-  const [filtros, setFiltros] = useState<FiltrosAlertas>(FILTROS_INICIALES);
-  const [agrupar, setAgrupar] = useState(true);
-  const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null);
-  const [detalleAbierto, setDetalleAbierto] = useState(false);
-  const [modoSeleccion, setModoSeleccion] = useState(false);
-  const [marcadas, setMarcadas] = useState<ReadonlySet<string>>(new Set());
-  const [confirmar, dialogoConfirmar] = useConfirmar();
-  const contenedorTabla = useRef<HTMLDivElement>(null);
-  const idsPrevios = useRef<string[]>([]);
+function ChipTipo({ activo, onClick, color, redondo, n, children }: { activo: boolean; onClick: () => void; color: string; redondo: boolean; n: number; children: ReactNode }) {
+  return (
+    <Chip activo={activo} onClick={onClick}>
+      <span className="h-[9px] w-[9px]" style={{ background: activo ? "#02111C" : color, borderRadius: redondo ? "50%" : "2px" }} />
+      {children}
+      <span className={`rounded-full px-[7px] py-px text-xs font-bold ${activo ? "bg-[#02111C] text-[#2BC4E8]" : "bg-[#1E3850] text-[#C9D6E3]"}`}>{n}</span>
+    </Chip>
+  );
+}
 
-  const unidades = useUnidades(empresa.id).data;
-  const q = useAlertasEventos(empresa.id, filtros);
-  const masivo = useCambiarEstadoMasivo(empresa.id);
+/* ───────── Exportar ───────── */
 
-  const items = useMemo(() => q.data?.pages.flatMap((p) => p.items) ?? [], [q.data]);
-  const primera = q.data?.pages[0];
-  const resumen = primera?.resumen;
-  const total = primera?.total ?? 0;
+function BotonExportar({ empresaId }: { empresaId: number }) {
+  const [abierto, setAbierto] = useState(false);
+  const [desde, setDesde] = useState(hoyISO(-30));
+  const [hasta, setHasta] = useState(hoyISO());
+  const [ocupado, setOcupado] = useState(false);
+  const [error, setError] = useState("");
 
-  const reiniciarSeleccion = () => {
-    setMarcadas(new Set());
-    setSeleccionadaId(null);
-    setDetalleAbierto(false);
-  };
-  const cambiar = <K extends keyof FiltrosAlertas>(k: K, v: FiltrosAlertas[K]) => {
-    setFiltros((f) => ({ ...f, [k]: v }));
-    reiniciarSeleccion();
-  };
-
-  // Si la alerta mostrada sale de la lista (p. ej. se marcó como atendida) se pasa a la siguiente:
-  // así se puede atender una tras otra sin volver a elegir.
-  useEffect(() => {
-    const ids = items.map((a) => a.id);
-    if (seleccionadaId && !ids.includes(seleccionadaId)) {
-      const i = Math.max(idsPrevios.current.indexOf(seleccionadaId), 0);
-      const siguiente = ids[Math.min(i, ids.length - 1)] ?? null;
-      setSeleccionadaId(siguiente);
-      if (!siguiente) setDetalleAbierto(false);
-    }
-    idsPrevios.current = ids;
-  }, [items, seleccionadaId]);
-
-  // Descarta marcas de alertas que ya no están en la lista
-  useEffect(() => {
-    setMarcadas((prev) => {
-      if (prev.size === 0) return prev;
-      const vivos = new Set(items.map((a) => a.id));
-      const filtradas = [...prev].filter((id) => vivos.has(id));
-      return filtradas.length === prev.size ? prev : new Set(filtradas);
-    });
-  }, [items]);
-
-  // Teclado: ↑ ↓ cambian de alerta, Enter abre el detalle, Esc lo cierra
-  useEffect(() => {
-    if (pestana !== "motor") return;
-    const alPulsar = (ev: KeyboardEvent) => {
-      const t = ev.target as HTMLElement | null;
-      if (t && (["INPUT", "SELECT", "TEXTAREA"].includes(t.tagName) || t.isContentEditable)) return;
-      if (ev.key === "Escape") return setDetalleAbierto(false);
-      if (ev.key === "Enter" && seleccionadaId && t === document.body) return setDetalleAbierto(true);
-      if (ev.key !== "ArrowDown" && ev.key !== "ArrowUp") return;
-      const nodos = contenedorTabla.current?.querySelectorAll<HTMLElement>("[data-alerta]");
-      const ids = Array.from(nodos ?? [], (n) => n.dataset.alerta!);
-      if (ids.length === 0) return;
-      ev.preventDefault();
-      const i = seleccionadaId ? ids.indexOf(seleccionadaId) : -1;
-      setSeleccionadaId(ids[ev.key === "ArrowDown" ? Math.min(i + 1, ids.length - 1) : Math.max(i - 1, 0)]);
-    };
-    window.addEventListener("keydown", alPulsar);
-    return () => window.removeEventListener("keydown", alPulsar);
-  }, [pestana, seleccionadaId]);
-
-  // Mantiene visible la fila seleccionada
-  useEffect(() => {
-    if (seleccionadaId) contenedorTabla.current?.querySelector(`[data-alerta="${seleccionadaId}"]`)?.scrollIntoView({ block: "nearest" });
-  }, [seleccionadaId]);
-
-  const marcar = (ids: string[], marcar: boolean) =>
-    setMarcadas((prev) => {
-      const n = new Set(prev);
-      ids.forEach((id) => (marcar ? n.add(id) : n.delete(id)));
-      return n;
-    });
-
-  const aplicarLote = async (estado: EstadoAlerta) => {
-    const ids = [...marcadas];
-    const texto = EST[estado].etiqueta.toLowerCase();
-    if (!(await confirmar(`¿Marcar ${ids.length} alerta${ids.length === 1 ? "" : "s"} como ${texto}?`))) return;
+  const exportar = async () => {
+    setOcupado(true);
+    setError("");
     try {
-      const r = await masivo.mutateAsync({ ids, estado });
-      setMarcadas(new Set());
-      avisar.exito(`${r.actualizadas} alerta${r.actualizadas === 1 ? "" : "s"} marcada${r.actualizadas === 1 ? "" : "s"} como ${texto}`);
-    } catch (err) {
-      avisar.error(mensajeError(err));
+      const filas = await getHistorialCompleto(empresaId, { desde, hasta });
+      descargarExcel(
+        `alertas_${desde}_${hasta}`,
+        ["Fecha y hora", "Tipo", "Estado", "Camión", "Conductor", "Geocerca", "Duración (min)", "Galones del día", "km", "Latitud", "Longitud"],
+        filas.map((f) => [
+          fechaHora(f.fechaHora),
+          f.tipo === "CONSUMO" ? "Consumo de combustible" : "Geocerca",
+          f.tipo === "CONSUMO" ? f.situacion : f.tipoEvento,
+          f.placa,
+          f.conductor,
+          f.geocerca,
+          f.duracionMin,
+          f.galonesDia,
+          f.km,
+          f.latitud,
+          f.longitud,
+        ]),
+        "Alertas",
+      );
+      setAbierto(false);
+    } catch {
+      setError("No se pudo exportar. Intenta con un rango menor.");
+    } finally {
+      setOcupado(false);
     }
   };
-
-  const exportarExcel = () => {
-    if (items.length === 0) return;
-    const columnas = ["ID", "Sede", "Unidad", "Fecha y Hora", "Severidad", "Estado", "Regla", "Velocidad (km/h)", "Consumo (L/h)"];
-    const filas = items.map(a => [
-      a.id,
-      a.sede,
-      a.maquinaria,
-      fechaHora(a.fechaHora),
-      a.severidad,
-      a.estado,
-      nombreRegla(a.regla),
-      a.velocidad,
-      CONSUMO_ALERTA_LH
-    ]);
-    descargarExcel(`alertas_${filtros.estado || "todas"}_${filtros.rango}.xlsx`, columnas, filas, "Alertas");
-  };
-
-  const filtrosActivos = filtros.severidad !== "" || filtros.maquinariaId !== null || filtros.rango !== "todo" || filtros.estado !== "GENERADO";
-  const todasMarcadas = items.length > 0 && marcadas.size === items.length;
-  const mostrarCasillas = modoSeleccion || marcadas.size > 0;
-  const drawerVisible = pestana === "motor" && detalleAbierto && seleccionadaId !== null;
 
   return (
-    <div className={`mx-auto w-full max-w-7xl px-2 pb-6 font-sans transition-[padding] sm:px-4 ${drawerVisible ? "lg:pr-135" : ""}`}>
-      <PageHeader
-        titulo="Alertas"
-        className="mb-4"
-        accion={
-          <div className="flex rounded-lg border border-white/10 bg-[#0e1420] p-0.5">
-            {(["motor", "geocercas"] as const).map((p) => (
-              <button key={p} type="button" onClick={() => setPestana(p)} className={`rounded-md px-4 py-1.5 text-xs font-semibold ${pestana === p ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"}`}>
-                {p === "motor" ? "Reglas de motor" : "Geocercas"}
-              </button>
-            ))}
-          </div>
-        }
-      />
-
-      {pestana === "geocercas" ? (
-        <CrucesGeocerca empresaId={empresa.id} />
-      ) : q.isLoading ? (
-        <Cargando texto="Cargando alertas..." />
-      ) : q.error && !q.data ? (
-        <ErrorCarga error={q.error} onReintentar={() => void q.refetch()} />
-      ) : (
-        <div className="flex flex-col gap-3">
-          {/* Una sola barra: estado · severidad · unidad · periodo · opciones */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <div role="group" aria-label="Estado" className="flex rounded-lg border border-white/10 bg-[#0e1420] p-0.5">
-              {ESTADOS.map((e) => (
-                <button
-                  key={e.valor || "todas"}
-                  type="button"
-                  aria-pressed={filtros.estado === e.valor}
-                  onClick={() => cambiar("estado", e.valor)}
-                  className={`rounded-md px-3 py-1 text-xs font-semibold ${filtros.estado === e.valor ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"}`}
-                >
-                  {e.etiqueta}
-                  {e.valor && resumen && <span className="ml-1.5 font-mono text-[10px] text-slate-500">{resumen.porEstado[e.valor]}</span>}
+    <div>
+      <button type="button" onClick={() => setAbierto(true)} className="rounded-lg border border-[#2BC4E8] px-3.5 py-2 text-sm font-semibold text-[#2BC4E8] hover:bg-[#2BC4E8]/10">Exportar a Excel</button>
+      {abierto &&
+        createPortal(
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 p-4" onClick={() => setAbierto(false)} role="dialog" aria-modal="true" aria-label="Exportar alertas a Excel">
+            <div className="w-full max-w-sm space-y-3 rounded-xl border border-white/10 bg-[#071623] p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <h2 className="text-sm font-semibold text-white">Exportar alertas a Excel</h2>
+              <label className="block text-xs text-slate-400">Desde<Input type="date" value={desde} max={hasta} onChange={(e) => setDesde(e.target.value)} /></label>
+              <label className="block text-xs text-slate-400">Hasta<Input type="date" value={hasta} min={desde} max={hoyISO()} onChange={(e) => setHasta(e.target.value)} /></label>
+              {error && <p className="text-xs text-red-300">{error}</p>}
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setAbierto(false)} className="flex-1 rounded-lg bg-white/5 px-3 py-2 text-sm text-slate-300 hover:bg-white/10">Cancelar</button>
+                <button type="button" onClick={() => void exportar()} disabled={ocupado || !desde || !hasta} className="flex-1 rounded-lg bg-[#2BC4E8] px-3 py-2 text-sm font-semibold text-slate-900 disabled:opacity-50">
+                  {ocupado ? "Generando..." : "Descargar"}
                 </button>
-              ))}
+              </div>
             </div>
-
-            <div role="group" aria-label="Severidad" className="flex flex-wrap items-center gap-1.5">
-              {SEVERIDADES_ORDEN.filter((s: Severidad) => s !== "BAJO" || (resumen?.porSeveridad.BAJO ?? 0) > 0 || filtros.severidad === "BAJO").map((s) => {
-                const activo = filtros.severidad === s;
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    aria-pressed={activo}
-                    onClick={() => cambiar("severidad", activo ? "" : s)}
-                    className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold transition ${activo ? SEV[s].clase : "border-white/10 text-slate-400 hover:text-white"}`}
-                  >
-                    <span className="h-2 w-2 rounded-full" style={{ background: SEV[s].strip }} />
-                    {SEV[s].etiqueta}
-                    {resumen && <span className="font-mono text-[10px] opacity-70">{resumen.porSeveridad[s]}</span>}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
-              <Seleccion valor={filtros.maquinariaId === null ? "" : String(filtros.maquinariaId)} onCambiar={(v) => cambiar("maquinariaId", v ? Number(v) : null)} etiqueta="Unidad">
-                <option value="">Todas las unidades</option>
-                {[...(unidades ?? [])].sort((a, b) => a.identificador.localeCompare(b.identificador)).map((u) => (
-                  <option key={u.id} value={u.id}>{u.identificador}</option>
-                ))}
-              </Seleccion>
-              <Seleccion valor={filtros.rango} onCambiar={(v) => cambiar("rango", v as RangoAlertas)} etiqueta="Periodo">
-                {RANGOS.map((r) => (
-                  <option key={r.valor} value={r.valor}>{r.etiqueta}</option>
-                ))}
-              </Seleccion>
-              <Interruptor activo={agrupar} onCambiar={() => setAgrupar((v) => !v)}>Agrupar</Interruptor>
-              {puedeAtender && <Interruptor activo={mostrarCasillas} onCambiar={() => { setModoSeleccion((v) => !v); if (mostrarCasillas) setMarcadas(new Set()); }}>Seleccionar</Interruptor>}
-              {filtrosActivos && (
-                <button type="button" onClick={() => { setFiltros(FILTROS_INICIALES); reiniciarSeleccion(); }} className="px-1 text-xs font-semibold text-[#0df5c6] hover:underline">
-                  Restablecer
-                </button>
-              )}
-              <button type="button" onClick={exportarExcel} disabled={items.length === 0} title={q.hasNextPage ? "Exporta las alertas cargadas; usa «Cargar más» para incluir más" : "Exporta las alertas del filtro actual"} className="rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white disabled:opacity-50">
-                Exportar Excel
-              </button>
-            </div>
-          </div>
-
-          {puedeAtender && mostrarCasillas && (
-            <div role="toolbar" aria-label="Acciones sobre las alertas marcadas" className="flex flex-wrap items-center gap-2 rounded-lg border border-[#0df5c6]/30 bg-[#0df5c6]/5 px-3 py-2 text-xs">
-              <label className="flex cursor-pointer items-center gap-1.5 text-slate-300">
-                <input type="checkbox" checked={todasMarcadas} onChange={(e) => setMarcadas(e.target.checked ? new Set(items.map((a) => a.id)) : new Set())} className="h-3.5 w-3.5 accent-[#0df5c6]" />
-                Todas las cargadas
-              </label>
-              <span className="mr-auto font-semibold text-white">{marcadas.size} marcada{marcadas.size === 1 ? "" : "s"}</span>
-              <button type="button" disabled={masivo.isPending || marcadas.size === 0} onClick={() => void aplicarLote("ATENDIDO")} className="rounded bg-[#ef5350] px-3 py-1 font-bold text-white hover:bg-[#e04845] disabled:opacity-40">
-                Marcar atendidas
-              </button>
-              <button type="button" disabled={masivo.isPending || marcadas.size === 0} onClick={() => void aplicarLote("CERRADO")} className="rounded border border-white/15 px-3 py-1 font-bold text-slate-200 hover:bg-white/5 disabled:opacity-40">
-                Cerrar
-              </button>
-              <button type="button" onClick={() => { setMarcadas(new Set()); setModoSeleccion(false); }} className="px-1.5 py-1 text-slate-400 hover:text-white">
-                Listo
-              </button>
-            </div>
-          )}
-
-          <div className="overflow-hidden rounded-lg border border-white/8 bg-[#0d1117]">
-            <div ref={contenedorTabla} className="max-h-[calc(100vh-290px)] min-h-65 overflow-auto">
-              <AlertasTabla
-                items={items}
-                agrupar={agrupar}
-                seleccionadaId={seleccionadaId}
-                marcadas={marcadas}
-                mostrarCasillas={mostrarCasillas}
-                puedeAtender={puedeAtender}
-                compacta={drawerVisible}
-                onAbrir={(id) => { setSeleccionadaId(id); setDetalleAbierto(true); }}
-                onMarcar={marcar}
-              />
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-white/8 bg-[#0b0f17] px-3 py-2 text-[11px] text-slate-500">
-              <span className="font-mono">
-                {items.length} de {total} alertas · ↑ ↓ para moverte, Enter abre, Esc cierra
-              </span>
-              {q.hasNextPage && (
-                <button type="button" disabled={q.isFetchingNextPage} onClick={() => void q.fetchNextPage()} className="inline-flex items-center gap-1.5 rounded bg-white/5 px-3 py-1 font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-50">
-                  {q.isFetchingNextPage && <Spinner />} Cargar más
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Panel lateral de detalle (sin fondo bloqueante: la tabla sigue usable) */}
-      {drawerVisible && seleccionadaId && (
-        <aside role="dialog" aria-label="Detalle de la alerta" className="fixed inset-y-0 right-0 z-40 w-full overflow-y-auto border-l border-white/10 bg-[#0d1117] shadow-2xl sm:w-130">
-          <DetalleEvento key={seleccionadaId} id={seleccionadaId} empresaId={empresa.id} puedeAtender={puedeAtender} onCerrar={() => setDetalleAbierto(false)} />
-        </aside>
-      )}
-      {dialogoConfirmar}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
+
+

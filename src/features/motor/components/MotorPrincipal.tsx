@@ -75,12 +75,12 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
     const puntos = lecturas.filter((l) => l.lat !== null && l.lng !== null);
     const grupo = L.layerGroup().addTo(mapa);
     const coords = puntos.map((l) => [l.lat!, l.lng!] as [number, number]);
-    if (coords.length > 1) L.polyline(coords, { color: "#3fb68b", weight: 3, opacity: 0.85 }).addTo(grupo);
+    if (coords.length > 1) L.polyline(coords, { color: "#2BC4E8", weight: 3, opacity: 0.85 }).addTo(grupo);
     puntos.forEach((l, i) => {
       const esInicio = i === 0;
       const esFin = i === puntos.length - 1 && i > 0;
-      const popup = `<div style="font-family:sans-serif;font-size:12px;color:#0b1220;">
-        <strong>${esInicio ? "Inicio" : esFin ? "Fin" : `Punto ${i + 1}`} · ${escapeHtml(unidad?.identificador)}</strong><br/>
+      const popup = `<div style="font-family:sans-serif;font-size:12px;color:#041725;">
+        <strong>${esInicio ? "Inicio" : esFin ? "Fin" : `Punto ${i + 1}`} · ${escapeHtml(unidad?.placa)}</strong><br/>
         <strong>Fecha:</strong> ${escapeHtml(fechaHora(l.timestamp))}<br/>
         <strong>Velocidad:</strong> ${escapeHtml(num(l.velocidad, 1))} km/h<br/>
         <strong>Caudal in/ret:</strong> ${escapeHtml(num(l.caudalIngreso, 1))} / ${escapeHtml(num(l.caudalRetorno, 1))} L/h<br/>
@@ -88,7 +88,7 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
       const m =
         esInicio || esFin
           ? L.marker([l.lat!, l.lng!], { icon: marcador(esInicio ? "#16a34a" : "#dc2626", esInicio ? "Inicio" : "Fin") })
-          : L.circleMarker([l.lat!, l.lng!], { radius: 4, color: "#1a9a7a", fillColor: "#1a9a7a", fillOpacity: 0.9, weight: 1 });
+          : L.circleMarker([l.lat!, l.lng!], { radius: 4, color: "#1B7FA0", fillColor: "#1B7FA0", fillOpacity: 0.9, weight: 1 });
       m.bindPopup(popup).addTo(grupo);
     });
     ajustarVista(mapa, coords);
@@ -109,7 +109,7 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
 
   const exportar = () => {
     descargarExcel(
-      `telemetria_${unidad?.identificador ?? "unidad"}_${desde}_${hasta}.xlsx`,
+      `telemetria_${unidad?.placa ?? "unidad"}_${desde}_${hasta}.xlsx`,
       ["Ítem", "Fecha y hora", "Operador", "Latitud", "Longitud", "Velocidad (km/h)", "Ángulo", "Temp. combustible (°C)", "Caudal ingreso (gal/h)", "Caudal retorno (gal/h)", "Consumo instantáneo (gal/h)", "Consumo acumulado (gal)", "Odómetro (km)"],
       filtradas.map((l, i) => [
         i + 1,
@@ -134,14 +134,14 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
     { key: "item", encabezado: "Ítem", render: (_, i) => <span className="text-slate-500">{inicio + i + 1}</span> },
     { key: "fecha", encabezado: "Fecha y hora", render: (l) => fechaHora(l.timestamp) },
     { key: "operador", encabezado: "Operador", render: (l) => <span className="whitespace-nowrap font-medium text-slate-300">{l.operador ?? "—"}</span> },
-    { key: "lat", encabezado: "Latitud", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{l.lat?.toFixed(6) ?? "—"}</span> },
-    { key: "lng", encabezado: "Longitud", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{l.lng?.toFixed(6) ?? "—"}</span> },
+    { key: "lat", encabezado: "Latitud", render: (l) => <span style={{ color: "#5FD3EE", fontWeight: 600 }}>{l.lat?.toFixed(6) ?? "—"}</span> },
+    { key: "lng", encabezado: "Longitud", render: (l) => <span style={{ color: "#5FD3EE", fontWeight: 600 }}>{l.lng?.toFixed(6) ?? "—"}</span> },
     { key: "vel", encabezado: "Velocidad", render: (l) => num(l.velocidad, 1) },
     { key: "angulo", encabezado: "Ángulo", render: (l) => num(l.angulo ?? l.rumbo) },
     { key: "temp", encabezado: "Temp. comb.", render: (l) => num(l.temperaturaCombustible, 1) },
     { key: "caudalingreso", encabezado: "Caudal ingreso", render: (l) => num(l.caudalIngreso, 2) },
     { key: "caudalretorno", encabezado: "Caudal retorno", render: (l) => num(l.caudalRetorno, 2) },
-    { key: "consumo", encabezado: "Consumo inst.", render: (l) => <span style={{ color: "#00ebb0", fontWeight: 600 }}>{num(l.consumoInstantaneo, 2)}</span> },
+    { key: "consumo", encabezado: "Consumo inst.", render: (l) => <span style={{ color: "#5FD3EE", fontWeight: 600 }}>{num(l.consumoInstantaneo, 2)}</span> },
     { key: "consumoAcum", encabezado: "Consumo acum.", render: (l) => num(l.consumoAcumulado, 2) },
     { key: "odo", encabezado: "Odómetro", render: (l) => num(l.odometro) },
   ];
@@ -161,7 +161,7 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
           <label className="mp-filter-label">Unidad</label>
           <select value={maquinariaId ?? ""} onChange={(e) => setMaquinariaId(Number(e.target.value))} className="mp-filter-input" disabled={!conDispositivo.length}>
             {!conDispositivo.length && <option value="">Ninguna unidad con dispositivo</option>}
-            {conDispositivo.map((u) => <option key={u.id} value={u.id}>{u.identificador}</option>)}
+            {conDispositivo.map((u) => <option key={u.id} value={u.id}>{u.placa}</option>)}
           </select>
         </div>
         <div className="mp-filter-group">
@@ -187,16 +187,16 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
         <div ref={contenedorRef} style={{ height: "100%", width: "100%" }} />
       </div>
 
-      <div className="mt-4 rounded-xl border border-white/8 bg-[#0c1421] p-4">
+      <div className="mt-4 rounded-xl border border-white/8 bg-[#0A1C2B] p-4">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-sm text-slate-300">
             <span>Mostrar</span>
-            <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))} className="rounded border border-white/10 bg-[#121926] px-2 py-1 text-white">
+            <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))} className="rounded border border-white/10 bg-[#0C2133] px-2 py-1 text-white">
               <option value={10}>10</option><option value={25}>25</option><option value={50}>50</option>
             </select>
             <span>registros</span>
           </div>
-          <input type="text" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar en tabla..." className="rounded border border-white/10 bg-[#121926] px-3 py-1.5 text-sm text-white focus:border-[#0df5c6] focus:outline-none focus:ring-1 focus:ring-[#0df5c6]" />
+          <input type="text" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar en tabla..." className="rounded border border-white/10 bg-[#0C2133] px-3 py-1.5 text-sm text-white focus:border-[#2BC4E8] focus:outline-none focus:ring-1 focus:ring-[#2BC4E8]" />
         </div>
         
         <DataTable

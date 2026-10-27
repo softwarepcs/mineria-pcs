@@ -31,7 +31,7 @@ export function BotonPrimario({ cargando, children, ...props }: React.ButtonHTML
     <button
       {...props}
       disabled={cargando || props.disabled}
-      className={`rounded-lg bg-[#0df5c6] px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-[#0be0b5] disabled:opacity-50 ${props.className ?? ""}`}
+      className={`rounded-lg bg-[#2BC4E8] px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-[#5FD3EE] disabled:opacity-50 ${props.className ?? ""}`}
     >
       {cargando ? "Guardando..." : children}
     </button>

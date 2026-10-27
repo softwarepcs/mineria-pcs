@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export function NotAuthorized() {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0b1220] px-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#041725] px-4">
       {/* Glow decorativo de fondo, consistente con el Login */}
       <div className="pointer-events-none absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-red-600/10 blur-[120px]" />
 

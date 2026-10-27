@@ -10,7 +10,7 @@ export function EditarUnidadModal({ unidad, abierto, onCerrar, sedes }: { unidad
   const { data: tipos = [] } = useTiposMaquinaria();
   const actualizar = useActualizarUnidad();
   const inicial = () => ({
-    identificador: unidad.identificador,
+    placa: unidad.placa,
     sedeId: String(unidad.sedeId),
     tipoMaquinariaId: unidad.tipoMaquinariaId ? String(unidad.tipoMaquinariaId) : "",
     marca: unidad.marca ?? "",
@@ -33,7 +33,7 @@ export function EditarUnidadModal({ unidad, abierto, onCerrar, sedes }: { unidad
     e.preventDefault();
     // Solo los campos que cambiaron
     const dto: Partial<NuevaUnidad> = {};
-    if (v.identificador.trim() !== unidad.identificador) dto.identificador = v.identificador.trim();
+    if (v.placa.trim() !== unidad.placa) dto.placa = v.placa.trim();
     if (Number(v.sedeId) !== unidad.sedeId) dto.sedeId = Number(v.sedeId);
     if (v.tipoMaquinariaId && Number(v.tipoMaquinariaId) !== unidad.tipoMaquinariaId) dto.tipoMaquinariaId = Number(v.tipoMaquinariaId);
     if (v.marca.trim() !== (unidad.marca ?? "")) dto.marca = v.marca.trim();
@@ -44,10 +44,10 @@ export function EditarUnidadModal({ unidad, abierto, onCerrar, sedes }: { unidad
   };
 
   return (
-    <Modal abierto={abierto} titulo={`Editar ${unidad.identificador}`} onCerrar={onCerrar}>
+    <Modal abierto={abierto} titulo={`Editar ${unidad.placa}`} onCerrar={onCerrar}>
       <form onSubmit={onSubmit} className="space-y-4">
         <Campo etiqueta="Placa o código" requerido>
-          <Input required maxLength={100} value={v.identificador} onChange={set("identificador")} />
+          <Input required maxLength={100} value={v.placa} onChange={set("placa")} />
         </Campo>
         <div className="grid gap-4 sm:grid-cols-2">
           <Campo etiqueta="Sede" requerido>

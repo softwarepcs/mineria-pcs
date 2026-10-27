@@ -12,7 +12,7 @@ export interface Instalacion {
   fechaFin: string | null;
   dispositivo: { id: number; imei: string; modelo: string | null; ultimaConexionEn: string };
   sistema: Sistema;
-  maquinaria: { id: number; identificador: string };
+  maquinaria: { id: number; placa: string };
   sede: { id: number; nombre: string };
   empresaId: number;
 }

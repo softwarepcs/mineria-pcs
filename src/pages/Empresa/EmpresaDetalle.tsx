@@ -2,17 +2,17 @@ import { Link, useParams, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa, useEmpresaPorToken } from "@/features/empresas/hooks";
 import { Cargando, ErrorCarga } from "@/shared/ui/Estados";
-import { FlotaHome } from "@/features/flota/components/FlotaHome";
+import { HomeView } from "@/features/flota/components/HomeView";
 import { MotorPrincipal } from "@/features/motor/components/MotorPrincipal";
 import { AlertasView } from "@/features/alertas/components/AlertasView";
 import { OperadoresView } from "@/features/operadores/components/OperadoresView";
 import { OperadorDetalleView } from "@/features/operadores/components/OperadorDetalleView";
-import { CamionesListaView } from "@/features/camiones/components/CamionesListaView";
-import { CamionesDetalleView } from "@/features/camiones/components/CamionesDetalleView";
-import { GeocercasView } from "@/features/geocercas/components/GeocercasView";
 import { DispositivosView } from "@/features/dispositivos/components/DispositivosView";
 import { SedesView } from "@/features/sedes/components/SedesView";
-import { ReporteEventosView } from "@/features/reportes/components/ReporteEventosView";
+import { ConsumoView } from "@/features/consumo/components/ConsumoView";
+import { ExportarView } from "@/features/baseDatos/components/ExportarView";
+import { ConsultaView } from "@/features/baseDatos/components/ConsultaView";
+import { ConfiguracionView } from "@/features/configuracion/components/ConfiguracionView";
 
 export function EmpresaDetalle() {
   const { token } = useParams();
@@ -44,14 +44,16 @@ export function EmpresaDetalle() {
         </div>
       )}
       <Routes>
-        <Route index element={<FlotaHome empresa={empresa} />} />
-        <Route path="camiones" element={<CamionesListaView empresa={empresa} />} />
-        <Route path="camiones/:unidadId" element={<CamionesDetalleView empresa={empresa} />} />
+        <Route index element={<HomeView empresa={empresa} />} />
+        <Route path="consumo" element={<ConsumoView empresa={empresa} />} />
         <Route path="operadores" element={<OperadoresView empresa={empresa} />} />
         <Route path="operadores/:operadorId" element={<OperadorDetalleView empresa={empresa} />} />
-        <Route path="geocercas" element={<GeocercasView empresa={empresa} />} />
+        <Route path="geocercas" element={<Navigate to="../configuracion?tab=geocercas" replace />} />
+        <Route path="camiones/*" element={<Navigate to="../configuracion?tab=camiones" replace />} />
+        <Route path="configuracion" element={<ConfiguracionView empresa={empresa} />} />
         <Route path="alertas" element={<AlertasView empresa={empresa} />} />
-        {puedeVerReportes && <Route path="reportes" element={<ReporteEventosView empresa={empresa} />} />}
+        {puedeVerReportes && <Route path="exportar" element={<ExportarView empresa={empresa} />} />}
+        {puedeVerReportes && <Route path="consulta" element={<ConsultaView empresa={empresa} />} />}
         {esSuperAdmin && <Route path="dispositivos" element={<DispositivosView empresa={empresa} />} />}
         <Route path="database" element={<MotorPrincipal empresa={empresa} />} />
         {esSuperAdmin && <Route path="sedes" element={<SedesView empresa={empresa} />} />}

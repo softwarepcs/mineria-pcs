@@ -98,15 +98,15 @@ export function DataTable<T>({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/5">
-      <table className="w-full text-left text-sm" style={minWidth ? { minWidth } : undefined}>
-        <thead className="border-b border-white/10 bg-[#0e1420]/60 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-left text-sm" style={minWidth ? { minWidth } : undefined}>
+        <thead className="border-b border-[#12263A] text-[12.5px] font-medium text-[#8FA3B8]">
           <tr>
             {columnas.map((col) => (
               <th
                 key={col.key}
                 onClick={col.ordenable ? () => alClicEncabezado(col.key) : undefined}
-                className={`px-4 py-3 ${ALIGN[col.alinear ?? "left"]} ${col.ordenable ? "cursor-pointer select-none transition hover:text-slate-200" : ""}`}
+                className={`whitespace-nowrap px-3 py-2.5 align-bottom [&+th]:border-l [&+th]:border-[#13283B] ${ALIGN[col.alinear ?? "left"]} ${col.ordenable ? "cursor-pointer select-none transition hover:text-slate-200" : ""}`}
               >
                 {col.encabezado}
                 {orden?.col === col.key && (
@@ -116,7 +116,7 @@ export function DataTable<T>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5 text-slate-300">
+        <tbody className="text-[#E3EBF2]">
           {datosOrdenados.map((fila, index) => {
             const k = keyExtractor(fila);
             const activa = filaActiva !== undefined && filaActiva !== null && k === filaActiva;
@@ -125,10 +125,10 @@ export function DataTable<T>({
               <tr
                 key={k}
                 onClick={onClickFila ? () => onClickFila(fila) : undefined}
-                className={`transition ${onClickFila ? "cursor-pointer" : ""} ${activa ? "bg-[#1a9a7a]/8" : "hover:bg-white/2"} ${extraClase}`}
+                className={`border-b border-[#0F2233] transition ${onClickFila ? "cursor-pointer" : ""} ${activa ? "bg-[#0C2E4A] shadow-[inset_3px_0_0_#2BC4E8]" : "hover:bg-[#0A1E30]"} ${extraClase}`}
               >
                 {columnas.map((col) => (
-                  <td key={col.key} className={`px-4 py-3 ${ALIGN[col.alinear ?? "left"]}`}>
+                  <td key={col.key} className={`whitespace-nowrap px-3 py-2.5 [&+td]:border-l [&+td]:border-[#13283B] ${ALIGN[col.alinear ?? "left"]}`}>
                     {col.render(fila, index)}
                   </td>
                 ))}

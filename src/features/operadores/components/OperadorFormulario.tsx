@@ -119,7 +119,7 @@ export function OperadorFormulario({
               <option value="">Sin asignar</option>
               {unidades.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {u.identificador}
+                  {u.placa}
                   {u.operadorActual ? ` (ahora: ${u.operadorActual.nombre})` : ""}
                 </option>
               ))}

@@ -81,7 +81,7 @@ export function Configuracion() {
           <Campo etiqueta="Unidad">
             <Select value={maquinariaId ?? ""} onChange={(e) => setMaquinariaId(Number(e.target.value))} disabled={!unidades.data?.length}>
               {(unidades.data ?? []).map((u) => (
-                <option key={u.id} value={u.id}>{u.identificador} · {u.sede}</option>
+                <option key={u.id} value={u.id}>{u.placa} · {u.sede}</option>
               ))}
             </Select>
           </Campo>

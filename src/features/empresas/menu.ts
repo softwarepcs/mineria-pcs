@@ -1,28 +1,48 @@
-import type { MenuItem } from "@/types";
+import type { MenuItem, MenuSeccion } from "@/types";
 
-/** Menú de cada empresa: Dispositivos y Sedes son exclusivos para SuperAdmin; Reportes requiere REPORTES:VER. */
-export function menuEmpresa(basePath: string, esSuperAdmin = false, verReportes = esSuperAdmin): MenuItem[] {
-  const items: MenuItem[] = [
-    { id: `home-${basePath}`, label: "Inicio", path: basePath, icon: "home" },
-    { id: `camiones-${basePath}`, label: "Unidades", path: `${basePath}/camiones`, icon: "truck" },
-    { id: `operadores-${basePath}`, label: "Operadores", path: `${basePath}/operadores`, icon: "users" },
-    { id: `geocercas-${basePath}`, label: "Geocercas", path: `${basePath}/geocercas`, icon: "mapPin" },
-    { id: `alertas-${basePath}`, label: "Alertas", path: `${basePath}/alertas`, icon: "alert-triangle" },
+/**
+ * Menú de cada empresa según el diseño, por secciones:
+ *  PLATAFORMA     Home · Alertas · Base de datos (Exportar a Excel, Consulta y mapa)
+ *  COMBUSTIBLE    Consumo y eficiencia
+ *  GESTIÓN        Configuración (+ Operadores, Dispositivos, Telemetría y Sedes para el SuperAdmin)
+ * Los módulos no contratados y Reportes no se muestran en esta fase.
+ */
+export function seccionesEmpresa(basePath: string, esSuperAdmin = false, verBaseDatos = esSuperAdmin, alertasAbiertas = 0): MenuSeccion[] {
+  const plataforma: MenuItem[] = [
+    { id: `home-${basePath}`, label: "Home", path: basePath, icon: "home", end: true },
+    { id: `alertas-${basePath}`, label: "Alertas", path: `${basePath}/alertas`, icon: "alert-triangle", badge: alertasAbiertas },
   ];
-
-  if (verReportes) {
-    items.push({ id: `reportes-${basePath}`, label: "Reportes", path: `${basePath}/reportes`, icon: "activity" });
+  if (verBaseDatos) {
+    plataforma.push({
+      id: `bd-${basePath}`,
+      label: "Base de datos",
+      path: `${basePath}/exportar`,
+      icon: "database",
+      children: [
+        { id: `exportar-${basePath}`, label: "Exportar a Excel", path: `${basePath}/exportar`, icon: "dot" },
+        { id: `consulta-${basePath}`, label: "Consulta y mapa", path: `${basePath}/consulta`, icon: "dot" },
+      ],
+    });
   }
 
+  const administracion: MenuItem[] = [{ id: `config-${basePath}`, label: "Configuración", path: `${basePath}/configuracion`, icon: "wrench" }];
   if (esSuperAdmin) {
-    items.push({ id: `dispositivos-${basePath}`, label: "Dispositivos", path: `${basePath}/dispositivos`, icon: "monitor" });
+    administracion.push(
+      { id: `operadores-${basePath}`, label: "Operadores", path: `${basePath}/operadores`, icon: "users" },
+      { id: `dispositivos-${basePath}`, label: "Dispositivos", path: `${basePath}/dispositivos`, icon: "monitor" },
+      { id: `database-${basePath}`, label: "Telemetría", path: `${basePath}/database`, icon: "database" },
+      { id: `sedes-${basePath}`, label: "Sedes", path: `${basePath}/sedes`, icon: "building" },
+    );
   }
 
-  items.push({ id: `database-${basePath}`, label: "Telemetría", path: `${basePath}/database`, icon: "database" });
+  return [
+    { titulo: "PLATAFORMA", items: plataforma },
+    { titulo: "COMBUSTIBLE", items: [{ id: `consumo-${basePath}`, label: "Consumo y eficiencia", path: `${basePath}/consumo`, icon: "activity" }] },
+    { titulo: "GESTIÓN", items: administracion },
+  ];
+}
 
-  if (esSuperAdmin) {
-    items.push({ id: `sedes-${basePath}`, label: "Sedes", path: `${basePath}/sedes`, icon: "building" });
-  }
-
-  return items;
+/** El mismo menú sin secciones (acordeón de empresas del SuperAdmin). */
+export function menuEmpresa(basePath: string, esSuperAdmin = false, verBaseDatos = esSuperAdmin): MenuItem[] {
+  return seccionesEmpresa(basePath, esSuperAdmin, verBaseDatos).flatMap((s) => s.items);
 }

@@ -37,7 +37,9 @@ src/
 - Mostrar/ocultar acciones con `sesion.permisos.<flag>` o `permisos.puede('MODULO','ACCION')`.
   La seguridad real está en el backend; esto es solo UI.
 - Errores: `mensajeError(err)`; estados de carga con `Cargando` / `ErrorCarga`.
-- Estilo: Tailwind 4, tema oscuro (fondos `#0d1117`, acento `#0df5c6`). Iconos `lucide-react`.
+- Estilo: Tailwind 4, tema del diseño 2026-10: fondo `#02111C`, paneles `#071623` (borde `#12263A`), acento `#2BC4E8`,
+  fuentes Barlow / Barlow Condensed (`font-cond`). Estados: En ruta `#15E462`, Ralentí `#FCC908`, Apagado `#AABAD0`,
+  Sin comunicación `#F64651`; alerta de consumo `#B65CFF`. Iconos `lucide-react`.
 - TypeScript estricto: nada de `any` nuevo (`sedes/api.ts` y `empresas/api.ts` aún lo tienen; tipar al tocarlos).
   `verbatimModuleSyntax`: tipos con `import type`.
 - HTML en popups de Leaflet: escapar con `escapeHtml`.
