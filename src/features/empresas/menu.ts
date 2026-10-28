@@ -1,10 +1,12 @@
 import type { MenuItem, MenuSeccion } from "@/types";
+import { FUNCIONES } from "@/app/funciones";
 
 /**
  * Menú de cada empresa según el diseño, por secciones:
  *  PLATAFORMA     Home · Alertas · Base de datos (Exportar a Excel, Consulta y mapa)
  *  COMBUSTIBLE    Consumo y eficiencia
- *  GESTIÓN        Configuración (+ Operadores, Dispositivos, Telemetría y Sedes para el SuperAdmin)
+ *  GESTIÓN        Configuración (+ Dispositivos y Sedes para el SuperAdmin; Operadores si FUNCIONES.operadores)
+ * Telemetría se retiró: Base de datos › Consulta y mapa muestra lo mismo.
  * Los módulos no contratados y Reportes no se muestran en esta fase.
  */
 export function seccionesEmpresa(basePath: string, esSuperAdmin = false, verBaseDatos = esSuperAdmin, alertasAbiertas = 0): MenuSeccion[] {
@@ -27,10 +29,9 @@ export function seccionesEmpresa(basePath: string, esSuperAdmin = false, verBase
 
   const administracion: MenuItem[] = [{ id: `config-${basePath}`, label: "Configuración", path: `${basePath}/configuracion`, icon: "wrench" }];
   if (esSuperAdmin) {
+    if (FUNCIONES.operadores) administracion.push({ id: `operadores-${basePath}`, label: "Operadores", path: `${basePath}/operadores`, icon: "users" });
     administracion.push(
-      { id: `operadores-${basePath}`, label: "Operadores", path: `${basePath}/operadores`, icon: "users" },
       { id: `dispositivos-${basePath}`, label: "Dispositivos", path: `${basePath}/dispositivos`, icon: "monitor" },
-      { id: `database-${basePath}`, label: "Telemetría", path: `${basePath}/database`, icon: "database" },
       { id: `sedes-${basePath}`, label: "Sedes", path: `${basePath}/sedes`, icon: "building" },
     );
   }

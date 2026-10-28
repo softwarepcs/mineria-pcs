@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom";
 import { useMemo, useState, type ReactNode } from "react";
 import type { EmpresaDetalle } from "@/features/empresas/api";
+import { FUNCIONES } from "@/app/funciones";
 import { Cargando, ErrorCarga } from "@/shared/ui/Estados";
 import { Input } from "@/shared/ui/Formulario";
 import { descargarExcel } from "@/shared/utils/excel";
@@ -169,7 +170,7 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
           <h1 className="font-cond text-[32px] font-bold leading-none text-white sm:text-[38px]">Alertas</h1>
           <p className="mt-1 text-base text-[#A9BBCC]">Última alerta de consumo y último evento de geocerca de cada camión</p>
         </div>
-        <BotonExportar empresaId={empresa.id} />
+        <BotonExportar empresaId={empresa.id} zonaHoraria={empresa.zonaHoraria} />
       </div>
 
       <div className="flex flex-wrap items-center gap-x-[18px] gap-y-2.5 rounded-xl border border-[#12263A] bg-[#071623] px-4 py-3">
@@ -210,7 +211,7 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
                   <th>Fecha y hora</th>
                   <th>Tipo</th>
                   <th>Camión</th>
-                  <th>Conductor</th>
+                  {FUNCIONES.operadores && <th>Conductor</th>}
                   <th>Qué pasó</th>
                   <th className="text-right">Galones del día<br />al momento</th>
                   <th className="text-right">Km</th>
@@ -229,7 +230,7 @@ export function AlertasView({ empresa }: { empresa: EmpresaDetalle }) {
                         <span className="inline-block rounded-md px-2.5 py-[3px] text-[12.5px] font-semibold" style={{ background: et.bg, color: et.fg }}>{et.txt}</span>
                       </td>
                       <td className="font-semibold text-white">{f.placa}</td>
-                      <td className="max-w-[140px] !whitespace-normal">{f.conductor}</td>
+                      {FUNCIONES.operadores && <td className="max-w-[140px] !whitespace-normal">{f.conductor}</td>}
                       <td className="min-w-[210px] !whitespace-normal">
                         <span className="block text-white">
                           <span className="mr-[7px] inline-block h-[9px] w-[9px] align-[1px]" style={{ background: f.colorQue, borderRadius: f.redondo ? "50%" : "2px" }} />
@@ -290,7 +291,7 @@ function ChipTipo({ activo, onClick, color, redondo, n, children }: { activo: bo
 
 /* ───────── Exportar ───────── */
 
-function BotonExportar({ empresaId }: { empresaId: number }) {
+function BotonExportar({ empresaId, zonaHoraria }: { empresaId: number; zonaHoraria: string }) {
   const [abierto, setAbierto] = useState(false);
   const [desde, setDesde] = useState(hoyISO(-30));
   const [hasta, setHasta] = useState(hoyISO());
@@ -304,13 +305,13 @@ function BotonExportar({ empresaId }: { empresaId: number }) {
       const filas = await getHistorialCompleto(empresaId, { desde, hasta });
       descargarExcel(
         `alertas_${desde}_${hasta}`,
-        ["Fecha y hora", "Tipo", "Estado", "Camión", "Conductor", "Geocerca", "Duración (min)", "Galones del día", "km", "Latitud", "Longitud"],
+        ["Fecha y hora", "Tipo", "Estado", "Camión", ...(FUNCIONES.operadores ? ["Conductor"] : []), "Geocerca", "Duración (min)", "Galones del día", "km", "Latitud", "Longitud"],
         filas.map((f) => [
-          fechaHora(f.fechaHora),
+          fechaHora(f.fechaHora, zonaHoraria),
           f.tipo === "CONSUMO" ? "Consumo de combustible" : "Geocerca",
           f.tipo === "CONSUMO" ? f.situacion : f.tipoEvento,
           f.placa,
-          f.conductor,
+          ...(FUNCIONES.operadores ? [f.conductor] : []),
           f.geocerca,
           f.duracionMin,
           f.galonesDia,

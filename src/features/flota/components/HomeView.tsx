@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useUnidades } from "@/features/camiones/hooks";
@@ -21,7 +21,29 @@ export function HomeView({ empresa }: { empresa: EmpresaDetalle }) {
   const [seleccionadaId, setSeleccionadaId] = useState<number | null>(null);
   const unidades = useUnidades(empresa.id);
   const { data: geocercas = [] } = useGeocercas(empresa.id);
-  const onSeleccionar = useCallback((id: number) => setSeleccionadaId((actual) => (actual === id ? null : id)), []);
+  const [ocultas, setOcultas] = useState<Set<number>>(() => leerOcultas(empresa.id));
+  useEffect(() => guardarOcultas(empresa.id, ocultas), [empresa.id, ocultas]);
+  const onSeleccionar = useCallback((id: number) => {
+    setSeleccionadaId((actual) => (actual === id ? null : id));
+    // Si se elige un camión oculto, se vuelve a mostrar para poder ubicarlo en el mapa
+    setOcultas((prev) => (prev.has(id) ? new Set([...prev].filter((x) => x !== id)) : prev));
+  }, []);
+  const alternarVisible = useCallback((id: number) => {
+    setOcultas((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  }, []);
+  const mostrarTodas = useCallback((ids: number[], mostrar: boolean) => {
+    setOcultas((prev) => {
+      const n = new Set(prev);
+      ids.forEach((id) => (mostrar ? n.delete(id) : n.add(id)));
+      return n;
+    });
+  }, []);
+  const enMapa = useMemo(() => (unidades.data ?? []).filter((u) => !ocultas.has(u.id)), [unidades.data, ocultas]);
   const verLinea = useCallback(() => navigate(`${base}/consumo`), [navigate, base]);
   const puedeEditarGeocercas = sesion?.permisos.puede("GEOCERCAS", "GESTIONAR") ?? false;
 
@@ -57,7 +79,7 @@ export function HomeView({ empresa }: { empresa: EmpresaDetalle }) {
               </h2>
             </div>
             <HomeMapa
-              unidades={unidades.data}
+              unidades={enMapa}
               geocercas={geocercas}
               seleccionadaId={seleccionadaId}
               onSeleccionar={onSeleccionar}
@@ -66,9 +88,29 @@ export function HomeView({ empresa }: { empresa: EmpresaDetalle }) {
               zonaHoraria={empresa.zonaHoraria}
             />
           </Panel>
-          <HomeTabla unidades={unidades.data} zonaHoraria={empresa.zonaHoraria} seleccionadaId={seleccionadaId} onSeleccionar={onSeleccionar} />
+          <HomeTabla unidades={unidades.data} zonaHoraria={empresa.zonaHoraria} ocultas={ocultas} onAlternarVisible={alternarVisible} onMostrarTodas={mostrarTodas} seleccionadaId={seleccionadaId} onSeleccionar={onSeleccionar} />
         </>
       )}
     </div>
   );
+}
+
+/* Camiones ocultos del mapa: preferencia de este navegador, por empresa (se guardan los ocultos, así un camión nuevo aparece). */
+const claveOcultas = (empresaId: number) => `home_mapa_ocultos_${empresaId}`;
+
+function leerOcultas(empresaId: number): Set<number> {
+  try {
+    const v = JSON.parse(localStorage.getItem(claveOcultas(empresaId)) ?? "[]") as unknown;
+    return new Set(Array.isArray(v) ? v.filter((x): x is number => typeof x === "number") : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function guardarOcultas(empresaId: number, ocultas: Set<number>) {
+  try {
+    localStorage.setItem(claveOcultas(empresaId), JSON.stringify([...ocultas]));
+  } catch {
+    // sin almacenamiento local: la selección vive solo mientras la página esté abierta
+  }
 }

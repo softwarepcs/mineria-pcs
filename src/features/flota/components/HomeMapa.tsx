@@ -9,6 +9,7 @@ import { useFullscreen } from "@/shared/map/useFullscreen";
 import { MapaControles } from "@/shared/map/MapaControles";
 import { colorSeguro, escapeHtml } from "@/shared/utils/escapeHtml";
 import { fechaHora, num } from "@/shared/utils/formato";
+import { FUNCIONES } from "@/app/funciones";
 
 function icono(placa: string, estado: EstadoFlota, seleccionado: boolean) {
   const color = ESTADO_UNIDAD[estado].color;
@@ -28,7 +29,7 @@ function icono(placa: string, estado: EstadoFlota, seleccionado: boolean) {
 function popup(u: Unidad, conEnlace: boolean, tz: string): string {
   const t = u.telemetria;
   const linea = (txt: string, color = "#C9D6E3") => `<div style="color:${color};">${escapeHtml(txt)}</div>`;
-  const camion = [[u.marca, u.modelo].filter(Boolean).join(" "), u.operadorActual?.nombre].filter(Boolean).join(" · ");
+  const camion = [[u.marca, u.modelo].filter(Boolean).join(" "), FUNCIONES.operadores ? u.operadorActual?.nombre : null].filter(Boolean).join(" · ");
   return `
     <div style="font-family:Barlow,sans-serif;font-size:13px;line-height:1.55;min-width:250px;">
       <div style="display:flex;align-items:center;gap:7px;font-weight:600;color:#fff;font-size:14px;">
@@ -137,7 +138,7 @@ export function HomeMapa({
   const encuadradoRef = useRef<string | null>(null);
   useEffect(() => {
     if (!mapa) return;
-    const clave = seleccionadaId ? `u${seleccionadaId}` : "todas";
+    const clave = seleccionadaId ? `u${seleccionadaId}` : `todas:${conPosicion.map((u) => u.id).join(",")}`;
     if (encuadradoRef.current === clave) return;
     const sel = seleccionadaId ? conPosicion.find((u) => u.id === seleccionadaId) : undefined;
     if (sel) {

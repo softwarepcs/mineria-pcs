@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ChangeEvent, type MouseEvent } from "react";
 import type { Unidad } from "@/features/camiones/api";
 import type { EstadoFlota } from "@/features/flota/api";
 import { ESTADOS_ORDEN, ESTADO_UNIDAD } from "@/features/flota/estado";
@@ -9,12 +9,60 @@ import { fechaHora, num } from "@/shared/utils/formato";
 type Filtro = "todos" | EstadoFlota;
 
 /** Tabla "Camiones en línea" con filtros por estado. */
-export function HomeTabla({ unidades, zonaHoraria, seleccionadaId, onSeleccionar }: { unidades: Unidad[]; zonaHoraria: string; seleccionadaId: number | null; onSeleccionar: (id: number) => void }) {
+interface Props {
+  unidades: Unidad[];
+  zonaHoraria: string;
+  seleccionadaId: number | null;
+  onSeleccionar: (id: number) => void;
+  /** Camiones que no se dibujan en el mapa. */
+  ocultas: Set<number>;
+  onAlternarVisible: (id: number) => void;
+  onMostrarTodas: (ids: number[], mostrar: boolean) => void;
+}
+
+const CASILLA = "h-4 w-4 cursor-pointer accent-[#2BC4E8]";
+const noPropagar = (e: MouseEvent) => e.stopPropagation();
+
+export function HomeTabla({ unidades, zonaHoraria, seleccionadaId, onSeleccionar, ocultas, onAlternarVisible, onMostrarTodas }: Props) {
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const visibles = useMemo(() => (filtro === "todos" ? unidades : unidades.filter((u) => u.estado === filtro)), [unidades, filtro]);
   const sinDato = (u: Unidad) => u.estado === "sin_senal";
 
+  // La casilla del encabezado actúa sobre las filas que se ven con el filtro actual
+  const idsVisibles = visibles.map((u) => u.id);
+  const nEnMapa = idsVisibles.filter((id) => !ocultas.has(id)).length;
+  const todas = idsVisibles.length > 0 && nEnMapa === idsVisibles.length;
+  const algunas = nEnMapa > 0 && !todas;
+  const totalEnMapa = unidades.filter((u) => !ocultas.has(u.id)).length;
+
   const columnas: Columna<Unidad>[] = [
+    {
+      key: "mapa",
+      encabezado: (
+        <input
+          type="checkbox"
+          className={CASILLA}
+          checked={todas}
+          ref={(el) => {
+            if (el) el.indeterminate = algunas;
+          }}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => onMostrarTodas(idsVisibles, e.target.checked)}
+          aria-label="Mostrar u ocultar todos en el mapa"
+          title="Mostrar u ocultar todos en el mapa"
+        />
+      ),
+      render: (u) => (
+        <input
+          type="checkbox"
+          className={CASILLA}
+          checked={!ocultas.has(u.id)}
+          onClick={noPropagar}
+          onChange={() => onAlternarVisible(u.id)}
+          aria-label={`Mostrar ${u.placa} en el mapa`}
+          title={ocultas.has(u.id) ? "Mostrar en el mapa" : "Ocultar del mapa"}
+        />
+      ),
+    },
     { key: "placa", encabezado: "Código", ordenable: true, valorOrden: (u) => u.placa, render: (u) => <span className="font-semibold text-white">{u.placa}</span> },
     { key: "camion", encabezado: "Camión", render: (u) => [u.marca, u.modelo].filter(Boolean).join(" ") || "—" },
     {
@@ -86,11 +134,17 @@ export function HomeTabla({ unidades, zonaHoraria, seleccionadaId, onSeleccionar
         datos={visibles}
         keyExtractor={(u) => u.id}
         filaActiva={seleccionadaId}
+        claseFila={(u) => (ocultas.has(u.id) ? "opacity-50" : "")}
         onClickFila={(u) => onSeleccionar(u.id)}
         minWidth="980px"
         vacio={<p className="py-6 text-center text-sm text-[#8FA3B8]">No hay camiones en este estado.</p>}
       />
-      <p className="mt-3 text-[13px] text-[#8FA3B8]">(T) = total acumulado desde la instalación del equipo · se actualiza en tiempo real</p>
+      <div className="mt-3 flex flex-wrap justify-between gap-2 text-[13px] text-[#8FA3B8]">
+        <span>(T) = total acumulado desde la instalación del equipo · se actualiza en tiempo real</span>
+        <span>
+          En el mapa: <strong className="text-white">{totalEnMapa}</strong> de {unidades.length} · marca o desmarca la casilla para mostrar u ocultar
+        </span>
+      </div>
     </Panel>
   );
 }

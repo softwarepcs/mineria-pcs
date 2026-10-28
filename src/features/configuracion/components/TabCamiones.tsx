@@ -1,3 +1,4 @@
+import { FUNCIONES } from "@/app/funciones";
 import { useState } from "react";
 import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useUnidades } from "@/features/camiones/hooks";
@@ -14,12 +15,12 @@ import { BotonPrimario, BotonSecundario, MensajeError, Select } from "@/shared/u
 import { Panel } from "@/shared/ui/Panel";
 import { ESTADO_UNIDAD } from "@/features/flota/estado";
 
-/** Configuración › Camiones: lista, edición (placa, marca, modelo, estado operativo), conductor asignado y alta. */
+/** Configuración › Camiones: lista, edición (placa, marca, modelo, estado operativo), conductor asignado (si el módulo de operadores está activo) y alta. */
 export function TabCamiones({ empresa }: { empresa: EmpresaDetalle }) {
   const { sesion } = useAuth();
   const puedeEditar = sesion?.permisos.editarFlota ?? false;
   const unidades = useUnidades(empresa.id);
-  const operadores = useOperadores(empresa.id);
+  const operadores = useOperadores(empresa.id, FUNCIONES.operadores);
   const asignar = useAsignarUnidad();
   const liberar = useLiberarUnidad();
   const [editando, setEditando] = useState<Unidad | null>(null);
@@ -38,11 +39,7 @@ export function TabCamiones({ empresa }: { empresa: EmpresaDetalle }) {
     asignar.mutate({ id: Number(valor), maquinariaId: u.id }, { onError: alFallar });
   };
 
-  const columnas: Columna<Unidad>[] = [
-    { key: "placa", encabezado: "Placa", ordenable: true, valorOrden: (u) => u.placa, render: (u) => <span className="font-semibold text-white">{u.placa}</span> },
-    { key: "mm", encabezado: "Marca / modelo", render: (u) => [u.marca, u.modelo].filter(Boolean).join(" ") || "—" },
-    { key: "op", encabezado: "Estado operativo", render: (u) => <Badge etiqueta={u.estadoOperativo} variante={u.estadoOperativo === "Activo" ? "success" : u.estadoOperativo === "Mantenimiento" ? "warning" : "danger"} /> },
-    {
+  const columnaConductor: Columna<Unidad> = {
       key: "cond",
       encabezado: "Conductor asignado",
       render: (u) =>
@@ -56,7 +53,13 @@ export function TabCamiones({ empresa }: { empresa: EmpresaDetalle }) {
         ) : (
           conductor(u)?.nombre ?? "—"
         ),
-    },
+    };
+
+  const columnas: Columna<Unidad>[] = [
+    { key: "placa", encabezado: "Placa", ordenable: true, valorOrden: (u) => u.placa, render: (u) => <span className="font-semibold text-white">{u.placa}</span> },
+    { key: "mm", encabezado: "Marca / modelo", render: (u) => [u.marca, u.modelo].filter(Boolean).join(" ") || "—" },
+    { key: "op", encabezado: "Estado operativo", render: (u) => <Badge etiqueta={u.estadoOperativo} variante={u.estadoOperativo === "Activo" ? "success" : u.estadoOperativo === "Mantenimiento" ? "warning" : "danger"} /> },
+    ...(FUNCIONES.operadores ? [columnaConductor] : []),
     { key: "eq", encabezado: "Equipo instalado", render: (u) => (u.dispositivo ? <span className="font-mono text-[11px]">{u.dispositivo.modelo ?? "FMC125"} · {u.dispositivo.imei}</span> : <span className="text-slate-500">Sin equipo</span>) },
     { key: "est", encabezado: "Ahora", render: (u) => <span className="inline-flex items-center gap-1.5 text-xs"><span className="h-2 w-2 rounded-full" style={{ background: ESTADO_UNIDAD[u.estado].color }} />{ESTADO_UNIDAD[u.estado].etiqueta}</span> },
     ...(puedeEditar ? [{ key: "acc", encabezado: "", alinear: "right" as const, render: (u: Unidad) => <BotonSecundario onClick={() => setEditando(u)}>Editar</BotonSecundario> }] : []),

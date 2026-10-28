@@ -1,3 +1,4 @@
+import { FUNCIONES } from "@/app/funciones";
 import { useState } from "react";
 import { Campo, Input, BotonPrimario, BotonSecundario, Select } from "@/shared/ui/Formulario";
 import { useCrearUsuario, useActualizarUsuario } from "../hooks";
@@ -111,7 +112,7 @@ export function UsuarioForm({
           {sesion?.permisos.verTodasLasEmpresas && <option value={1}>SuperAdmin</option>}
           <option value={2}>Administrador</option>
           <option value={3}>Gerente</option>
-          <option value={4}>Operador</option>
+          {FUNCIONES.operadores && <option value={4}>Operador</option>}
           <option value={5}>Trabajador</option>
         </Select>
       </Campo>

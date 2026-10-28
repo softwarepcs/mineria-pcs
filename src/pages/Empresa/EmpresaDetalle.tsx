@@ -3,8 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa, useEmpresaPorToken } from "@/features/empresas/hooks";
 import { Cargando, ErrorCarga } from "@/shared/ui/Estados";
 import { HomeView } from "@/features/flota/components/HomeView";
-import { MotorPrincipal } from "@/features/motor/components/MotorPrincipal";
 import { AlertasView } from "@/features/alertas/components/AlertasView";
+import { FUNCIONES } from "@/app/funciones";
 import { OperadoresView } from "@/features/operadores/components/OperadoresView";
 import { OperadorDetalleView } from "@/features/operadores/components/OperadorDetalleView";
 import { DispositivosView } from "@/features/dispositivos/components/DispositivosView";
@@ -46,8 +46,8 @@ export function EmpresaDetalle() {
       <Routes>
         <Route index element={<HomeView empresa={empresa} />} />
         <Route path="consumo" element={<ConsumoView empresa={empresa} />} />
-        <Route path="operadores" element={<OperadoresView empresa={empresa} />} />
-        <Route path="operadores/:operadorId" element={<OperadorDetalleView empresa={empresa} />} />
+        {FUNCIONES.operadores && <Route path="operadores" element={<OperadoresView empresa={empresa} />} />}
+        {FUNCIONES.operadores && <Route path="operadores/:operadorId" element={<OperadorDetalleView empresa={empresa} />} />}
         <Route path="geocercas" element={<Navigate to="../configuracion?tab=geocercas" replace />} />
         <Route path="camiones/*" element={<Navigate to="../configuracion?tab=camiones" replace />} />
         <Route path="configuracion" element={<ConfiguracionView empresa={empresa} />} />
@@ -55,7 +55,8 @@ export function EmpresaDetalle() {
         {puedeVerReportes && <Route path="exportar" element={<ExportarView empresa={empresa} />} />}
         {puedeVerReportes && <Route path="consulta" element={<ConsultaView empresa={empresa} />} />}
         {esSuperAdmin && <Route path="dispositivos" element={<DispositivosView empresa={empresa} />} />}
-        <Route path="database" element={<MotorPrincipal empresa={empresa} />} />
+        {/* Telemetría se retiró (duplicaba Base de datos): los enlaces viejos van a Consulta y mapa */}
+        <Route path="database" element={<Navigate to="../consulta" replace />} />
         {esSuperAdmin && <Route path="sedes" element={<SedesView empresa={empresa} />} />}
         <Route path="*" element={<Navigate to={isPanel ? "/panel" : `/empresa/${token}`} replace />} />
       </Routes>

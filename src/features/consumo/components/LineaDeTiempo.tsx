@@ -2,8 +2,8 @@ import { useState, type MouseEvent } from "react";
 import { num } from "@/shared/utils/formato";
 import type { AlertaReporte, MaquinariaReporte, ReporteEventos, SegmentoReporte } from "@/features/reportes/api";
 import { ESTADO, ESTADOS_ORDEN } from "@/features/reportes/estilos";
-import { COLOR_CONSUMO } from "@/features/alertas/estilos";
-import { duracion, horaEn, medianoches, posicion } from "@/features/reportes/ventana";
+import { COLOR_CONSUMO, COLOR_GEOCERCA } from "@/features/alertas/estilos";
+import { duracion, fechaHoraEn, horaEn, medianoches, posicion } from "@/features/reportes/ventana";
 
 /** Columnas fijas a los lados de la barra (px): nombre + separación, y métricas + separación. */
 const ANCHO_NOMBRE = 150;
@@ -26,8 +26,8 @@ interface Props {
 }
 
 /**
- * Línea de tiempo de las últimas 24 h: una barra por camión con sus tramos de estado y las alertas
- * de consumo en morado. Al pasar el cursor (o hacer clic) sobre un tramo, su detalle aparece en el
+ * Línea de tiempo de las últimas 24 h: una barra por camión con sus tramos de estado, las alertas
+ * de consumo en morado y, debajo, una franja turquesa con el tiempo dentro de cada geocerca. Al pasar el cursor (o hacer clic) sobre un tramo, su detalle aparece en el
  * recuadro fijo de arriba: no hay tooltip flotante que se pueda desplazar.
  */
 export function LineaDeTiempo({ reporte, resaltada, onResaltar }: Props) {
@@ -42,9 +42,9 @@ export function LineaDeTiempo({ reporte, resaltada, onResaltar }: Props) {
 
   return (
     <section className="rounded-xl border border-[#12263A] bg-[#071623] px-5 py-[18px]">
-      <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <h2 className="font-cond text-[21px] font-semibold text-[#F2F6FA]">Línea de tiempo de estados · últimas 24 h</h2>
-        <div className="min-h-[74px] w-full rounded-[10px] border bg-[#02111C] px-3.5 py-2 text-[13px] leading-normal text-[#C9D6E3] sm:w-[360px]" style={{ borderColor: d?.color ?? "#1E3850" }} aria-live="polite">
+        <div className="min-h-[92px] w-full rounded-[10px] border bg-[#02111C] px-3.5 py-2 text-[13px] leading-normal text-[#C9D6E3] sm:w-[440px]" style={{ borderColor: d?.color ?? "#1E3850" }} aria-live="polite">
           {d ? (
             <>
               <div className="text-sm font-semibold text-white">{d.titulo}</div>
@@ -56,7 +56,7 @@ export function LineaDeTiempo({ reporte, resaltada, onResaltar }: Props) {
           )}
         </div>
       </div>
-      <p className="mb-2 text-[12.5px] text-[#8FA3B8]">Pasa el cursor o haz clic sobre un tramo para ver su detalle · clic en el código para resaltar el camión en la tabla</p>
+      <p className="mb-4 text-[12.5px] text-[#8FA3B8]">Pasa el cursor o haz clic sobre un tramo para ver su detalle · clic en el código para resaltar el camión en la tabla</p>
 
       <div className="overflow-x-auto">
         <div className="min-w-[900px]">
@@ -106,6 +106,10 @@ export function LineaDeTiempo({ reporte, resaltada, onResaltar }: Props) {
           <span className="h-3 w-1.5 rounded-sm" style={{ background: COLOR_CONSUMO }} />
           Alerta de consumo de combustible
         </span>
+        <span className="inline-flex items-center gap-[7px]">
+          <span className="h-2 w-5 rounded-sm" style={{ background: COLOR_GEOCERCA }} />
+          Geocerca (tiempo dentro, bajo la barra)
+        </span>
         <span className="text-[#8FA3B8]">Línea punteada = medianoche</span>
       </div>
     </section>
@@ -131,6 +135,7 @@ function Carril({
 }) {
   const total = hasta - desde;
   const alertas = m.alertas.filter((a) => a.origen === "REGLA");
+  const geocercas = m.alertas.filter((a) => a.origen === "GEOCERCA");
 
   // Un solo manejador por barra: se busca el tramo bajo el cursor (los tramos cortos no tienen área propia)
   const alMover = (e: MouseEvent<HTMLDivElement>) => {
@@ -154,8 +159,9 @@ function Carril({
         <div className="truncate text-[12.5px] text-[#8FA3B8]">{m.nombre}</div>
       </button>
 
+      <div className="flex-1">
       <div
-        className="relative h-7 flex-1 cursor-crosshair rounded bg-[#0A1B2A]"
+        className="relative h-7 cursor-crosshair rounded bg-[#0A1B2A]"
         onMouseMove={alMover}
         onClick={alMover}
         role="img"
@@ -188,6 +194,29 @@ function Carril({
             </div>
           );
         })}
+      </div>
+
+      {/* Geocercas: franja bajo la barra, de la entrada a la salida (o hasta ahora si sigue dentro) */}
+      <div className="relative mt-1 h-2">
+        {geocercas.map((a) => {
+          const ini = posicion(new Date(a.inicio).getTime(), desde, hasta);
+          const fin = posicion(a.fin ? new Date(a.fin).getTime() : hasta, desde, hasta);
+          const mostrar = (e: MouseEvent) => {
+            e.stopPropagation();
+            onDetalle(detalleGeocerca(m, a, hasta, tz));
+          };
+          return (
+            <div
+              key={a.id}
+              className="absolute inset-y-0 min-w-1.5 cursor-pointer rounded-sm opacity-90 hover:opacity-100 hover:outline-2 hover:outline-white"
+              style={{ left: `${ini}%`, width: `${Math.max(fin - ini, 0)}%`, background: COLOR_GEOCERCA }}
+              onMouseMove={mostrar}
+              onClick={mostrar}
+              title={`Geocerca ${a.tipo}`}
+            />
+          );
+        })}
+      </div>
       </div>
 
       <div className="flex-none text-right text-sm tabular-nums" style={{ width: ANCHO_METRICAS }}>
@@ -235,6 +264,23 @@ function detalleAlerta(m: MaquinariaReporte, a: AlertaReporte, tz: string): Deta
     l1: `Avanza sin registrar consumo · ${duracion((fin ?? Date.now()) - ini)}`,
     l2: fin ? `Cerrado automáticamente a las ${horaEn(fin, tz)}` : "Abierto · en curso",
     color: COLOR_CONSUMO,
+  };
+}
+
+/** "14:28" si es del mismo día que `ref`; si no, "27/10 22:10" (zona de la sede). */
+function cuandoLargo(t: number, ref: number, tz: string): string {
+  const dia = (x: number) => new Date(x).toLocaleDateString("en-CA", { timeZone: tz });
+  return dia(t) === dia(ref) ? horaEn(t, tz) : fechaHoraEn(t, tz);
+}
+
+function detalleGeocerca(m: MaquinariaReporte, a: AlertaReporte, hasta: number, tz: string): Detalle {
+  const ini = new Date(a.inicio).getTime();
+  const fin = a.fin ? new Date(a.fin).getTime() : null;
+  return {
+    titulo: `${cuandoLargo(ini, hasta, tz)} → ${fin ? cuandoLargo(fin, hasta, tz) : "ahora"} · Geocerca ${a.tipo} · ${m.placa}`,
+    l1: `Entrada ${cuandoLargo(ini, hasta, tz)} · ${fin ? `salida ${cuandoLargo(fin, hasta, tz)}` : "sigue dentro"}`,
+    l2: `${fin ? "Estuvo dentro" : "Lleva dentro"} ${duracion((fin ?? hasta) - ini)}`,
+    color: COLOR_GEOCERCA,
   };
 }
 

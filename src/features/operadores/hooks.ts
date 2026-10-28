@@ -20,8 +20,8 @@ export const operadoresKeys = {
   rendimiento: (id: number, dias: number) => ["operadores", "rendimiento", id, dias] as const,
 };
 
-export function useOperadores(empresaId: number) {
-  return useQuery({ queryKey: operadoresKeys.lista(empresaId), queryFn: () => getOperadores(empresaId) });
+export function useOperadores(empresaId: number, habilitado = true) {
+  return useQuery({ queryKey: operadoresKeys.lista(empresaId), queryFn: () => getOperadores(empresaId), enabled: habilitado });
 }
 
 export function useOperador(id: number | null) {

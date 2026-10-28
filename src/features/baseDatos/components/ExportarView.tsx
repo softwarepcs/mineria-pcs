@@ -104,7 +104,7 @@ export function ExportarView({ empresa }: { empresa: EmpresaDetalle }) {
           </ul>
 
           <p className="mt-4 text-[11px] text-slate-500">
-            Cada hoja trae: placa, latitud, longitud, fecha, odómetro (km), gal/h, total_gal, caudal_ingreso, caudal_retorno y horómetro (horas de motor).
+            Cada hoja trae: Placa, Latitud, Longitud, Fecha, Odómetro (km), Gal/h, Total Gal, Caudal Ingreso, Caudal Retorno y Horómetro (h, horas de motor), de la lectura más reciente a la más antigua.
           </p>
           <div className="mt-2 rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs text-slate-300">
             <span className="font-semibold text-white">Resumen:</span> {ids.size} camiones · {Math.max(nDias, 0)} días · {ids.size} hojas, una fila por lectura

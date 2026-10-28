@@ -1,3 +1,4 @@
+import { FUNCIONES } from "@/app/funciones";
 import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import type { EmpresaDetalle } from "@/features/empresas/api";
@@ -84,7 +85,7 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
         <strong>Fecha:</strong> ${escapeHtml(fechaHora(l.timestamp))}<br/>
         <strong>Velocidad:</strong> ${escapeHtml(num(l.velocidad, 1))} km/h<br/>
         <strong>Caudal in/ret:</strong> ${escapeHtml(num(l.caudalIngreso, 1))} / ${escapeHtml(num(l.caudalRetorno, 1))} L/h<br/>
-        <strong>Operador:</strong> ${escapeHtml(l.operador ?? "—")}</div>`;
+        ${FUNCIONES.operadores ? `<strong>Operador:</strong> ${escapeHtml(l.operador ?? "—")}` : ""}</div>`;
       const m =
         esInicio || esFin
           ? L.marker([l.lat!, l.lng!], { icon: marcador(esInicio ? "#16a34a" : "#dc2626", esInicio ? "Inicio" : "Fin") })
@@ -100,7 +101,7 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
   const filtradas = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     if (!q) return lecturas;
-    return lecturas.filter((l) => [fechaHora(l.timestamp), l.operador, l.lat, l.lng].some((c) => String(c ?? "").toLowerCase().includes(q)));
+    return lecturas.filter((l) => [fechaHora(l.timestamp), FUNCIONES.operadores ? l.operador : null, l.lat, l.lng].some((c) => String(c ?? "").toLowerCase().includes(q)));
   }, [lecturas, busqueda]);
   const totalPaginas = Math.max(1, Math.ceil(filtradas.length / porPagina));
   const inicio = (pagina - 1) * porPagina;
@@ -110,11 +111,11 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
   const exportar = () => {
     descargarExcel(
       `telemetria_${unidad?.placa ?? "unidad"}_${desde}_${hasta}.xlsx`,
-      ["Ítem", "Fecha y hora", "Operador", "Latitud", "Longitud", "Velocidad (km/h)", "Ángulo", "Temp. combustible (°C)", "Caudal ingreso (gal/h)", "Caudal retorno (gal/h)", "Consumo instantáneo (gal/h)", "Consumo acumulado (gal)", "Odómetro (km)"],
+      ["Ítem", "Fecha y hora", ...(FUNCIONES.operadores ? ["Operador"] : []), "Latitud", "Longitud", "Velocidad (km/h)", "Ángulo", "Temp. combustible (°C)", "Caudal ingreso (gal/h)", "Caudal retorno (gal/h)", "Consumo instantáneo (gal/h)", "Consumo acumulado (gal)", "Odómetro (km)"],
       filtradas.map((l, i) => [
         i + 1,
         fechaHora(l.timestamp),
-        l.operador,
+        ...(FUNCIONES.operadores ? [l.operador] : []),
         l.lat,
         l.lng,
         l.velocidad,
@@ -133,7 +134,7 @@ export function MotorPrincipal({ empresa }: { empresa: EmpresaDetalle }) {
   const columnasLecturas: Columna<Lectura>[] = [
     { key: "item", encabezado: "Ítem", render: (_, i) => <span className="text-slate-500">{inicio + i + 1}</span> },
     { key: "fecha", encabezado: "Fecha y hora", render: (l) => fechaHora(l.timestamp) },
-    { key: "operador", encabezado: "Operador", render: (l) => <span className="whitespace-nowrap font-medium text-slate-300">{l.operador ?? "—"}</span> },
+    ...(FUNCIONES.operadores ? [{ key: "operador", encabezado: "Operador", render: (l: Lectura) => <span className="whitespace-nowrap font-medium text-slate-300">{l.operador ?? "—"}</span> }] : []),
     { key: "lat", encabezado: "Latitud", render: (l) => <span style={{ color: "#5FD3EE", fontWeight: 600 }}>{l.lat?.toFixed(6) ?? "—"}</span> },
     { key: "lng", encabezado: "Longitud", render: (l) => <span style={{ color: "#5FD3EE", fontWeight: 600 }}>{l.lng?.toFixed(6) ?? "—"}</span> },
     { key: "vel", encabezado: "Velocidad", render: (l) => num(l.velocidad, 1) },
