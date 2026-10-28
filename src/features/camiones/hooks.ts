@@ -4,7 +4,6 @@ import {
   actualizarUnidad,
   getConfiguracion,
   getHistorialOperadores,
-  getSistemasUnidad,
   getTiposMaquinaria,
   getUnidades,
   guardarConfiguracion,
@@ -17,7 +16,6 @@ export const unidadesKeys = {
   lista: (empresaId: number | undefined) => ["unidades", empresaId ?? "todas"] as const,
   tipos: ["unidades", "tipos"] as const,
   historial: (id: number) => ["unidades", "historial", id] as const,
-  sistemas: (id: number) => ["unidades", "sistemas", id] as const,
   configuracion: (id: number) => ["unidades", "configuracion", id] as const,
 };
 
@@ -78,9 +76,4 @@ export function useGuardarConfiguracion() {
       void qc.invalidateQueries({ queryKey: ["flota"] });
     },
   });
-}
-
-/** Sistemas instalados en la unidad (motor, frío…) con los campos que reporta cada uno. */
-export function useSistemasUnidad(maquinariaId: number | null) {
-  return useQuery({ queryKey: unidadesKeys.sistemas(maquinariaId ?? 0), queryFn: () => getSistemasUnidad(maquinariaId!), enabled: !!maquinariaId });
 }
