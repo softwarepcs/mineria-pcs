@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import L from "leaflet";
 import type { Unidad } from "@/features/camiones/api";
 import type { EstadoFlota } from "@/features/flota/api";
@@ -52,18 +52,19 @@ export function HomeMapa({
   geocercas,
   seleccionadaId,
   onSeleccionar,
-  alEditarGeocercas,
   onVerLinea,
   zonaHoraria,
+  superpuestos,
 }: {
   unidades: Unidad[];
   geocercas: Geocerca[];
   seleccionadaId: number | null;
   onSeleccionar: (id: number) => void;
-  alEditarGeocercas?: () => void;
   /** Enlace "Ver línea de tiempo ›" del recuadro de cada camión. */
   onVerLinea?: () => void;
   zonaHoraria: string;
+  /** Paneles que se dibujan encima del mapa (estado de la flota, últimas alertas). */
+  superpuestos?: ReactNode;
 }) {
   const contenedorRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -94,7 +95,6 @@ export function HomeMapa({
         centro = [g.puntos.reduce((s, p) => s + p[0], 0) / g.puntos.length, g.puntos.reduce((s, p) => s + p[1], 0) / g.puntos.length];
       }
       if (capaG && centro) {
-        capaG.bindTooltip(escapeHtml(g.nombre), { permanent: true, direction: "center", className: "geocerca-etiqueta" });
         capaG.addTo(grupo);
       }
     });
@@ -154,7 +154,8 @@ export function HomeMapa({
     if (puntos.length === 0) return;
     encuadradoRef.current = clave;
     mapa.closePopup();
-    ajustarVista(mapa, puntos);
+    // Margen arriba para que los camiones no queden bajo el panel de estado
+    ajustarVista(mapa, puntos, 15, { paddingTopLeft: [40, 150], paddingBottomRight: [40, 40] });
   }, [mapa, seleccionadaId, conPosicion, activas]);
 
   const sinPosicion = unidades.length - conPosicion.length;
@@ -162,27 +163,15 @@ export function HomeMapa({
   return (
     <div
       ref={wrapperRef}
-      className={`relative w-full overflow-hidden bg-[#0A1C2B] ${pantallaCompleta ? "h-screen" : "h-[340px] sm:h-[400px] lg:h-[460px]"}`}
+      className={`relative w-full overflow-hidden bg-[#0A1C2B] ${pantallaCompleta ? "h-screen" : "h-[520px] sm:h-[580px] lg:h-[640px]"}`}
     >
       <MapaControles capa={capa} onCapa={setCapa} pantallaCompleta={pantallaCompleta} onPantallaCompleta={alternarPantallaCompleta} />
-      {alEditarGeocercas && (
-        <button
-          type="button"
-          onClick={alEditarGeocercas}
-          className="absolute left-3 top-3 z-[1000] rounded-md border border-white/15 bg-[#0A1C2B]/90 px-2.5 py-1 text-[11px] font-semibold text-slate-200 backdrop-blur-sm hover:text-[#2BC4E8]"
-        >
-          Editar geocercas
-        </button>
+      {superpuestos}
+      {sinPosicion > 0 && (
+        <div className="pointer-events-none absolute bottom-3.5 left-4 z-[1000] rounded-md bg-[#02111C]/85 px-2.5 py-1 text-xs text-[#8FA3B8]">
+          {sinPosicion} camión{sinPosicion === 1 ? "" : "es"} sin posición GPS
+        </div>
       )}
-      <div className="pointer-events-none absolute bottom-3.5 left-4 z-[1000] flex flex-wrap items-center gap-x-3.5 gap-y-1 rounded-lg bg-[#02111C]/90 px-3 py-2 text-[13px] text-[#C9D6E3]">
-        {(Object.keys(ESTADO_UNIDAD) as EstadoFlota[]).map((e) => (
-          <span key={e} className="inline-flex items-center gap-1.5">
-            <span className="h-[9px] w-[9px] rounded-full" style={{ background: ESTADO_UNIDAD[e].color }} />
-            {ESTADO_UNIDAD[e].etiqueta}
-          </span>
-        ))}
-        {sinPosicion > 0 && <span className="text-slate-500">· {sinPosicion} sin posición GPS</span>}
-      </div>
       <div ref={contenedorRef} className="h-full w-full" />
     </div>
   );

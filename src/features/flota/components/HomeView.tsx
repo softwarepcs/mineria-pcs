@@ -4,7 +4,6 @@ import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useUnidades } from "@/features/camiones/hooks";
 import { useGeocercas } from "@/features/geocercas/hooks";
 import { useEmpresaPath } from "@/shared/hooks/useEmpresaPath";
-import { useAuth } from "@/hooks/useAuth";
 import { Cargando, ErrorCarga, SinDatos, Spinner } from "@/shared/ui/Estados";
 import { Panel } from "@/shared/ui/Panel";
 import { haceCuanto } from "@/shared/utils/formato";
@@ -17,7 +16,6 @@ import { HomeTabla } from "./HomeTabla";
 export function HomeView({ empresa }: { empresa: EmpresaDetalle }) {
   const base = useEmpresaPath();
   const navigate = useNavigate();
-  const { sesion } = useAuth();
   const [seleccionadaId, setSeleccionadaId] = useState<number | null>(null);
   const unidades = useUnidades(empresa.id);
   const { data: geocercas = [] } = useGeocercas(empresa.id);
@@ -45,7 +43,6 @@ export function HomeView({ empresa }: { empresa: EmpresaDetalle }) {
   }, []);
   const enMapa = useMemo(() => (unidades.data ?? []).filter((u) => !ocultas.has(u.id)), [unidades.data, ocultas]);
   const verLinea = useCallback(() => navigate(`${base}/consumo`), [navigate, base]);
-  const puedeEditarGeocercas = sesion?.permisos.puede("GEOCERCAS", "GESTIONAR") ?? false;
 
   return (
     <div className="flex w-full max-w-full flex-col gap-[18px]">
@@ -68,10 +65,6 @@ export function HomeView({ empresa }: { empresa: EmpresaDetalle }) {
         <SinDatos titulo="Esta empresa todavía no tiene camiones">Regístralos en Configuración › Camiones y asígnales un equipo para empezar a recibir datos.</SinDatos>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-3.5 xl:grid-cols-[3fr_1.15fr]">
-            <HomeEstadoFlota unidades={unidades.data} />
-            <HomeAlertas empresaId={empresa.id} zonaHoraria={empresa.zonaHoraria} rutaAlertas={`${base}/alertas`} />
-          </div>
           <Panel padding="none" className="overflow-hidden">
             <div className="px-5 py-4">
               <h2 className="font-cond text-[21px] font-semibold text-[#F2F6FA]">
@@ -83,9 +76,14 @@ export function HomeView({ empresa }: { empresa: EmpresaDetalle }) {
               geocercas={geocercas}
               seleccionadaId={seleccionadaId}
               onSeleccionar={onSeleccionar}
-              alEditarGeocercas={puedeEditarGeocercas ? () => navigate(`${base}/configuracion?tab=geocercas`) : undefined}
               onVerLinea={verLinea}
               zonaHoraria={empresa.zonaHoraria}
+              superpuestos={
+                <>
+                  <HomeEstadoFlota unidades={unidades.data} />
+                  <HomeAlertas empresaId={empresa.id} zonaHoraria={empresa.zonaHoraria} rutaAlertas={`${base}/alertas`} />
+                </>
+              }
             />
           </Panel>
           <HomeTabla unidades={unidades.data} zonaHoraria={empresa.zonaHoraria} ocultas={ocultas} onAlternarVisible={alternarVisible} onMostrarTodas={mostrarTodas} seleccionadaId={seleccionadaId} onSeleccionar={onSeleccionar} />

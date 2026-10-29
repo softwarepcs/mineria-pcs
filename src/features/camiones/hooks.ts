@@ -3,7 +3,6 @@ import {
   crearUnidad,
   actualizarUnidad,
   getConfiguracion,
-  getHistorialOperadores,
   getTiposMaquinaria,
   getUnidades,
   guardarConfiguracion,
@@ -15,7 +14,6 @@ export const unidadesKeys = {
   todas: ["unidades"] as const,
   lista: (empresaId: number | undefined) => ["unidades", empresaId ?? "todas"] as const,
   tipos: ["unidades", "tipos"] as const,
-  historial: (id: number) => ["unidades", "historial", id] as const,
   configuracion: (id: number) => ["unidades", "configuracion", id] as const,
 };
 
@@ -47,14 +45,6 @@ export function useActualizarUnidad() {
   return useMutation({
     mutationFn: ({ id, dto }: { id: number; dto: Partial<NuevaUnidad> }) => actualizarUnidad(id, dto),
     onSuccess: () => qc.invalidateQueries({ queryKey: unidadesKeys.todas }),
-  });
-}
-
-export function useHistorialOperadores(maquinariaId: number | null) {
-  return useQuery({
-    queryKey: unidadesKeys.historial(maquinariaId ?? 0),
-    queryFn: () => getHistorialOperadores(maquinariaId!),
-    enabled: !!maquinariaId,
   });
 }
 

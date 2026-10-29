@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useFullscreen } from "@/shared/map/useFullscreen";
+import { BotonPantallaCompleta } from "@/shared/ui/BotonPantallaCompleta";
 import type { EmpresaDetalle } from "@/features/empresas/api";
 import { useReporteEventos } from "@/features/reportes/hooks";
 import type { MaquinariaReporte } from "@/features/reportes/api";
@@ -96,6 +98,8 @@ function Pc({ children }: { children: string }) {
 }
 
 function TablaDetalle({ maquinarias, resaltada, onResaltar }: { maquinarias: MaquinariaReporte[]; resaltada: number | null; onResaltar: (id: number) => void }) {
+  const contenedorRef = useRef<HTMLDivElement>(null);
+  const { pantallaCompleta, alternarPantallaCompleta } = useFullscreen(contenedorRef);
   const filas = maquinarias.map((m) => ({ m, c: cifras(m) }));
   const T = filas.reduce<Cifras>(
     (a, { c }) => ({ km: a.km + c.km, gal: a.gal + c.gal, gr: a.gr + c.gr, gi: a.gi + c.gi, hr: a.hr + c.hr, hi: a.hi + c.hi }),
@@ -148,8 +152,12 @@ function TablaDetalle({ maquinarias, resaltada, onResaltar }: { maquinarias: Maq
   );
 
   return (
-    <section className="rounded-xl border border-[#12263A] bg-[#071623] px-5 py-[18px]">
-      <h2 className="mb-3.5 font-cond text-[21px] font-semibold text-[#F2F6FA]">Detalle por camión · últimas 24 h</h2>
+    <div ref={contenedorRef} className={pantallaCompleta ? "h-screen overflow-auto bg-[#02111C] p-4" : ""}>
+    <section className={`rounded-xl border border-[#12263A] bg-[#071623] px-5 py-[18px] ${pantallaCompleta ? "min-h-full" : ""}`}>
+      <div className="mb-3.5 flex items-center justify-between gap-3">
+        <h2 className="font-cond text-[21px] font-semibold text-[#F2F6FA]">Detalle por camión · últimas 24 h</h2>
+        <BotonPantallaCompleta activo={pantallaCompleta} onClick={alternarPantallaCompleta} />
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1100px] border-collapse text-sm text-[#E3EBF2]">
           <thead>
@@ -199,5 +207,6 @@ function TablaDetalle({ maquinarias, resaltada, onResaltar }: { maquinarias: Maq
         Rendimiento y consumo = km ÷ galones y galones ÷ km del periodo · Horómetro = horas de motor encendido (en ruta + ralentí) en las últimas 24 h
       </p>
     </section>
+    </div>
   );
 }

@@ -68,12 +68,13 @@ export function useLeafletMap(contenedorRef: RefObject<HTMLDivElement | null>, o
 }
 
 /** Ajusta la vista a los puntos (o no hace nada si no hay ninguno). */
-export function ajustarVista(mapa: L.Map, puntos: [number, number][], zoomMax = 15) {
+/** `relleno`: márgenes extra (px) para no quedar debajo de paneles superpuestos al mapa. */
+export function ajustarVista(mapa: L.Map, puntos: [number, number][], zoomMax = 15, relleno?: Pick<L.FitBoundsOptions, "paddingTopLeft" | "paddingBottomRight">) {
   if (puntos.length === 0) return;
   if (mapa.getSize().x === 0) {
     mapa.setView(puntos[0], Math.min(zoomMax, 13));
     return;
   }
   if (puntos.length === 1) mapa.setView(puntos[0], Math.min(zoomMax, 13));
-  else mapa.fitBounds(L.latLngBounds(puntos), { padding: [40, 40], maxZoom: zoomMax });
+  else mapa.fitBounds(L.latLngBounds(puntos), relleno ? { ...relleno, maxZoom: zoomMax } : { padding: [40, 40], maxZoom: zoomMax });
 }

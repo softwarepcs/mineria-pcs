@@ -60,15 +60,6 @@ export interface NuevaUnidad {
   estadoOperativo: string;
 }
 
-export interface AsignacionHistorial {
-  id: number;
-  estado: string;
-  fechaInicio: string;
-  fechaFin: string | null;
-  atribucion: string | null;
-  usuario: { id: number; nombres: string; apellidos: string; legajo: string | null };
-}
-
 export interface Configuracion {
   maquinariaId: number;
   objetivoFlotaL100km: number;
@@ -93,11 +84,6 @@ export async function crearUnidad(dto: NuevaUnidad) {
 
 export async function actualizarUnidad(id: number, dto: Partial<NuevaUnidad>) {
   const { data } = await apiClient.patch(`/maquinarias/${id}`, dto);
-  return data;
-}
-
-export async function getHistorialOperadores(maquinariaId: number): Promise<AsignacionHistorial[]> {
-  const { data } = await apiClient.get<AsignacionHistorial[]>(`/maquinarias/${maquinariaId}/operadores`);
   return data;
 }
 

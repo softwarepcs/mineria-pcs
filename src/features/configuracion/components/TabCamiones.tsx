@@ -19,6 +19,7 @@ import { ESTADO_UNIDAD } from "@/features/flota/estado";
 export function TabCamiones({ empresa }: { empresa: EmpresaDetalle }) {
   const { sesion } = useAuth();
   const puedeEditar = sesion?.permisos.editarFlota ?? false;
+  const esSuperAdmin = sesion?.permisos.verTodasLasEmpresas ?? false;
   const unidades = useUnidades(empresa.id);
   const operadores = useOperadores(empresa.id, FUNCIONES.operadores);
   const asignar = useAsignarUnidad();
@@ -60,7 +61,10 @@ export function TabCamiones({ empresa }: { empresa: EmpresaDetalle }) {
     { key: "mm", encabezado: "Marca / modelo", render: (u) => [u.marca, u.modelo].filter(Boolean).join(" ") || "—" },
     { key: "op", encabezado: "Estado operativo", render: (u) => <Badge etiqueta={u.estadoOperativo} variante={u.estadoOperativo === "Activo" ? "success" : u.estadoOperativo === "Mantenimiento" ? "warning" : "danger"} /> },
     ...(FUNCIONES.operadores ? [columnaConductor] : []),
-    { key: "eq", encabezado: "Equipo instalado", render: (u) => (u.dispositivo ? <span className="font-mono text-[11px]">{u.dispositivo.modelo ?? "FMC125"} · {u.dispositivo.imei}</span> : <span className="text-slate-500">Sin equipo</span>) },
+    // El equipo instalado (modelo e IMEI) es información interna de PCS: solo lo ve el SuperAdmin
+    ...(esSuperAdmin
+      ? [{ key: "eq", encabezado: "Equipo instalado", render: (u: Unidad) => (u.dispositivo ? <span className="font-mono text-[11px]">{u.dispositivo.modelo ?? "FMC125"} · {u.dispositivo.imei}</span> : <span className="text-slate-500">Sin equipo</span>) }]
+      : []),
     { key: "est", encabezado: "Ahora", render: (u) => <span className="inline-flex items-center gap-1.5 text-xs"><span className="h-2 w-2 rounded-full" style={{ background: ESTADO_UNIDAD[u.estado].color }} />{ESTADO_UNIDAD[u.estado].etiqueta}</span> },
     ...(puedeEditar ? [{ key: "acc", encabezado: "", alinear: "right" as const, render: (u: Unidad) => <BotonSecundario onClick={() => setEditando(u)}>Editar</BotonSecundario> }] : []),
   ];

@@ -80,11 +80,6 @@ export async function actualizarEmpresa(id: number, data: any): Promise<EmpresaA
   return res.data;
 }
 
-export async function cambiarEstadoEmpresa(id: number, estado: boolean): Promise<EmpresaApi> {
-  const res = await apiClient.patch<EmpresaApi>(`/empresas/${id}/estado`, { estado });
-  return res.data;
-}
-
 export async function eliminarEmpresa(id: number): Promise<void> {
   await apiClient.delete(`/empresas/${id}`);
 }

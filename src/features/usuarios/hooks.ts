@@ -1,16 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listarUsuarios, crearUsuario, actualizarUsuario, eliminarUsuario } from "./api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { crearUsuario, actualizarUsuario, eliminarUsuario } from "./api";
 
 export const usuariosKeys = {
   lista: ["usuarios"] as const,
 };
-
-export function useUsuarios(pagina: number, limite: number) {
-  return useQuery({
-    queryKey: [...usuariosKeys.lista, pagina, limite],
-    queryFn: () => listarUsuarios(pagina, limite),
-  });
-}
 
 export function useCrearUsuario() {
   const qc = useQueryClient();

@@ -1,4 +1,6 @@
-import { useMemo, useState, type ChangeEvent, type MouseEvent } from "react";
+import { useMemo, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
+import { BotonPantallaCompleta } from "@/shared/ui/BotonPantallaCompleta";
+import { useFullscreen } from "@/shared/map/useFullscreen";
 import type { Unidad } from "@/features/camiones/api";
 import type { EstadoFlota } from "@/features/flota/api";
 import { ESTADOS_ORDEN, ESTADO_UNIDAD } from "@/features/flota/estado";
@@ -25,6 +27,8 @@ const noPropagar = (e: MouseEvent) => e.stopPropagation();
 
 export function HomeTabla({ unidades, zonaHoraria, seleccionadaId, onSeleccionar, ocultas, onAlternarVisible, onMostrarTodas }: Props) {
   const [filtro, setFiltro] = useState<Filtro>("todos");
+  const contenedorRef = useRef<HTMLDivElement>(null);
+  const { pantallaCompleta, alternarPantallaCompleta } = useFullscreen(contenedorRef);
   const visibles = useMemo(() => (filtro === "todos" ? unidades : unidades.filter((u) => u.estado === filtro)), [unidades, filtro]);
   const sinDato = (u: Unidad) => u.estado === "sin_senal";
 
@@ -104,7 +108,8 @@ export function HomeTabla({ unidades, zonaHoraria, seleccionadaId, onSeleccionar
   ];
 
   return (
-    <Panel>
+    <div ref={contenedorRef} className={pantallaCompleta ? "h-screen overflow-auto bg-[#02111C] p-4" : ""}>
+    <Panel className={pantallaCompleta ? "min-h-full" : ""}>
       <PanelTitulo
         className="mb-1.5"
         extra={
@@ -122,6 +127,7 @@ export function HomeTabla({ unidades, zonaHoraria, seleccionadaId, onSeleccionar
                 {f === "todos" ? "Todos" : ESTADO_UNIDAD[f].etiqueta}
               </button>
             ))}
+            <BotonPantallaCompleta activo={pantallaCompleta} onClick={alternarPantallaCompleta} />
           </div>
         }
       >
@@ -146,5 +152,6 @@ export function HomeTabla({ unidades, zonaHoraria, seleccionadaId, onSeleccionar
         </span>
       </div>
     </Panel>
+    </div>
   );
 }

@@ -48,17 +48,6 @@ export function useActualizarEmpresa() {
   });
 }
 
-export function useCambiarEstadoEmpresa() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, estado }: { id: number; estado: boolean }) => import("./api").then((m) => m.cambiarEstadoEmpresa(id, estado)),
-    onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: empresasKeys.lista });
-      qc.invalidateQueries({ queryKey: empresasKeys.detalle(id) });
-    },
-  });
-}
-
 export function useEliminarEmpresa() {
   const qc = useQueryClient();
   return useMutation({

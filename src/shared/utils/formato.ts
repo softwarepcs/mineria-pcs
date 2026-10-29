@@ -38,13 +38,6 @@ export function haceCuanto(iso: string | Date | null | undefined): string {
   return `hace ${Math.round(seg / 86400)} d`;
 }
 
-/** Días hasta una fecha (negativo si ya pasó). */
-export function diasHasta(iso: string | null | undefined): number | null {
-  if (!iso) return null;
-  const d = /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(`${iso}T00:00:00`) : new Date(iso);
-  return Math.ceil((d.getTime() - Date.now()) / 86_400_000);
-}
-
 /** Fecha local "YYYY-MM-DD" para inputs type=date. */
 export function hoyISO(offsetDias = 0): string {
   const d = new Date();

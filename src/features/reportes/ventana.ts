@@ -1,5 +1,3 @@
-import type { PeriodoReporte } from "./api";
-
 const LOCALE = "es-AR";
 
 /** Posición de un instante dentro de la ventana, en % (acotada a 0–100). */
@@ -7,16 +5,11 @@ export function posicion(t: number, desde: number, hasta: number): number {
   return Math.min(100, Math.max(0, ((t - desde) / (hasta - desde)) * 100));
 }
 
-export interface Marca {
-  t: number;
-  etiqueta: string;
-}
-
 /** Hora y minuto locales de un instante en la zona `tz` (la de la sede, no la del navegador). */
 function partesLocales(t: number, tz: string) {
-  const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", hour: "2-digit", minute: "2-digit", weekday: "short", day: "2-digit" }).formatToParts(new Date(t));
+  const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(t));
   const v = (tipo: string) => p.find((x) => x.type === tipo)?.value ?? "";
-  return { hora: Number(v("hour")), minuto: Number(v("minute")), dia: v("day") };
+  return { hora: Number(v("hour")), minuto: Number(v("minute")) };
 }
 
 /** "13:36" en la zona de la sede. */
@@ -39,18 +32,6 @@ export function medianoches(desde: number, hasta: number, tz: string): number[] 
     if (hora === 0 && minuto === 0) res.push(t);
   }
   return res;
-}
-
-/** Marcas de la cinta de horas: cada 2 h en 24 h; cada medianoche en 7 días (hora de la sede). */
-export function marcasDeVentana(desde: number, hasta: number, periodo: PeriodoReporte, tz: string): Marca[] {
-  const marcas: Marca[] = [];
-  for (let t = Math.ceil(desde / 3_600_000) * 3_600_000; t < hasta; t += 3_600_000) {
-    const { hora, minuto, dia } = partesLocales(t, tz);
-    if (minuto !== 0) continue;
-    if (periodo === "24h" && hora % 2 === 0) marcas.push({ t, etiqueta: `${String(hora).padStart(2, "0")}:00` });
-    if (periodo === "7d" && hora === 0) marcas.push({ t, etiqueta: `${dia}/${new Date(t).toLocaleDateString(LOCALE, { timeZone: tz, month: "2-digit" })}` });
-  }
-  return marcas;
 }
 
 /** "45 min", "2 h 15 min", "3 d 4 h". */
