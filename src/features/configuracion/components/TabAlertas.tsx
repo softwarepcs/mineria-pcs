@@ -6,14 +6,29 @@ import { mensajeError } from "@/shared/api/errores";
 import { avisar } from "@/shared/ui/Avisos";
 import { Cargando, ErrorCarga } from "@/shared/ui/Estados";
 import { Panel } from "@/shared/ui/Panel";
-import { Interruptor } from "./TabUsuarios";
+
+function Interruptor({ activo, onCambiar, etiqueta, bloqueado }: { activo: boolean; onCambiar: (v: boolean) => void; etiqueta: string; bloqueado?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={activo}
+      aria-label={etiqueta}
+      disabled={bloqueado}
+      onClick={() => onCambiar(!activo)}
+      className={`relative h-5 w-9 rounded-full transition disabled:opacity-50 ${activo ? "bg-[#2BC4E8]" : "bg-slate-700"}`}
+    >
+      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${activo ? "left-[18px]" : "left-0.5"}`} />
+    </button>
+  );
+}
 
 const INFO = {
   CONSUMO: { titulo: "Consumo de combustible", color: COLOR_CONSUMO, texto: "Se abre cuando el camión consume demasiado para su velocidad y se cierra sola al terminar la condición." },
   GEOCERCA: { titulo: "Geocercas", color: COLOR_GEOCERCA, texto: "Aviso informativo cada vez que un camión entra o sale de una geocerca." },
 } as const;
 
-/** Configuración › Alertas: activar cada tipo, canales y cuántos usuarios lo reciben. */
+/** Configuración › Alertas: activar cada tipo de alerta y su canal en plataforma. */
 export function TabAlertas({ empresa }: { empresa: EmpresaDetalle }) {
   const cfg = useConfigAlertas(empresa.id);
   const guardar = useGuardarConfigAlerta(empresa.id);
@@ -21,7 +36,7 @@ export function TabAlertas({ empresa }: { empresa: EmpresaDetalle }) {
   if (cfg.isLoading) return <Cargando />;
   if (cfg.isError || !cfg.data) return <ErrorCarga error={cfg.error} onReintentar={() => void cfg.refetch()} />;
 
-  const cambiar = (t: TipoConfig, cambios: Partial<Pick<TipoConfig, "activa" | "canalPlataforma" | "canalCorreo">>) =>
+  const cambiar = (t: TipoConfig, cambios: Partial<Pick<TipoConfig, "activa" | "canalPlataforma">>) =>
     guardar.mutate({ tipo: t.tipo, cambios }, { onError: (e) => avisar.error(mensajeError(e)) });
 
   return (
@@ -37,10 +52,7 @@ export function TabAlertas({ empresa }: { empresa: EmpresaDetalle }) {
           </div>
           <div className={`mt-4 space-y-3 text-sm ${t.activa ? "" : "opacity-50"}`}>
             <div className="flex items-center justify-between"><span className="text-slate-300">Plataforma</span><Interruptor activo={t.canalPlataforma} bloqueado={!t.activa} etiqueta="Canal plataforma" onCambiar={(v) => cambiar(t, { canalPlataforma: v })} /></div>
-            <div className="flex items-center justify-between"><span className="text-slate-300">Correo</span><Interruptor activo={t.canalCorreo} bloqueado={!t.activa} etiqueta="Canal correo" onCambiar={(v) => cambiar(t, { canalCorreo: v })} /></div>
-            <div className="flex items-center justify-between border-t border-white/10 pt-3"><span className="text-slate-300">Destinatarios</span><span className="font-semibold text-white">{t.destinatarios} usuarios</span></div>
           </div>
-          {t.canalCorreo && <p className="mt-3 text-[11px] text-amber-300/80">El envío por correo todavía no está conectado: por ahora solo se guarda la preferencia.</p>}
         </Panel>
       ))}
     </div>

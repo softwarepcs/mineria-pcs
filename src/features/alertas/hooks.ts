@@ -4,7 +4,6 @@ import {
   getHistorial,
   getUltimasConsumo,
   guardarConfigAlerta,
-  guardarDestinatario,
   type FiltroHistorial,
   type TipoAlerta,
   type TipoConfig,
@@ -45,20 +44,12 @@ export function useConfigAlertas(empresaId: number, habilitado = true) {
   return useQuery({ queryKey: alertasKeys.config(empresaId), queryFn: () => getConfigAlertas(empresaId), enabled: habilitado });
 }
 
+/** Actualiza la activación o canal de plataforma de un tipo de alerta para la empresa e invalida su caché. */
 export function useGuardarConfigAlerta(empresaId: number) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ tipo, cambios }: { tipo: TipoAlerta; cambios: Partial<Pick<TipoConfig, "activa" | "canalPlataforma" | "canalCorreo">> }) =>
+    mutationFn: ({ tipo, cambios }: { tipo: TipoAlerta; cambios: Partial<Pick<TipoConfig, "activa" | "canalPlataforma">> }) =>
       guardarConfigAlerta(empresaId, tipo, cambios),
-    onSuccess: () => qc.invalidateQueries({ queryKey: alertasKeys.config(empresaId) }),
-  });
-}
-
-export function useGuardarDestinatario(empresaId: number) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ tipo, usuarioId, recibe }: { tipo: TipoAlerta; usuarioId: number; recibe: boolean }) =>
-      guardarDestinatario(empresaId, tipo, usuarioId, recibe),
     onSuccess: () => qc.invalidateQueries({ queryKey: alertasKeys.config(empresaId) }),
   });
 }

@@ -155,7 +155,9 @@ export function HomeMapa({
     encuadradoRef.current = clave;
     mapa.closePopup();
     // Margen arriba para que los camiones no queden bajo el panel de estado
-    ajustarVista(mapa, puntos, 15, { paddingTopLeft: [40, 150], paddingBottomRight: [40, 40] });
+    // En pantallas medianas y grandes el panel de estado ocupa la esquina superior: se deja margen
+    const conPanel = mapa.getSize().x >= 600;
+    ajustarVista(mapa, puntos, 15, { paddingTopLeft: [40, conPanel ? 150 : 40], paddingBottomRight: [40, conPanel ? 40 : 60] });
   }, [mapa, seleccionadaId, conPosicion, activas]);
 
   const sinPosicion = unidades.length - conPosicion.length;
@@ -163,12 +165,12 @@ export function HomeMapa({
   return (
     <div
       ref={wrapperRef}
-      className={`relative w-full overflow-hidden bg-[#0A1C2B] ${pantallaCompleta ? "h-screen" : "h-[520px] sm:h-[580px] lg:h-[640px]"}`}
+      className={`relative w-full overflow-hidden bg-[#0A1C2B] ${pantallaCompleta ? "h-screen" : "h-[60vh] min-h-[340px] sm:h-[580px] lg:h-[640px]"}`}
     >
       <MapaControles capa={capa} onCapa={setCapa} pantallaCompleta={pantallaCompleta} onPantallaCompleta={alternarPantallaCompleta} />
       {superpuestos}
       {sinPosicion > 0 && (
-        <div className="pointer-events-none absolute bottom-3.5 left-4 z-[1000] rounded-md bg-[#02111C]/85 px-2.5 py-1 text-xs text-[#8FA3B8]">
+        <div className="pointer-events-none absolute bottom-12 left-3 z-[1000] rounded-md bg-[#02111C]/85 px-2.5 py-1 text-xs text-[#8FA3B8] sm:bottom-3.5 sm:left-4">
           {sinPosicion} camión{sinPosicion === 1 ? "" : "es"} sin posición GPS
         </div>
       )}

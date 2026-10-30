@@ -5,7 +5,7 @@ import { ESTADOS_ORDEN, ESTADO_UNIDAD } from "@/features/flota/estado";
  * Estado de la flota, compacto, sobre el mapa (arriba a la izquierda): cuántos camiones hay en
  * cada estado y la barra de reparto. Hace también de leyenda de colores del mapa.
  */
-export function HomeEstadoFlota({ unidades }: { unidades: Unidad[] }) {
+export function HomeEstadoFlota({ unidades, variante = "flotante" }: { unidades: Unidad[]; variante?: "flotante" | "franja" }) {
   const total = unidades.length;
   const cuenta = Object.fromEntries(ESTADOS_ORDEN.map((e) => [e, unidades.filter((u) => u.estado === e).length])) as Record<string, number>;
   const pct = (n: number) => (total ? Math.round((n / total) * 100) : 0);
@@ -13,7 +13,13 @@ export function HomeEstadoFlota({ unidades }: { unidades: Unidad[] }) {
   return (
     <section
       aria-label="Estado de la flota ahora"
-      className="absolute left-3 top-3 z-[1000] w-[calc(100%-24px)] max-w-[440px] rounded-[10px] border border-[#1E3850] bg-[#02111C]/90 px-3.5 py-2.5 shadow-[0_10px_24px_-12px_#000] sm:left-4 sm:top-4"
+      className={
+        variante === "flotante"
+          ? // Desde tablet: flota sobre el mapa, arriba a la izquierda
+            "absolute left-4 top-4 z-[1000] hidden w-[440px] rounded-[10px] border border-[#1E3850] bg-[#02111C]/90 px-3.5 py-2.5 shadow-[0_10px_24px_-12px_#000] sm:block"
+          : // Celular: franja fuera del mapa, encima de él
+            "border-b border-[#12263A] px-4 py-3 sm:hidden"
+      }
     >
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
         <h2 className="font-cond text-[15px] font-semibold tracking-wide text-[#F2F6FA]">Estado de la flota ahora</h2>

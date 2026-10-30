@@ -13,19 +13,20 @@ import { Cargando, ErrorCarga, SinDatos } from "@/shared/ui/Estados";
 import { Input, MensajeError, Select } from "@/shared/ui/Formulario";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { Panel } from "@/shared/ui/Panel";
-import { hoyISO, num } from "@/shared/utils/formato";
+import { hoyISO, num, sumarMesesISO } from "@/shared/utils/formato";
 
-const MAX_DIAS = 31;
+const MAX_MESES_ATRAS = 1;
 /** Opciones del selector "Filas por página" (el backend admite hasta 200). */
 const OPCIONES_FILAS = [25, 50, 100, 200] as const;
-const dias = (a: string, b: string) => Math.round((new Date(`${b}T00:00:00Z`).getTime() - new Date(`${a}T00:00:00Z`).getTime()) / 86_400_000) + 1;
 
-/** Base de datos › Consulta y mapa: recorrido de un camión coloreado por estado y resumen por día. */
+/** Base de datos › Consulta y mapa: recorrido de un camión coloreado por estado y tabla de lecturas (máximo 1 mes hacia atrás). */
 export function ConsultaView({ empresa }: { empresa: EmpresaDetalle }) {
+  const hoy = hoyISO(0, empresa.zonaHoraria);
+  const minimo = sumarMesesISO(hoy, -MAX_MESES_ATRAS);
   const unidades = useUnidades(empresa.id);
   const [camion, setCamion] = useState("");
-  const [desde, setDesde] = useState(hoyISO(-1));
-  const [hasta, setHasta] = useState(hoyISO());
+  const [desde, setDesde] = useState(() => hoyISO(-1, empresa.zonaHoraria));
+  const [hasta, setHasta] = useState(() => hoyISO(0, empresa.zonaHoraria));
   const [buscar, setBuscar] = useState<{ maquinariaId: number; desde: string; hasta: string } | null>(null);
   const [aviso, setAviso] = useState("");
   const [pagina, setPagina] = useState(1);
@@ -34,10 +35,11 @@ export function ConsultaView({ empresa }: { empresa: EmpresaDetalle }) {
   const tabla = useLecturas(empresa.id, buscar, pagina, porPagina);
 
   const lanzar = () => {
-    const n = dias(desde, hasta);
     if (!camion) return setAviso("Elige un camión.");
-    if (n < 1) return setAviso("La fecha inicial debe ser anterior a la final.");
-    if (n > MAX_DIAS) return setAviso(`El rango máximo para el mapa es de ${MAX_DIAS} días.`);
+    if (!desde || !hasta) return setAviso("Elige las fechas.");
+    if (desde > hasta) return setAviso("La fecha inicial debe ser anterior a la final.");
+    if (hasta > hoy) return setAviso("La fecha final no puede ser futura.");
+    if (desde < minimo) return setAviso("Solo se puede consultar información de hasta 1 mes atrás. Para periodos anteriores usa Exportar a Excel.");
     setAviso("");
     setPagina(1);
     setBuscar({ maquinariaId: Number(camion), desde, hasta });
@@ -62,10 +64,11 @@ export function ConsultaView({ empresa }: { empresa: EmpresaDetalle }) {
               {(unidades.data ?? []).map((u) => <option key={u.id} value={u.id}>{u.placa} · {[u.marca, u.modelo].filter(Boolean).join(" ")}</option>)}
             </Select>
           </label>
-          <label className="block text-xs text-slate-400">Desde<Input type="date" value={desde} max={hasta} onChange={(e) => setDesde(e.target.value)} /></label>
-          <label className="block text-xs text-slate-400">Hasta<Input type="date" value={hasta} min={desde} max={hoyISO()} onChange={(e) => setHasta(e.target.value)} /></label>
+          <label className="block text-xs text-slate-400">Desde<Input type="date" value={desde} min={minimo} max={hasta && hasta < hoy ? hasta : hoy} onChange={(e) => setDesde(e.target.value)} /></label>
+          <label className="block text-xs text-slate-400">Hasta<Input type="date" value={hasta} min={desde && desde > minimo ? desde : minimo} max={hoy} onChange={(e) => setHasta(e.target.value)} /></label>
           <button onClick={lanzar} className="rounded-lg bg-[#2BC4E8] px-5 py-2 text-sm font-semibold text-slate-900">Buscar</button>
         </div>
+        <p className="mt-1.5 text-[11px] text-slate-500">Consulta disponible para lecturas de hasta 1 mes hacia atrás. Para periodos anteriores usa Exportar a Excel.</p>
         <div className="mt-2"><MensajeError>{aviso}</MensajeError></div>
       </Panel>
 

@@ -66,9 +66,10 @@ export function HomeView({ empresa }: { empresa: EmpresaDetalle }) {
       ) : (
         <>
           <Panel padding="none" className="overflow-hidden">
-            <div className="px-5 py-4">
+            <HomeEstadoFlota unidades={unidades.data} variante="franja" />
+            <div className="px-4 py-3 sm:px-5 sm:py-4">
               <h2 className="font-cond text-[21px] font-semibold text-[#F2F6FA]">
-                Mapa en línea <span className="ml-2 font-sans text-sm font-normal text-[#8FA3B8]">Haz clic en un camión</span>
+                Mapa en línea <span className="ml-2 hidden font-sans text-sm font-normal text-[#8FA3B8] sm:inline">Haz clic en un camión</span>
               </h2>
             </div>
             <HomeMapa

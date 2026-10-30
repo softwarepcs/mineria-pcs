@@ -8,18 +8,20 @@ import { Input, MensajeError } from "@/shared/ui/Formulario";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { Panel } from "@/shared/ui/Panel";
 import { descargarExcelHojas } from "@/shared/utils/excel";
-import { hoyISO } from "@/shared/utils/formato";
+import { hoyISO, sumarMesesISO } from "@/shared/utils/formato";
 
-const MAX_DIAS = 93;
-const MAX_ATRAS_DIAS = 548;
+const MAX_MESES_RANGO = 3;
+const MAX_MESES_ATRAS = 18;
 
 const dias = (a: string, b: string) => Math.round((new Date(`${b}T00:00:00Z`).getTime() - new Date(`${a}T00:00:00Z`).getTime()) / 86_400_000) + 1;
 
-/** Base de datos › Exportar a Excel: rango de fechas, camiones y un libro con una hoja por camión. */
+/** Base de datos › Exportar a Excel: rango de fechas (máximo 3 meses), camiones y un libro con una hoja por camión. */
 export function ExportarView({ empresa }: { empresa: EmpresaDetalle }) {
+  const hoy = hoyISO(0, empresa.zonaHoraria);
+  const minimo = sumarMesesISO(hoy, -MAX_MESES_ATRAS);
   const unidades = useUnidades(empresa.id);
-  const [desde, setDesde] = useState(hoyISO(-30));
-  const [hasta, setHasta] = useState(hoyISO(-1));
+  const [desde, setDesde] = useState(() => hoyISO(-30, empresa.zonaHoraria));
+  const [hasta, setHasta] = useState(() => hoyISO(-1, empresa.zonaHoraria));
   const [marcados, setMarcados] = useState<Set<number> | null>(null); // null = todos
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState("");
@@ -27,13 +29,15 @@ export function ExportarView({ empresa }: { empresa: EmpresaDetalle }) {
   const lista = useMemo(() => unidades.data ?? [], [unidades.data]);
   const ids = marcados ?? new Set(lista.map((u) => u.id));
   const nDias = desde && hasta ? dias(desde, hasta) : 0;
-  const minimo = hoyISO(-MAX_ATRAS_DIAS);
+  const topeRango = desde ? sumarMesesISO(desde, MAX_MESES_RANGO) : "";
+  const maxHasta = topeRango && topeRango < hoy ? topeRango : hoy;
 
   const problema =
     !desde || !hasta ? "Elige las fechas."
-    : nDias < 1 ? "La fecha inicial debe ser anterior a la final."
-    : nDias > MAX_DIAS ? "El rango máximo es de 3 meses."
+    : desde > hasta ? "La fecha inicial debe ser anterior a la final."
+    : hasta > hoy ? "La fecha final no puede ser futura."
     : desde < minimo ? "Solo hay historial de los últimos 18 meses."
+    : topeRango && hasta > topeRango ? "El rango máximo de exportación es de 3 meses."
     : ids.size === 0 ? "Selecciona al menos un camión."
     : "";
 
@@ -79,10 +83,10 @@ export function ExportarView({ empresa }: { empresa: EmpresaDetalle }) {
       ) : (
         <Panel>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label className="block text-xs text-slate-400">Desde<Input type="date" value={desde} min={minimo} max={hasta || hoyISO()} onChange={(e) => setDesde(e.target.value)} /></label>
-            <label className="block text-xs text-slate-400">Hasta<Input type="date" value={hasta} min={desde} max={hoyISO()} onChange={(e) => setHasta(e.target.value)} /></label>
+            <label className="block text-xs text-slate-400">Desde<Input type="date" value={desde} min={minimo} max={hasta && hasta < hoy ? hasta : hoy} onChange={(e) => setDesde(e.target.value)} /></label>
+            <label className="block text-xs text-slate-400">Hasta<Input type="date" value={hasta} min={desde && desde > minimo ? desde : minimo} max={maxHasta} onChange={(e) => setHasta(e.target.value)} /></label>
           </div>
-          <p className="mt-1 text-[11px] text-slate-500">Hasta 3 meses por archivo y hasta 18 meses hacia atrás.</p>
+          <p className="mt-1 text-[11px] text-slate-500">Rango máximo de 3 meses por archivo y hasta 18 meses hacia atrás.</p>
 
           <div className="mt-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-white">Camiones</h2>

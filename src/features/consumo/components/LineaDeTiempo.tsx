@@ -1,4 +1,6 @@
-import { useState, type MouseEvent } from "react";
+import { useRef, useState, type MouseEvent } from "react";
+import { useFullscreen } from "@/shared/map/useFullscreen";
+import { BotonPantallaCompleta } from "@/shared/ui/BotonPantallaCompleta";
 import { num } from "@/shared/utils/formato";
 import type { AlertaReporte, MaquinariaReporte, ReporteEventos, SegmentoReporte } from "@/features/reportes/api";
 import { ESTADO, ESTADOS_ORDEN } from "@/features/reportes/estilos";
@@ -38,12 +40,18 @@ export function LineaDeTiempo({ reporte, resaltada, onResaltar }: Props) {
   const marcas = marcasCada2h(desde, hasta, tz, noches);
 
   const [detalle, setDetalle] = useState<Detalle | null>(null);
+  const contenedorRef = useRef<HTMLDivElement>(null);
+  const { pantallaCompleta, alternarPantallaCompleta } = useFullscreen(contenedorRef);
   const d = detalle ?? detallePorDefecto(reporte.maquinarias, hasta, tz);
 
   return (
-    <section className="rounded-xl border border-[#12263A] bg-[#071623] px-5 py-[18px]">
+    <div ref={contenedorRef} className={pantallaCompleta ? "h-screen overflow-auto bg-[#02111C] p-4" : ""}>
+    <section className={`rounded-xl border border-[#12263A] bg-[#071623] px-5 py-[18px] ${pantallaCompleta ? "min-h-full" : ""}`}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <h2 className="font-cond text-[21px] font-semibold text-[#F2F6FA]">Línea de tiempo de estados · últimas 24 h</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="font-cond text-[21px] font-semibold text-[#F2F6FA]">Línea de tiempo de estados · últimas 24 h</h2>
+          <BotonPantallaCompleta activo={pantallaCompleta} onClick={alternarPantallaCompleta} que="la línea de tiempo" />
+        </div>
         <div className="min-h-[92px] w-full rounded-[10px] border bg-[#02111C] px-3.5 py-2 text-[13px] leading-normal text-[#C9D6E3] sm:w-[440px]" style={{ borderColor: d?.color ?? "#1E3850" }} aria-live="polite">
           {d ? (
             <>
@@ -113,6 +121,7 @@ export function LineaDeTiempo({ reporte, resaltada, onResaltar }: Props) {
         <span className="text-[#8FA3B8]">Línea punteada = medianoche</span>
       </div>
     </section>
+    </div>
   );
 }
 
@@ -152,7 +161,8 @@ function Carril({
         onClick={() => onResaltar(m.id)}
         aria-pressed={resaltada}
         title={`Resaltar ${m.placa} en la tabla`}
-        className={`flex-none rounded-md px-1.5 py-0.5 text-left ${resaltada ? "bg-[#0C2E4A]" : "hover:bg-[#0A1E30]"}`}
+        // Fija al desplazar horizontalmente (celular): siempre se ve qué camión es cada barra
+        className={`sticky left-0 z-[6] flex-none rounded-md px-1.5 py-0.5 text-left shadow-[8px_0_8px_-6px_#071623] ${resaltada ? "bg-[#0C2E4A]" : "bg-[#071623] hover:bg-[#0A1E30]"}`}
         style={{ width: ANCHO_NOMBRE }}
       >
         <div className="truncate font-cond text-[19px] font-bold leading-tight text-white">{m.placa}</div>

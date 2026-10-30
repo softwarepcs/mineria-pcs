@@ -7,6 +7,7 @@ import { ESTADOS_ORDEN, ESTADO_UNIDAD } from "@/features/flota/estado";
 import { DataTable, type Columna } from "@/shared/ui/DataTable";
 import { Panel, PanelTitulo } from "@/shared/ui/Panel";
 import { fechaHora, num } from "@/shared/utils/formato";
+import { fechaHoraEn, horaEn } from "@/features/reportes/ventana";
 
 type Filtro = "todos" | EstadoFlota;
 
@@ -135,23 +136,118 @@ export function HomeTabla({ unidades, zonaHoraria, seleccionadaId, onSeleccionar
           Camiones en línea <span className="punto-vivo" />
         </span>
       </PanelTitulo>
-      <DataTable
-        columnas={columnas}
-        datos={visibles}
-        keyExtractor={(u) => u.id}
-        filaActiva={seleccionadaId}
-        claseFila={(u) => (ocultas.has(u.id) ? "opacity-50" : "")}
-        onClickFila={(u) => onSeleccionar(u.id)}
-        minWidth="980px"
-        vacio={<p className="py-6 text-center text-sm text-[#8FA3B8]">No hay camiones en este estado.</p>}
-      />
+      {/* Celular: tarjetas; desde tablet: tabla */}
+      <ul className="space-y-2 sm:hidden">
+        {visibles.length === 0 && <li className="py-6 text-center text-sm text-[#8FA3B8]">No hay camiones en este estado.</li>}
+        {visibles.map((u) => (
+          <li key={u.id}>
+            <TarjetaCamion
+              u={u}
+              zonaHoraria={zonaHoraria}
+              enMapa={!ocultas.has(u.id)}
+              activa={seleccionadaId === u.id}
+              onAlternarVisible={() => onAlternarVisible(u.id)}
+              onSeleccionar={() => onSeleccionar(u.id)}
+            />
+          </li>
+        ))}
+      </ul>
+      <div className="hidden sm:block">
+        <DataTable
+          columnas={columnas}
+          datos={visibles}
+          keyExtractor={(u) => u.id}
+          filaActiva={seleccionadaId}
+          claseFila={(u) => (ocultas.has(u.id) ? "opacity-50" : "")}
+          onClickFila={(u) => onSeleccionar(u.id)}
+          minWidth="980px"
+          vacio={<p className="py-6 text-center text-sm text-[#8FA3B8]">No hay camiones en este estado.</p>}
+        />
+      </div>
       <div className="mt-3 flex flex-wrap justify-between gap-2 text-[13px] text-[#8FA3B8]">
         <span>(T) = total acumulado desde la instalación del equipo · se actualiza en tiempo real</span>
         <span>
-          En el mapa: <strong className="text-white">{totalEnMapa}</strong> de {unidades.length} · marca o desmarca la casilla para mostrar u ocultar
+          En el mapa: <strong className="text-white">{totalEnMapa}</strong> de {unidades.length}
+          <span className="hidden sm:inline"> · marca o desmarca la casilla para mostrar u ocultar</span>
         </span>
       </div>
     </Panel>
     </div>
   );
+}
+
+/** Un camión en el celular: código y estado arriba, lo más usado en medio y los totales (T) al desplegar. */
+function TarjetaCamion({
+  u,
+  zonaHoraria,
+  enMapa,
+  activa,
+  onAlternarVisible,
+  onSeleccionar,
+}: {
+  u: Unidad;
+  zonaHoraria: string;
+  enMapa: boolean;
+  activa: boolean;
+  onAlternarVisible: () => void;
+  onSeleccionar: () => void;
+}) {
+  const [abierta, setAbierta] = useState(false);
+  const sinDato = u.estado === "sin_senal";
+  const color = ESTADO_UNIDAD[u.estado].color;
+  const dato = (k: string, v: string) => (
+    <div className="min-w-0">
+      <div className="text-[11px] text-[#8FA3B8]">{k}</div>
+      <div className="truncate text-sm font-semibold tabular-nums text-white">{v}</div>
+    </div>
+  );
+
+  return (
+    <div
+      className={`rounded-lg border bg-[#0A1C2B] px-3 py-2.5 ${activa ? "border-[#2BC4E8]" : "border-[#12263A]"} ${enMapa ? "" : "opacity-60"}`}
+      style={{ boxShadow: `inset 3px 0 0 ${color}` }}
+    >
+      <div className="flex items-center gap-2.5">
+        <input type="checkbox" className={CASILLA} checked={enMapa} onChange={onAlternarVisible} aria-label={`Mostrar ${u.placa} en el mapa`} />
+        <button type="button" onClick={onSeleccionar} className="min-w-0 flex-1 text-left" title="Ver en el mapa">
+          <div className="flex items-center justify-between gap-2">
+            <span className="truncate font-semibold text-white">{u.placa}</span>
+            <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold" style={{ color }}>
+              <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+              {ESTADO_UNIDAD[u.estado].etiqueta}
+            </span>
+          </div>
+          <div className="truncate text-xs text-[#8FA3B8]">{[u.marca, u.modelo].filter(Boolean).join(" ") || "—"}</div>
+        </button>
+      </div>
+
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        {dato("Gal/h", sinDato ? "—" : num(u.telemetria?.consumoInstantaneo, 1))}
+        {dato("km/h", sinDato ? "—" : num(u.telemetria?.velocidad, 0))}
+        <div className="min-w-0">
+          <div className="text-[11px] text-[#8FA3B8]">Último dato</div>
+          <div className={`truncate text-sm font-semibold tabular-nums ${sinDato ? "text-[#F64651]" : "text-white"}`}>{cuandoCorto(u.ultimaConexion, zonaHoraria)}</div>
+        </div>
+      </div>
+
+      <button type="button" onClick={() => setAbierta((v) => !v)} aria-expanded={abierta} className="mt-2 text-xs font-semibold text-[#8FD9EE]">
+        {abierta ? "Ocultar totales" : "Ver totales (T)"}
+      </button>
+      {abierta && (
+        <div className="mt-1.5 grid grid-cols-3 gap-2 border-t border-[#12263A] pt-2">
+          {dato("Galones (T)", num(u.telemetria?.consumoAcumulado, 2))}
+          {dato("Odómetro (T) km", num(u.telemetria?.odometro, 1))}
+          {dato("Horómetro (T) h", num(u.telemetria?.horasMotor, 2))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Último dato en la tarjeta: "14:28" si es de hoy, "27/10 22:10" si no (zona de la empresa). */
+function cuandoCorto(iso: string | null, tz: string): string {
+  if (!iso) return "—";
+  const dia = (x: Date) => x.toLocaleDateString("en-CA", { timeZone: tz });
+  const d = new Date(iso);
+  return dia(d) === dia(new Date()) ? horaEn(d, tz) : fechaHoraEn(d, tz);
 }

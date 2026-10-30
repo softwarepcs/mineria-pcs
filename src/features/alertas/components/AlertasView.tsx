@@ -91,6 +91,9 @@ function filasGeocerca(eventos: FilaHistorial[], tz: string): Fila[] {
   const porCamion = new Map<number, FilaHistorial[]>();
   for (const e of eventos) porCamion.set(e.maquinariaId, [...(porCamion.get(e.maquinariaId) ?? []), e]);
 
+  const conCoord = (detalle: string, e: FilaHistorial) =>
+    e.latitud === null || e.longitud === null ? detalle : `${detalle} · ${coord(e.latitud, e.longitud)}`;
+
   const filas: Fila[] = [];
   for (const lista of porCamion.values()) {
     const ultimo = lista[0]!;
@@ -103,20 +106,20 @@ function filasGeocerca(eventos: FilaHistorial[], tz: string): Fila[] {
       colorQue: COLOR_GEOCERCA,
       redondo: false,
       galones: e.galonesDia === null ? "—" : `${num(e.galonesDia, 1)} gal`,
-      km: e.km === null ? "—" : num(e.km, 0),
-      notaKm: e.km === null ? "" : "del día al momento",
+      km: num(e.km, 1),
+      notaKm: e.km === null ? "" : "en la geocerca",
       cierre: "—",
     });
     if (ultimo.tipoEvento === "SALIDA") {
       const entrada = lista.slice(1).find((e) => e.tipoEvento === "ENTRADA" && e.geocerca === ultimo.geocerca);
       const dentro = minutos(ultimo.duracionMin);
       if (entrada) {
-        filas.push({ ...base(entrada), key: `g-${entrada.id}`, que: `→ Entrada a ${entrada.geocerca}`, donde: `Salió a las ${horaEn(ultimo.fechaHora, tz)}`, duracion: "—", estado: "ENTRADA" });
+        filas.push({ ...base(entrada), key: `g-${entrada.id}`, que: `→ Entrada a ${entrada.geocerca}`, donde: conCoord(`Salió a las ${horaEn(ultimo.fechaHora, tz)}`, entrada), duracion: "—", estado: "ENTRADA" });
       }
-      filas.push({ ...base(ultimo), key: `g-${ultimo.id}`, que: `← Salida de ${ultimo.geocerca}`, donde: `Estuvo dentro ${dentro}`, duracion: dentro, estado: "SALIDA" });
+      filas.push({ ...base(ultimo), key: `g-${ultimo.id}`, que: `← Salida de ${ultimo.geocerca}`, donde: conCoord(`Estuvo dentro ${dentro}`, ultimo), duracion: dentro, estado: "SALIDA" });
     } else {
       const dentro = duracion(Date.now() - new Date(ultimo.fechaHora).getTime());
-      filas.push({ ...base(ultimo), key: `g-${ultimo.id}`, que: `→ Entrada a ${ultimo.geocerca}`, donde: `Sigue dentro · ${dentro} hasta ahora`, duracion: "—", estado: "ENTRADA" });
+      filas.push({ ...base(ultimo), notaKm: ultimo.km === null ? "al salir" : "en la geocerca", key: `g-${ultimo.id}`, que: `→ Entrada a ${ultimo.geocerca}`, donde: conCoord(`Sigue dentro · ${dentro} hasta ahora`, ultimo), duracion: "—", estado: "ENTRADA" });
     }
   }
   return filas;

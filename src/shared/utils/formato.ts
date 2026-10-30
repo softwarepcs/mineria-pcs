@@ -38,12 +38,42 @@ export function haceCuanto(iso: string | Date | null | undefined): string {
   return `hace ${Math.round(seg / 86400)} d`;
 }
 
-/** Fecha local "YYYY-MM-DD" para inputs type=date. */
-export function hoyISO(offsetDias = 0): string {
+/**
+ * Fecha local "YYYY-MM-DD" para inputs `type="date"`.
+ * Si se indica `zonaHoraria` (IANA), toma el día actual en esa zona antes de sumar `offsetDias`.
+ */
+export function hoyISO(offsetDias = 0, zonaHoraria?: string): string {
+  if (zonaHoraria) {
+    try {
+      const base = new Intl.DateTimeFormat("en-CA", { timeZone: zonaHoraria, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+      if (/^\d{4}-\d{2}-\d{2}$/.test(base)) {
+        const [y, m, d] = base.split("-").map(Number);
+        return new Date(Date.UTC(y, m - 1, d + offsetDias)).toISOString().slice(0, 10);
+      }
+    } catch {
+      // Zona inválida: cae al reloj local del navegador
+    }
+  }
   const d = new Date();
   d.setDate(d.getDate() + offsetDias);
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+/**
+ * Suma (o resta) meses calendario a una fecha `YYYY-MM-DD`, ajustando el día al último día válido
+ * del mes destino (p. ej. `2026-03-31` − 1 mes → `2026-02-28`). Devuelve `""` si el formato es inválido.
+ */
+export function sumarMesesISO(iso: string, meses: number): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+  const [y, m, d] = iso.split("-").map(Number);
+  const totalMeses = y * 12 + (m - 1) + meses;
+  const anio = Math.floor(totalMeses / 12);
+  const mes0 = ((totalMeses % 12) + 12) % 12;
+  const ultimoDia = new Date(Date.UTC(anio, mes0 + 1, 0)).getUTCDate();
+  const dia = Math.min(d, ultimoDia);
+  const p = (n: number, l = 2) => String(n).padStart(l, "0");
+  return `${p(anio, 4)}-${p(mes0 + 1)}-${p(dia)}`;
 }
 
 /** ISO del backend → valor de <input type="datetime-local"> en hora local. */

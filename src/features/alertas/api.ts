@@ -86,15 +86,14 @@ export async function getUltimasConsumo(empresaId: number, situacion?: "ABIERTO"
   return data;
 }
 
-/** Configuración de avisos (GET /alertas/config). */
+/** Configuración de avisos por tipo de alerta (`GET /alertas/config`). */
 export interface TipoConfig {
   tipo: TipoAlerta;
   activa: boolean;
   canalPlataforma: boolean;
-  canalCorreo: boolean;
-  destinatarios: number;
 }
 
+/** Resumen de usuario perteneciente a la empresa (`GET /alertas/config`). */
 export interface UsuarioAviso {
   id: number;
   nombre: string;
@@ -102,26 +101,22 @@ export interface UsuarioAviso {
   estado: string;
   roles: string[];
   ultimoIngresoEn: string | null;
-  recibeConsumo: boolean;
-  recibeGeocerca: boolean;
 }
 
+/** Respuesta completa de configuración de alertas y usuarios de la empresa. */
 export interface ConfigAlertas {
   tipos: TipoConfig[];
   usuarios: UsuarioAviso[];
 }
 
+/** Obtiene la configuración de alertas y el listado de usuarios de la empresa. */
 export async function getConfigAlertas(empresaId: number): Promise<ConfigAlertas> {
   const { data } = await apiClient.get<ConfigAlertas>("/alertas/config", { params: { empresaId } });
   return data;
 }
 
-export async function guardarConfigAlerta(empresaId: number, tipo: TipoAlerta, cambios: Partial<Pick<TipoConfig, "activa" | "canalPlataforma" | "canalCorreo">>) {
+/** Actualiza el estado de activación o canal de plataforma de un tipo de alerta. */
+export async function guardarConfigAlerta(empresaId: number, tipo: TipoAlerta, cambios: Partial<Pick<TipoConfig, "activa" | "canalPlataforma">>) {
   const { data } = await apiClient.put(`/alertas/config/${tipo}`, cambios, { params: { empresaId } });
-  return data;
-}
-
-export async function guardarDestinatario(empresaId: number, tipo: TipoAlerta, usuarioId: number, recibe: boolean) {
-  const { data } = await apiClient.put(`/alertas/config/${tipo}/destinatarios/${usuarioId}`, { recibe }, { params: { empresaId } });
   return data;
 }

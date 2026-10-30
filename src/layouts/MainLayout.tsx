@@ -40,7 +40,7 @@ function Encabezado({ onAbrirMenu }: { onAbrirMenu: () => void }) {
   const marca = empresa ? empresa.nombre.split(/\s+/)[0]!.toUpperCase() : "EDGE SMART";
 
   return (
-    <header className="z-10 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[#12263A] bg-[#041725] px-4 py-3 md:px-7">
+    <header className="z-10 flex shrink-0 flex-nowrap items-center justify-between gap-3 border-b border-[#12263A] bg-[#041725] px-4 py-3 md:px-7">
       <div className="flex min-w-0 items-center gap-3 md:gap-5">
         <button
           type="button"
@@ -50,7 +50,7 @@ function Encabezado({ onAbrirMenu }: { onAbrirMenu: () => void }) {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="truncate font-cond text-2xl font-bold tracking-wide text-white md:text-[28px]" title={empresa?.nombre}>{marca}</div>
+        <div className="min-w-0 truncate font-cond text-[22px] font-bold tracking-wide text-white sm:text-2xl md:text-[28px]" title={empresa?.nombre}>{marca}</div>
         <div className="hidden h-9 w-px bg-[#1E3850] sm:block" />
         <div className="hidden min-w-0 sm:block">
           <div className="truncate font-cond text-[19px] font-semibold tracking-wide text-white">MONITOREO DE CONSUMO DE COMBUSTIBLE</div>
@@ -58,7 +58,7 @@ function Encabezado({ onAbrirMenu }: { onAbrirMenu: () => void }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 md:gap-6">
+      <div className="flex shrink-0 items-center gap-3 sm:gap-4 md:gap-6">
         <div className="hidden text-right lg:block">
           <div className="text-[13px] text-[#8FA3B8]">{fecha}</div>
           <div className="font-cond text-xl font-semibold tabular-nums text-white">
